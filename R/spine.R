@@ -51,10 +51,9 @@ spine <- function(
     ))
   }
 
-  print("here")
   # Create structure object
   trial_structure_instance <- trial_structure(prop_params_df, arms_ls)
-  print(class(trial_structure_instance))
+  print(trial_structure_instance)
 
   treats_out_ls <- do_sample(
       prop_params_df,

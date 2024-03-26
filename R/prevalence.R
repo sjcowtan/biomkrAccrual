@@ -70,15 +70,14 @@ get_matrix_struct <- function(arms_ls) {
 }
 
 get_matrix_prevalence <- function(arm_structure_mx, recruit_arm_prevalence) {
-  # Now one with the prevalences
-
+  # Make matrix with the prevalences by treatment arm and recruitment arm
   arm_prevalence_mx <- 
     matrix(0, nrow = nrow(arm_structure_mx), ncol = ncol(arm_structure_mx))
 
   # Now loop, replacing 1 with prevalence
   for (irow in seq_len(length(recruit_arm_prevalence))) {
     arm_prevalence_mx[irow, which(arm_structure_mx[irow, ])] <- 
-      arm_prevalence[irow] / sum(arm_structure_mx[irow, ])
+      arm_prevalence_mx[irow] / sum(arm_structure_mx[irow, ])
   }
 
   return(arm_prevalence_mx)
