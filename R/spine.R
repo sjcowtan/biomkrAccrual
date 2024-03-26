@@ -1,3 +1,5 @@
+#' @include prevalence.R
+
 #' Driver for the procedure
 #' @param target_arm_size Number of patients required per treatment arm
 #' 
@@ -53,7 +55,10 @@ spine <- function(
 
   # Create structure object
   trial_structure_instance <- trial_structure(prop_params_df, arms_ls)
-  print(trial_structure_instance)
+ 
+  print("Before do_sample")
+  print(trial_structure_instance@treatment_arm_struct)
+  print(trial_structure_instance@treatment_arm_prev)
 
   treats_out_ls <- do_sample(
       prop_params_df,
@@ -70,6 +75,9 @@ spine <- function(
       fixed_centre_starts = fixed_centre_starts,
       fixed_site_rates = fixed_site_rates
     )
+    print("After do_sample")
+    print(trial_structure_instance@treatment_arm_struct)
+    print(trial_structure_instance@treatment_arm_prev)
 
 }
 
@@ -92,14 +100,12 @@ do_sample <- function(
   fixed_site_rates
 ) {
   
-  print(trial_structure_instance@recruit_arm_prevalence)
+
+  arms_to_remove <- as.integer(c(1, 4))
   trial_structure_instance <- 
-    remove_recruit_arms(trial_structure_instance, arms = as.integer(c(4, 7)))
+    remove_treat_arms(trial_structure_instance, arms = arms_to_remove)
 
-   print(class(trial_structure_instance))
 
-  print(trial_structure_instance@treatment_arm_ids)
-
-  print(trial_structure_instance@recruit_arm_prevalence)
+  return(trial_structure_instance)
 
 }
