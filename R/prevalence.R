@@ -71,18 +71,19 @@ trial_structure <- S7::new_class("trial_structure",
     } else if (length(self@recruit_arm_names) != 
         length(self@recruit_arm_prevalence)) {
       "Different number of recruitment arm names supplied than prevalences"
-    } #else if (length(self@recruit_arm_prevalence) < 
-        #max(unlist(self@treatment_arm_ids))) {
-      #"More recruitment arms defined than prevalences specified"
-    #}
+    } else if (!(all(sapply(self@treatment_arm_ids, 
+        function(v) is.integer(unlist(v)) || is.na(v))))) {
+        "Elements from the treatment arm list should be integer vectors or NA"
+    } else if (length(self@recruit_arm_prevalence) < 
+        max(unlist(self@treatment_arm_ids), na.rm = TRUE)) {
+      "More recruitment arms defined than prevalences specified"
+    }
   }
 
 )
 
 #' Converts trial structure and prevalence information into matrix form
 get_matrix_struct <- function(arms_ls, recruit_arm_prevalence) {
-
-  print(recruit_arm_prevalence)
 
   # Predeclare matrix as no_arms * no_treatments
   no_treats <- length(arms_ls)
@@ -121,16 +122,17 @@ get_matrix_prevalence <- function(arm_structure_mx, recruit_arm_prevalence) {
         recruit_arm_prevalence[irow] / sum(arm_structure_mx[irow, ])
     }
   }
-  print(arm_prevalence_mx)
 
   return(arm_prevalence_mx)
 }
 
+
 #' Close off treatment arms.
-#' Recalculates prevalence on the assumption that patients for that
-#' treatment arm are no longer recruited.
-#' Removes treatment arm from the vector of active treatments for each
-#' recruitment arm.
+#' In the list of treatment arm IDs, replaces the vector of recruitment
+#' arm IDs with NA.
+#' If any recruitment arms are closed, sets their prevalence to zero and 
+#' recalculates prevalence vector, on the assumption that no patients with
+#' those characteristics will be recruited from that point.
 #' Class object will automatically generate new trial structure and 
 #' prevalence matrices.
 #' 
@@ -138,68 +140,24 @@ get_matrix_prevalence <- function(arm_structure_mx, recruit_arm_prevalence) {
 #' @rdname trial-structure
 #' @export
 #' 
-remove_recruit_arms <- S7::new_generic("remove_recruit_arms", "x")
-S7::method(remove_recruit_arms, trial_structure) <- function(x, arms) {
-
-  # Prevalence of removed arms are 0
-  x@recruit_arm_prevalence[arms] <- 0
-  # Rescale prevalence so sums to 1
-  x@recruit_arm_prevalence <- 
-    x@recruit_arm_prevalence / sum(x@recruit_arm_prevalence)
+remove_treat_arms <- S7::new_generic("remove_recruit_arms", "obj")
+S7::method(remove_treat_arms, trial_structure) <- function(obj, arms) {
   
-  # Get existing allocations
-  arms_ls <- x@treatment_arm_ids
-
-  # Loop over treatment arms
-  arms_ls <- lapply(arms_ls, function(l) {
-    # Remove allocations from the recruitment arms in arms
-    l <- l[!(l %in% arms)]
-    # Remove treatment arm if no more arms recruiting to it
-    if (length(l) < 1) {
-      return(NULL)
-    # Return remaining allocations to treatment arm
-    } else {
-      return(l)
-    }
-  })
-
-  # Set new allocation list on structure object
-  x@treatment_arm_ids <- arms_ls
-
-  return(x)
-
-}
-
-
-#' Close off treatment arms.
-#' Recalculates prevalence on the assumption that patients for that
-#' treatment arm are no longer recruited.
-#' Removes treatment arm from the vector of active treatments for each
-#' recruitment arm.
-#' Class object will automatically generate new trial structure and 
-#' prevalence matrices.
-#' 
-#' @param arms vector or scalar of integer arm ID numbers
-#' @rdname trial-structure
-#' @export
-#' 
-remove_treat_arms <- S7::new_generic("remove_recruit_arms", "x")
-S7::method(remove_treat_arms, trial_structure) <- function(x, arms) {
-  
-  # Remove treatment arms from list
+  # Mark treatment arms as removed using NA; 
+  # automatic getter for treatment_arm_struct does the rest
   for (i in arms) {
-    x@treatment_arm_ids[[i]] <- NA_integer_
+    obj@treatment_arm_ids[[i]] <- NA_integer_
   }
 
+  # Set prevalence to 0 for any recruitment arms which now have no
+  # experimental arms to recruit to
+  obj@recruit_arm_prevalence[which(colSums(obj@treatment_arm_struct) < 1)] <- 0
+  # Rescale prevalence so it adds to 1
+  # (corresponds to recruitment closing for those characteristics)
+  obj@recruit_arm_prevalence <- 
+    obj@recruit_arm_prevalence / sum(obj@recruit_arm_prevalence)
 
-  print(x@treatment_arm_struct)
-  
-  x@recruit_arm_prevalence[which(colSums(x@treatment_arm_struct) < 1)] <- 0
-  x@recruit_arm_prevalence <- 
-    x@recruit_arm_prevalence / sum(x@recruit_arm_prevalence)
-  print(x@treatment_arm_prev)
-  print(x@recruit_arm_prevalence)
-  return(x)
+  return(obj)
 }
 
 

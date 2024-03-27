@@ -4,7 +4,7 @@
 \alias{get_matrix_struct}
 \title{Converts trial structure and prevalence information into matrix form}
 \usage{
-get_matrix_struct(arms_ls)
+get_matrix_struct(arms_ls, recruit_arm_prevalence)
 }
 \description{
 Converts trial structure and prevalence information into matrix form

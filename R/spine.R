@@ -55,57 +55,14 @@ spine <- function(
 
   # Create structure object
   trial_structure_instance <- trial_structure(prop_params_df, arms_ls)
- 
-  print("Before do_sample")
-  print(trial_structure_instance@treatment_arm_struct)
-  print(trial_structure_instance@treatment_arm_prev)
 
-  treats_out_ls <- do_sample(
-      prop_params_df,
-      arms_ls,
-      trial_structure_instance,
-      target_arm_size,
-      margin,
-      av_site_rate_month,
-      accrual_period,
-      goals_df,
-      ctrl_ratio,
-      data_path = data_path,
-      centre_start_file = centre_start_file,
-      fixed_centre_starts = fixed_centre_starts,
-      fixed_site_rates = fixed_site_rates
-    )
-    print("After do_sample")
-    print(trial_structure_instance@treatment_arm_struct)
-    print(trial_structure_instance@treatment_arm_prev)
-
-}
-
-
-#' Driver for single instance of sampling
-#' 
-do_sample <- function(
-  prop_params_df, 
-  arms_ls, 
-  trial_structure_instance, 
-  target_arm_size, 
-  margin, 
-  av_site_rate_month, 
-  accrual_period, 
-  goals_df, 
-  ctrl_ratio, 
-  data_path, 
-  centre_start_file, 
-  fixed_centre_starts, 
-  fixed_site_rates
-) {
   
 
+  # Removing some arms
   arms_to_remove <- as.integer(c(1, 4))
   trial_structure_instance <- 
     remove_treat_arms(trial_structure_instance, arms = arms_to_remove)
 
-
-  return(trial_structure_instance)
+  print(trial_structure_instance@recruit_arm_prevalence)
 
 }
