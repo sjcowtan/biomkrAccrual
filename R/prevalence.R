@@ -15,7 +15,7 @@
 #' treatment arms by recruitment arms.
 #' @slot treatment_arm_prev Automatically generated matrix of recruitment
 #' prevalences of treatment arms by recruitment arms
-#' @name trial-structure
+#' @name trial_structure
 #' 
 trial_structure <- S7::new_class("trial_structure",
   package = "biomkrAccrual",
