@@ -13,7 +13,7 @@
 #' number of recruitment arms recruiting to each treatment arm.
 #' @slot treatment_arm_struct Automatically generated logical matrix of 
 #' treatment arms by recruitment arms.
-#' @slot treatment_arm_prev Automatically generated matrix of recruitment
+#' @slot treatment_arm_prevalence Automatically generated matrix of recruitment
 #' prevalences of treatment arms by recruitment arms
 #' @name trial_structure
 #' 
@@ -37,7 +37,7 @@ trial_structure <- S7::new_class("trial_structure",
         get_matrix_struct(self@treatment_arm_ids, self@recruit_arm_prevalence)
       }
     ),
-    treatment_arm_prev = S7::new_property(
+    treatment_arm_prevalence = S7::new_property(
       getter = 
         function(self) {
           get_matrix_prevalence(
@@ -145,9 +145,19 @@ S7::method(remove_treat_arms, trial_structure) <- function(obj, arms) {
   
   # Mark treatment arms as removed using NA; 
   # automatic getter for treatment_arm_struct does the rest
-  for (i in arms) {
-    obj@treatment_arm_ids[[i]] <- NA_integer_
-  }
+  arms_ls <- obj@treatment_arm_ids
+
+  obj@treatment_arm_ids <- lapply(arms_ls, function(l) {
+    # Remove allocations from the recruitment arms in arms
+    l <- l[!(l %in% arms)]
+    # Remove treatment arm if no more arms recruiting to it
+    if (length(l) < 1) {
+      return(NA_integer_)
+    # Return remaining allocations to treatment arm
+    } else {
+      return(l)
+    }
+  })
 
   # Set prevalence to 0 for any recruitment arms which now have no
   # experimental arms to recruit to

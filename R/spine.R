@@ -11,10 +11,12 @@ spine <- function(
   target_arm_size = 308,
   target_interim = target_arm_size / 2,
   target_control = 704,
+  site_cap = 2,
   margin = 3, 
   # Specify this for equal rates
   av_site_rate_month = 2,
   accrual_period = 36,
+  shared_control = TRUE,
   # active : control ratio (all active the same)
   ctrl_ratio = c(1, 1),
   no_samples = 100,
@@ -41,12 +43,13 @@ spine <- function(
 
   # Read parameters
   prop_params_df <- read.csv(paste0(data_path, prop_file))
-  arms_ls <- jsonlite::read_json(paste0(data_path, arms_file))
-  goals_df <- read.csv(paste0(data_path, centres_file))
+  arms_ls <- 
+    jsonlite::read_json(paste0(data_path, arms_file), simplifyVector = TRUE)
+  centres_df <- read.csv(paste0(data_path, centres_file))
 
   # Fail if read fails
   # Fail if wrong format
-  if (goals_df[nrow(goals_df), ]$no_centres != 0) {
+  if (centres_df[nrow(centres_df), ]$no_centres != 0) {
     rlang::abort(paste0(
       "The last line of ", data_path, centres_file,
       " should consist of the pair (month after site opening finishes, 0)"
@@ -59,10 +62,36 @@ spine <- function(
   
 
   # Removing some arms
-  arms_to_remove <- as.integer(c(1, 4))
+  arms_to_remove <- as.integer(c(1))
   trial_structure_instance <- 
     remove_treat_arms(trial_structure_instance, arms = arms_to_remove)
 
-  print(trial_structure_instance@recruit_arm_prevalence)
 
+
+  print(accrual_period)
+  print(length(trial_structure_instance@treatment_arm_ids) + 
+    ifelse(shared_control, 1, length(trial_structure_instance@treatment_arm_ids)))
+  print(sum(centres_df$no_centres))
+  # Create accrual object
+  accrual_instance <- accrual(
+    treatment_arm_ids = trial_structure_instance@treatment_arm_ids,
+    shared_control = shared_control,
+    centres_df = centres_df,
+    accrual_period = accrual_period
+  )
+  
+  accrual_instance <- accrue_week(accrual_instance, site_cap, target_arm_size)
+
+  print(head(accrual_instance@accrual))
+  print(accrual_instance@week)
+
+  accrual_instance <- accrue_week(accrual_instance, site_cap, target_arm_size)
+
+  print(head(accrual_instance@accrual))
+  print(accrual_instance@week)
+
+  accrual_instance <- accrue_week(accrual_instance, site_cap, target_arm_size)
+
+  print(head(accrual_instance@accrual))
+  print(accrual_instance@week)
 }
