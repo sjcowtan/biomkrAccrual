@@ -11,7 +11,7 @@ spine <- function(
   target_arm_size = 308,
   target_interim = target_arm_size / 2,
   target_control = 704,
-  site_cap = 2,
+  site_cap = 7,
   margin = 3, 
   # Specify this for equal rates
   av_site_rate_month = 2,
@@ -81,17 +81,28 @@ spine <- function(
   )
   
   accrual_instance <- accrue_week(accrual_instance, site_cap, target_arm_size)
-
+  print("Accrual week 1")
   print(head(accrual_instance@accrual))
-  print(accrual_instance@week)
+  print(paste("Next week", accrual_instance@week))
 
   accrual_instance <- accrue_week(accrual_instance, site_cap, target_arm_size)
 
+  print("Accrual week 2")
   print(head(accrual_instance@accrual))
-  print(accrual_instance@week)
+  print(paste("Next week", accrual_instance@week))
 
   accrual_instance <- accrue_week(accrual_instance, site_cap, target_arm_size)
 
+  print("Accrual week 3")
   print(head(accrual_instance@accrual))
-  print(accrual_instance@week)
+  print(paste("Next week", accrual_instance@week))
+
+  accrual_instance <- accrue_week(accrual_instance, site_cap, target_arm_size)
+  
+  print(c("Site sums", site_sums(accrual_instance)))
+  print(c(
+    "Arm sums", treat_sums(accrual_instance)[
+      seq_len(length(accrual_instance@phase_changes))
+    ]
+  ))
 }
