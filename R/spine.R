@@ -59,18 +59,25 @@ spine <- function(
   # Create structure object
   trial_structure_instance <- trial_structure(prop_params_df, arms_ls)
 
-  
+  print(trial_structure_instance@treatment_arm_struct)
+  print(trial_structure_instance@treatment_arm_prevalence)
 
   # Removing some arms
-  arms_to_remove <- as.integer(c(1))
-  trial_structure_instance <- 
-    remove_treat_arms(trial_structure_instance, arms = arms_to_remove)
+  #arms_to_remove <- as.integer(c(1))
+  #trial_structure_instance <- 
+    #remove_treat_arms(trial_structure_instance, arms = arms_to_remove)
 
 
 
   print(accrual_period)
-  print(length(trial_structure_instance@treatment_arm_ids) + 
-    ifelse(shared_control, 1, length(trial_structure_instance@treatment_arm_ids)))
+  print(
+    length(trial_structure_instance@treatment_arm_ids) + 
+      ifelse(
+        shared_control, 
+        1, 
+        length(trial_structure_instance@treatment_arm_ids)
+      )
+  )
   print(sum(centres_df$no_centres))
   # Create accrual object
   accrual_instance <- accrual(
