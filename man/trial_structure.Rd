@@ -5,7 +5,12 @@
 \title{A class for an object to contain the proportions of arriving patients to be
 allocated to each arm of the trial.}
 \usage{
-trial_structure(props_df = S7::class_missing, arms_ls = S7::class_missing, ...)
+trial_structure(
+  props_df = S7::class_missing,
+  arms_ls = S7::class_missing,
+  centres_df = S7::class_missing,
+  ...
+)
 }
 \description{
 A class for an object to contain the proportions of arriving patients to be

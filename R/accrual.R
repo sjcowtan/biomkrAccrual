@@ -17,7 +17,9 @@ accrual <- S7::new_class("accrual",
     week = S7::class_integer,
     active_arms = S7::class_integer,
     active_sites = S7::class_integer,
-    shared_control = S7::class_logical
+    shared_control = S7::class_logical,
+    site_prevalence_set = S7::class_integer,
+    site_cap = S7::class_integer
   ),
   constructor = function(
     treatment_arm_ids = S7::class_missing,
@@ -44,7 +46,7 @@ accrual <- S7::new_class("accrual",
           length(treatment_arm_ids) + 
             ifelse(shared_control, 1, length(treatment_arm_ids)),
           # No. sites 
-          sum(centres_df$no_centres)
+          length(unique(centres_df$site))
         ),
         dimnames = list(
           Weeks = NULL,
@@ -56,15 +58,17 @@ accrual <- S7::new_class("accrual",
               paste("C", names(treatment_arm_ids), sep = "-")
             }
           ),
-          Centres = c(paste("Centre", seq(sum(centres_df$no_centres))))
+          Centres = c(paste("Centre", unique(centres_df$site)))
         )
       ),
       phase_changes = rep(NA_integer_, length(treatment_arm_ids)),
-      site_closures = rep(NA_integer_, length(sum(centres_df$no_centres))),
+      site_closures = rep(NA_integer_, length(unique(centres_df$site))),
       week = as.integer(1),
       active_arms = seq_len(length(treatment_arm_ids)),
-      active_sites = seq(sum(centres_df$no_centres)),
-      shared_control = shared_control
+      active_sites = seq_len(length(unique(centres_df$no_centres))),
+      shared_control = shared_control,
+      site_prevalence_set = centres_df$prevalence_set,
+      site_cap = as.integer(centres_df$site_cap)
     )
   }
 )
@@ -98,24 +102,23 @@ S7::method(treat_sums, accrual) <- function(obj, control_total = FALSE) {
   if (control_total) {
     # Want individual values for treat arms, but sum of control arms
     if (!obj@shared_control) {
+      no_treat_arms <- length(obj@phase_changes)
       arm_sums <- c(
+        # Treatment arms
         arm_sums[seq_len(length(obj@phase_changes))],
-        sum(arm_sums[seq(
-          length(obj@phase_changes) + 1, 
-          length.out = 2 * length(obj@phase_changes)
-        )])
+        # Control
+        sum(arm_sums[seq(no_treat_arms + 1, length.out = 2 * no_treat_arms)])
       )
     }
   }
-
   return(arm_sums)
 }
 
 
-#' Select arms/sites to cap
-#' @param population
-#' @param captotal
-#' @return vector of arms to cap (can include multiples of the same arm)
+#' Select arms to cap for single site, or sites to cap for single arm
+#' @param population Vector of allocations of patients this week
+#' @param captotal Value of cap for site or arm (as appropriate)
+#' @return Vector of arms to cap (can include multiples of the same arm)
 #' 
 do_choose_cap <- function(population, captotal) {
   if (length(population) == captotal) { 
@@ -128,3 +131,79 @@ do_choose_cap <- function(population, captotal) {
 
   return(capped)
 }
+
+
+
+#' Implement site cap on a week's accrual. 
+#' @param obj Accrual object
+#' @param site_cap Maximum number of patients per site
+#' @return Modified accrual object with capped week's accrual and 
+#' with any capped sites removed from active_sites
+#' 
+apply_site_cap <- S7::new_generic("apply_site_cap", "obj")
+S7::method(apply_site_cap, accrual) <- function(obj) {
+  # If any sites exceed their cap, remove accrual from randomly
+  # selected arms until sites are at cap 
+  # Represents sites closing during the week
+  site_captotal <- site_sums(obj) - obj@site_cap
+
+  if (any(site_captotal > 0)) {
+    # Loop over sites which are above the cap
+    for (site in which(site_captotal > 0)) {
+      # Vector of instances of populated arms in week's accrual, 
+      # including control, e.g. c(1, 1, 2, 4)
+      population <- unlist(sapply(
+        which(obj@accrual[obj@week, , site] > 0), 
+        function(j) rep(j, obj@accrual[obj@week, j, site])
+      ))
+
+      # Randomly select population instances to remove, leaving
+      # enough to max out the cap
+      if (length(population) > 0) {
+        capped <- do_choose_cap(population, site_captotal[site])
+
+        # Remove those instances
+        for (i in capped) {
+          obj@accrual[obj@week, i, site] <- 
+            as.integer(obj@accrual[obj@week, i, site] - 1)
+        }
+      }
+    }
+  }
+
+  # Don't remove sites from active_sites here, because they may
+  # be reinstated during arm capping
+
+  return(obj)
+}
+
+
+#' Generate accrual for a week and assign it to the 
+#' accrual object. Increments the property "week",
+#' which holds the next week number to accrue.
+#' @param obj An object of class "accrual"
+#' 
+accrue_week <- S7::new_generic("accrue_week", "obj")
+S7::method(accrue_week, accrual) <- function(obj, target_arm_size) {
+
+  # For now, just populate randomly
+  if (length(obj@active_sites) > 0) {
+
+    # Assign the week's accrual to the object
+    obj@accrual[obj@week, , ] <- week_accrue(obj)
+
+    # Apply site cap
+    obj <- apply_site_cap(obj)
+
+    # Apply arm cap
+    obj <- apply_arm_cap(obj, target_arm_size)
+
+    # Increment pointer for the next week to accrue
+    obj@week <- obj@week + as.integer(1)
+  }
+
+  return(obj)
+}
+
+
+ 
