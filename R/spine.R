@@ -62,6 +62,11 @@ spine <- function(
     ))
   }
 
+  # Get start weeks & order centres_df by start week and site number
+  centres_df <- do_clean_centres(centres_df)
+
+  print(centres_df)
+
   # Make control ratio 1:x if used
   if (!is.null(ctrl_ratio) && !identical(ctrl_ratio[1], 1)) {
     ctrl_ratio <- ctrl_ratio / ctrl_ratio[1]
@@ -103,7 +108,7 @@ spine <- function(
   print(trial_structure_instance@treatment_arm_prevalence)
 
 
-  print(accrual_period)
+  print(c("Accrual period", accrual_period))
   print(
     length(trial_structure_instance@treatment_arm_ids) + 
       ifelse(
@@ -136,7 +141,9 @@ spine <- function(
   print(head(accrual_instance@accrual))
   print(paste("Next week", accrual_instance@week))
 
-  accrual_instance <- accrue_week(accrual_instance, target_arm_size)
+  accrual_instance <- accrue_week(
+    list(accrual_instance, trial_structure_instance), target_arm_size
+  )
 
   print("Accrual week 3")
   print(head(accrual_instance@accrual))

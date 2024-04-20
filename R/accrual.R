@@ -19,7 +19,11 @@ accrual <- S7::new_class("accrual",
     active_sites = S7::class_integer,
     shared_control = S7::class_logical,
     site_prevalence_set = S7::class_integer,
-    site_cap = S7::class_integer
+    site_cap = S7::class_integer,
+    site_mean_rate = S7::class_double,
+    site_rate = S7::class_double,
+    site_start_week = S7::class_integer,
+    site_index = S7::class_integer
   ),
   constructor = function(
     treatment_arm_ids = S7::class_missing,
@@ -65,10 +69,14 @@ accrual <- S7::new_class("accrual",
       site_closures = rep(NA_integer_, length(unique(centres_df$site))),
       week = as.integer(1),
       active_arms = seq_len(length(treatment_arm_ids)),
-      active_sites = seq_len(length(unique(centres_df$no_centres))),
+      active_sites = seq_len(length(unique(centres_df$site))),
       shared_control = shared_control,
-      site_prevalence_set = centres_df$prevalence_set,
-      site_cap = as.integer(centres_df$site_cap)
+      site_prevalence_set = as.integer(centres_df$prevalence_set),
+      site_cap = as.integer(centres_df$site_cap),
+      site_mean_rate = as.numeric(centres_df$mean_rate),
+      site_rate = NA_real_,
+      site_start_week = as.integer(centres_df$start_week),
+      site_index = as.integer(centres_df$site)
     )
   }
 )
@@ -133,6 +141,50 @@ do_choose_cap <- function(population, captotal) {
 }
 
 
+#' Get no. weeks from months
+#' Currently 4 week month, fix later using lubridate
+#' @param months Duration in months
+#' @return Duration in weeks
+#' 
+get_weeks <- function(months) {
+  as.integer(round(months * 4, 0))
+}
+
+
+#' Method to increment site rates by gamma-distributed rates of sites
+#' opening an accrual pathway in the current week.
+#' @param obj An object of type "accrual"
+#' @return Modified object with new site rates
+#' 
+set_site_rates <- S7::new_generic("do_site_start_rates", "obj")
+S7::method(set_site_rates, accrual) <- function(obj) {
+
+  # If this is the first time calling this, initialise with rate 0
+  if (is.na(obj@site_rate)) {
+    obj@site_rate <- rep(0, dim(obj@accrual)[3])
+  }
+
+  indices <- which(obj@site_start_week == obj@week)
+
+  if (length(indices) > 0) {
+
+    # mean_rates are in recruitment per month, so rate = 4 converts
+    rates <- rgamma(
+      n = length(indices),
+      shape = obj@site_mean_rate[indices],
+      rate = 4
+    )
+
+    # When multiple recruitment sources at a given site, want them
+    # to stack
+    obj@site_rate[obj@site_index[indices]] <- 
+      obj@site_rate[obj@site_index[indices]] + rates
+
+  }
+
+  return(obj)
+}
+
 
 #' Implement site cap on a week's accrual. 
 #' @param obj Accrual object
@@ -178,31 +230,104 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 }
 
 
+#' Randomise a week's expected accrual amongst the sites, according to 
+#' prevalence.
+#' @param class_list A list of one object of class "accrual" and one
+#' of class "trial_structure".
+#' @return Matrix of week's accrual by site and recruitment arm.
+#' 
+week_accrue <- S7::new_generic("week_accrue", "class_list")
+S7::method(week_accrue, list(accrual, trial_structure) <- function(obj) {
+
+  # Decompose class_list
+  accrual_obj <- class_list[[1]]
+  struct_obj <- class_list[[2]]
+
+  # Update the site rates
+  accrual_obj <- set_site_rates(accrual_obj)
+
+  # Initialising
+  week_mx <- matrix(
+    0, 
+    nrow = dim(accrual_obj@accrual)[1], 
+    ncol = dim(accrual_obj@accrual)[3]
+  )
+  week_acc <- rep(0, dim(accrual_obj@accrual)[3])
+
+  # Accrual per site is poisson distributed
+  week_acc[accrual_obj@active_sites] <- rpois(
+    n = length(accrual_obj@active_sites), 
+    lambda = accrual_obj@site_rate[accrual_obj@active_sites]
+  )
+  
+  print(c("Week", accrual_obj@week))
+  print(week_acc)
+
+  # Not all sites will actually recruit
+  recruiting_sites <- which(week_acc > 0)
+
+  # Not all arms will actually recruit
+  recruiting_arms <- struct_obj@treatment_arm_struct[, accrual_obj@active_arms]
+
+  print(recruiting_arms)
+
+  if (length(recruiting_sites) > 0) {
+    
+    for (isite in recruiting_sites) {
+      print(isite)
+    }
+  }
+
+  # Distribute accrual amongst arms according to prevalence
+  #alloc <- sample(
+  #  seq_len(recruiting_sites),
+  #  size = week_acc
+  #)
+
+  week_mx <- as.integer(week_mx)
+
+  return(week_mx)
+}
+
+
 #' Generate accrual for a week and assign it to the 
 #' accrual object. Increments the property "week",
 #' which holds the next week number to accrue.
-#' @param obj An object of class "accrual"
-#' 
-accrue_week <- S7::new_generic("accrue_week", "obj")
-S7::method(accrue_week, accrual) <- function(obj, target_arm_size) {
+#' @param class_list A list consisting of one object of class "accrual"
+#' and one of class "trial_structure"
+#' @return An object of class "accrual"
+#'
+accrue_week <- S7::new_generic("accrue_week", "class_list")
+S7::method(accrue_week, list(accrual, trial_structure)) <- 
+  function(class_list, target_arm_size) {
+
+  accrual_obj <- class_list[[1]]
+  struct_obj <- class_list[[2]]
+
+  print("Active sites:")
+  print(accrual_obj@active_sites)
 
   # For now, just populate randomly
-  if (length(obj@active_sites) > 0) {
+  if (length(accrual_obj@active_sites) > 0) {
 
     # Assign the week's accrual to the object
-    obj@accrual[obj@week, , ] <- week_accrue(obj)
+    accrual_obj@accrual[accrual_obj@week, , ] <- week_accrue(class_list)
+
+    return(accrual_obj)
 
     # Apply site cap
-    obj <- apply_site_cap(obj)
+    accrual_obj <- apply_site_cap(accrual_obj)
 
     # Apply arm cap
-    obj <- apply_arm_cap(obj, target_arm_size)
+    accrual_obj <- apply_arm_cap(accrual_obj, target_arm_size)
 
     # Increment pointer for the next week to accrue
-    obj@week <- obj@week + as.integer(1)
+    accrual_obj@week <- accrual_obj@week + as.integer(1)
+
+    return(accrual_obj)
   }
 
-  return(obj)
+  return(accrual_obj)
 }
 
 
