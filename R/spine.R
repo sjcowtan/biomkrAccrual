@@ -127,7 +127,11 @@ spine <- function(
   )
 
   
-  accrual_instance <- accrue_week(accrual_instance, target_arm_size)
+  accrual_instance <- accrue_week(
+    accrual_instance, 
+    trial_structure_instance,
+    target_arm_size
+  )
   print("Accrual week 1")
   print(head(accrual_instance@accrual))
 

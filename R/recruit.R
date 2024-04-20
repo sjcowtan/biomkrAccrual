@@ -236,58 +236,52 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 #' of class "trial_structure".
 #' @return Matrix of week's accrual by site and recruitment arm.
 #' 
-week_accrue <- S7::new_generic("week_accrue", "class_list")
-S7::method(week_accrue, list(accrual, trial_structure) <- function(obj) {
+week_accrue <- S7::new_generic("week_accrue", c("accrual_obj", "struct_obj"))
+S7::method(week_accrue, list(accrual, trial_structure)) <- 
+  function(accrual_obj, struct_obj) {
 
-  # Decompose class_list
-  accrual_obj <- class_list[[1]]
-  struct_obj <- class_list[[2]]
+    # Update the site rates
+    accrual_obj <- set_site_rates(accrual_obj)
 
-  # Update the site rates
-  accrual_obj <- set_site_rates(accrual_obj)
+    # Initialising
+    week_mx <- matrix(
+      0, 
+      nrow = dim(accrual_obj@accrual)[1], 
+      ncol = dim(accrual_obj@accrual)[3]
+    )
+    week_acc <- rep(0, dim(accrual_obj@accrual)[3])
 
-  # Initialising
-  week_mx <- matrix(
-    0, 
-    nrow = dim(accrual_obj@accrual)[1], 
-    ncol = dim(accrual_obj@accrual)[3]
-  )
-  week_acc <- rep(0, dim(accrual_obj@accrual)[3])
-
-  # Accrual per site is poisson distributed
-  week_acc[accrual_obj@active_sites] <- rpois(
-    n = length(accrual_obj@active_sites), 
-    lambda = accrual_obj@site_rate[accrual_obj@active_sites]
-  )
-  
-  print(c("Week", accrual_obj@week))
-  print(week_acc)
-
-  # Not all sites will actually recruit
-  recruiting_sites <- which(week_acc > 0)
-
-  # Not all arms will actually recruit
-  recruiting_arms <- struct_obj@treatment_arm_struct[, accrual_obj@active_arms]
-
-  print(recruiting_arms)
-
-  if (length(recruiting_sites) > 0) {
+    # Accrual per site is poisson distributed
+    week_acc[accrual_obj@active_sites] <- rpois(
+      n = length(accrual_obj@active_sites), 
+      lambda = accrual_obj@site_rate[accrual_obj@active_sites]
+    )
     
-    for (isite in recruiting_sites) {
-      print(isite)
+    print(c("Week", accrual_obj@week))
+    print(week_acc)
+
+    # Not all sites will actually recruit
+    recruiting_sites <- which(week_acc > 0)
+
+    print(recruiting_sites)
+
+    # Not all arms will actually recruit
+    recruiting_arms <- 
+      struct_obj@treatment_arm_struct[, accrual_obj@active_arms]
+
+    print(recruiting_arms)
+
+    if (length(recruiting_sites) > 0) {
+      
+      for (isite in recruiting_sites) {
+        print(isite)
+      }
     }
+
+    week_mx <- as.integer(week_mx)
+
+    return(week_mx)
   }
-
-  # Distribute accrual amongst arms according to prevalence
-  #alloc <- sample(
-  #  seq_len(recruiting_sites),
-  #  size = week_acc
-  #)
-
-  week_mx <- as.integer(week_mx)
-
-  return(week_mx)
-}
 
 
 #' Generate accrual for a week and assign it to the 
@@ -297,38 +291,36 @@ S7::method(week_accrue, list(accrual, trial_structure) <- function(obj) {
 #' and one of class "trial_structure"
 #' @return An object of class "accrual"
 #'
-accrue_week <- S7::new_generic("accrue_week", "class_list")
+accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))
 S7::method(accrue_week, list(accrual, trial_structure)) <- 
-  function(class_list, target_arm_size) {
+  function(accrual_obj, struct_obj, target_arm_size) {
 
-  accrual_obj <- class_list[[1]]
-  struct_obj <- class_list[[2]]
+    print("Active sites:")
+    print(accrual_obj@active_sites)
 
-  print("Active sites:")
-  print(accrual_obj@active_sites)
+    # For now, just populate randomly
+    if (length(accrual_obj@active_sites) > 0) {
 
-  # For now, just populate randomly
-  if (length(accrual_obj@active_sites) > 0) {
+      # Assign the week's accrual to the object
+      accrual_obj@accrual[accrual_obj@week, , ] <-
+        week_accrue(accrual_obj, struct_obj)
 
-    # Assign the week's accrual to the object
-    accrual_obj@accrual[accrual_obj@week, , ] <- week_accrue(class_list)
+      return(accrual_obj)
 
-    return(accrual_obj)
+      # Apply site cap
+      accrual_obj <- apply_site_cap(accrual_obj)
 
-    # Apply site cap
-    accrual_obj <- apply_site_cap(accrual_obj)
+      # Apply arm cap
+      accrual_obj <- apply_arm_cap(accrual_obj, target_arm_size)
 
-    # Apply arm cap
-    accrual_obj <- apply_arm_cap(accrual_obj, target_arm_size)
+      # Increment pointer for the next week to accrue
+      accrual_obj@week <- accrual_obj@week + as.integer(1)
 
-    # Increment pointer for the next week to accrue
-    accrual_obj@week <- accrual_obj@week + as.integer(1)
+      return(accrual_obj)
+    }
 
     return(accrual_obj)
   }
-
-  return(accrual_obj)
-}
 
 
  
