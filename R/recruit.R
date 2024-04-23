@@ -258,23 +258,64 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
     )
     
     print(c("Week", accrual_obj@week))
-    print(week_acc)
+    print(c("Week's accrual", week_acc))
 
     # Not all sites will actually recruit
     recruiting_sites <- which(week_acc > 0)
 
-    print(recruiting_sites)
+    print(c("R sites", recruiting_sites))
+    print(c("A arms", accrual_obj@active_arms))
 
     # Not all arms will actually recruit
     recruiting_arms <- 
       struct_obj@treatment_arm_struct[, accrual_obj@active_arms]
+    
 
+    print("R arms")
     print(recruiting_arms)
+
+    recruiting_prev <- 
+      struct_obj@treatment_arm_prevalence[
+        , 
+        accrual_obj@active_arms,
+        sort(unique(accrual_obj@site_prevalence_set[recruiting_sites]))
+      ]
+
+    print(recruiting_prev)
+
+    # Make into part of getter on structure object
+    if (!accrual_obj@shared_control) {
+      prev <- sapply(
+        seq_len(dim(struct_obj@treatment_arm_prevalence)[3]),
+        function(i) { 
+          cbind(
+            struct_obj@treatment_arm_prevalence[, , i] / 2,
+            struct_obj@treatment_arm_prevalence[, , i] / 2
+          )
+        },
+        simplify = "array"
+      )
+    } else {
+      prev <- sapply(
+        seq_len(dim(struct_obj@treatment_arm_prevalence)[3]),
+        function(i) { 
+          cbind(
+            struct_obj@treatment_arm_prevalence[, , i] / 2,
+            rowSums(struct_obj@treatment_arm_prevalence[, , i] / 2)
+          )
+        }, 
+        simplify = "array"
+      ) 
+    }
+
+    print(prev)
+    print(dim(struct_obj@treatment_arm_prevalence))
 
     if (length(recruiting_sites) > 0) {
       
       for (isite in recruiting_sites) {
-        print(isite)
+        print(c("Site", isite))
+
       }
     }
 
