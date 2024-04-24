@@ -102,10 +102,11 @@ spine <- function(
 
   # Create structure object
   trial_structure_instance <- 
-    trial_structure(prop_params_df, arms_ls, centres_df)
-
+    trial_structure(prop_params_df, arms_ls, centres_df, shared_control)
+  print("Trial structure")
   print(trial_structure_instance@treatment_arm_struct)
-  print(trial_structure_instance@treatment_arm_prevalence)
+  print("Experimental arm prev")
+  print(trial_structure_instance@experimental_arm_prevalence)
 
 
   print(c("Accrual period", accrual_period))

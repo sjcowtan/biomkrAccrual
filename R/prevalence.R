@@ -13,7 +13,7 @@
 #' number of recruitment arms recruiting to each treatment arm.
 #' @slot treatment_arm_struct Automatically generated logical matrix of 
 #' treatment arms by recruitment arms.
-#' @slot treatment_arm_prevalence Automatically generated matrix of recruitment
+#' @slot experimental_arm_prevalence Automatically generated matrix of recruitment
 #' prevalences of treatment arms by recruitment arms
 #' @name trial_structure
 #' 
@@ -23,6 +23,7 @@ trial_structure <- S7::new_class("trial_structure",
     # These need explicitly setting
     recruit_arm_prevalence = S7::class_data.frame,
     recruit_arm_names = S7::class_character,
+    shared_control = S7::class_logical,
     treatment_arm_ids = S7::class_list,
     # These are generated from existing properties at the time they execute
     recruit_arm_ids = S7::new_property(
@@ -38,12 +39,13 @@ trial_structure <- S7::new_class("trial_structure",
       }
     ),
     # array[recruit arms, treat arms, prevalence set]
-    treatment_arm_prevalence = S7::new_property(
+    experimental_arm_prevalence = S7::new_property(
       getter = 
         function(self) {
           get_array_prevalence(
             self@treatment_arm_struct, 
-            self@recruit_arm_prevalence
+            self@recruit_arm_prevalence,
+            self@shared_control
           )
         }
     )
@@ -53,6 +55,7 @@ trial_structure <- S7::new_class("trial_structure",
     props_df = S7::class_missing, 
     arms_ls = S7::class_missing,
     centres_df = S7::class_missing,
+    shared_control = S7::class_missing,
     ...
   ) {
     # Complain if any other arguments given
@@ -65,6 +68,7 @@ trial_structure <- S7::new_class("trial_structure",
       recruit_arm_names = props_df$category, 
       recruit_arm_prevalence = 
         props_df[, grepl("^proportion_", names(props_df))], 
+      shared_control = shared_control,
       treatment_arm_ids = arms_ls
     )
   },
@@ -120,25 +124,45 @@ get_matrix_struct <- function(arms_ls, recruit_arm_prevalence) {
 #' @param recruit_arm_prevalence Data frame with sets of prevalences, in 
 #' columns, for each arm (rows) 
 #' @return arm_prevalence_ar Array of prevalences, recruitment arms * 
-#' treatment arms * prevalence sets
+#' (treatment arms + control arms) * prevalence sets
 #' 
-get_array_prevalence <- function(arm_structure_mx, recruit_arm_prevalence) {
+get_array_prevalence <- function(arm_structure_mx, recruit_arm_prevalence, shared_control) {
+  no_treatments <- ncol(arm_structure_mx)
+  no_recruit_arms <- nrow(arm_structure_mx)
+  
   arm_prevalence_ar <- 
     array(0, c( 
       nrow(arm_structure_mx), 
-      ncol(arm_structure_mx),
-      length(recruit_arm_prevalence)
+      ifelse(
+        shared_control, 
+        no_treatments + 1,
+        no_treatments * 2
+      ),
+      ncol(recruit_arm_prevalence)
     ))
 
   # Now loop, replacing 0 with prevalence
   for (iset in seq_len(ncol(recruit_arm_prevalence))) {
-    for (irow in seq_len(nrow(recruit_arm_prevalence))) {
+    for (irow in seq_len(no_recruit_arms)) {
+      # ASSUMING 1:1, half the recruitment goes to the experimental arm
       if (any(arm_structure_mx[irow, ])) {
+        # treatment arms
         arm_prevalence_ar[irow, which(arm_structure_mx[irow, ]), iset] <- 
-          recruit_arm_prevalence[irow, iset] / sum(arm_structure_mx[irow, ])
+          recruit_arm_prevalence[irow, iset] / 
+          (2 * sum(arm_structure_mx[irow, ]))
+        # control arms
+        if (shared_control) {
+          arm_prevalence_ar[irow, no_treatments + 1, iset] <-
+            sum(arm_prevalence_ar[irow, seq(no_treatments), iset])
+        } else {
+          arm_prevalence_ar[
+            irow, seq.int(no_treatments + 1, length.out = no_treatments), iset
+          ] <- 
+            arm_prevalence_ar[irow, seq_len(no_treatments), iset]
+        }
       }
     }
-  }  
+  } 
 
   return(arm_prevalence_ar)
 }
