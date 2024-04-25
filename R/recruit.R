@@ -243,12 +243,13 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
     # Update the site rates
     accrual_obj <- set_site_rates(accrual_obj)
 
-    # Initialising
+    # Initialising (sites * experimental arms)
     week_mx <- matrix(
       0, 
-      nrow = dim(accrual_obj@accrual)[1], 
+      nrow = dim(accrual_obj@accrual)[2], 
       ncol = dim(accrual_obj@accrual)[3]
     )
+
     week_acc <- rep(0, dim(accrual_obj@accrual)[3])
 
     # Accrual per site is poisson distributed
@@ -256,45 +257,29 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
       n = length(accrual_obj@active_sites), 
       lambda = accrual_obj@site_rate[accrual_obj@active_sites]
     )
-    
-    print(c("Week", accrual_obj@week))
-    print(c("Week's accrual", week_acc))
 
-    # Not all sites will actually recruit
-    recruiting_sites <- which(week_acc > 0)
+    # Loop over recruiting sites
+    for (isite in which(week_acc > 0)) {
 
-    print(c("R sites", recruiting_sites))
-    print(c("A arms", accrual_obj@active_arms))
+      # Total probability for each experimental arm for the 
+      # relevant site prevalence set
+      probs <- colSums(struct_obj@experimental_arm_prevalence[
+        , , accrual_obj@site_prevalence_set[isite]
+      ])
 
-    # Not all arms will actually recruit
-    recruiting_arms <- 
-      struct_obj@treatment_arm_struct[, accrual_obj@active_arms]
-    
+      # Sample experimental arms according to probabilities
+      assigns <- sample(
+        seq_len(length(probs)),
+        prob = probs,
+        size = week_acc[isite],
+        replace = TRUE
+      )
 
-    print("R arms")
-    print(recruiting_arms)
-
-    recruiting_prev <- 
-      struct_obj@experimental_arm_prevalence[
-        , 
-        accrual_obj@active_arms,
-        sort(unique(accrual_obj@site_prevalence_set[recruiting_sites]))
-      ]
-
-    print(recruiting_prev)
-
-    
-    print(dim(struct_obj@experimental_arm_prevalence))
-
-    if (length(recruiting_sites) > 0) {
-      
-      for (isite in recruiting_sites) {
-        print(c("Site", isite))
-
+      # Increment week's assignment matrix
+      for (i in assigns) {
+        week_mx[i, isite] <- as.integer(week_mx[i, isite] + 1)
       }
     }
-
-    week_mx <- as.integer(week_mx)
 
     return(week_mx)
   }
