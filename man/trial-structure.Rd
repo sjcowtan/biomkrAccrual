@@ -14,7 +14,7 @@ prevalence matrices.}
 remove_treat_arms(obj, ...)
 }
 \arguments{
-\item{arms}{vector or scalar of integer arm ID numbers}
+\item{arms}{vector or scalar of integer arm ID numbers to remove}
 }
 \description{
 Close off treatment arms.

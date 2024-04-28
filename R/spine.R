@@ -11,9 +11,6 @@ spine <- function(
   target_arm_size = 308,
   target_interim = target_arm_size / 2,
   target_control = 704,
-  margin = 3, 
-  # Specify this for equal rates
-  av_site_rate_month = 2,
   accrual_period = 36,
   shared_control = TRUE,
   # active : control ratio (all active the same)
@@ -30,7 +27,7 @@ spine <- function(
   data_path = "inst/extdata/",
   figs_path = "figures/",
   fixed_centre_starts = TRUE,
-  fixed_site_rates = TRUE
+  fixed_site_rates = FALSE
   
 ) {
   # Verify inputs
@@ -64,8 +61,7 @@ spine <- function(
 
   # Get start weeks & order centres_df by start week and site number
   centres_df <- do_clean_centres(centres_df)
-
-  print(centres_df)
+  centres_df$start_week <- get_weeks(centres_df$start_month - 1) + 1
 
   # Make control ratio 1:x if used
   if (!is.null(ctrl_ratio) && !identical(ctrl_ratio[1], 1)) {
@@ -103,63 +99,46 @@ spine <- function(
   # Create structure object
   trial_structure_instance <- 
     trial_structure(prop_params_df, arms_ls, centres_df, shared_control)
-  print("Trial structure")
-  print(trial_structure_instance@treatment_arm_struct)
-  print("Experimental arm prev")
-  print(trial_structure_instance@experimental_arm_prevalence)
-
-
-  print(c("Accrual period", accrual_period))
-  print(
-    length(trial_structure_instance@treatment_arm_ids) + 
-      ifelse(
-        shared_control, 
-        1, 
-        length(trial_structure_instance@treatment_arm_ids)
-      )
-  )
 
   # Create accrual object
   accrual_instance <- accrual(
     treatment_arm_ids = trial_structure_instance@treatment_arm_ids,
     shared_control = shared_control,
     centres_df = centres_df,
-    accrual_period = accrual_period
+    accrual_period = get_weeks(accrual_period)
   )
 
-  
-  accrual_instance <- accrue_week(
-    accrual_instance, 
-    trial_structure_instance,
-    target_arm_size
-  )
-  print("Accrual week 1")
-  print(head(accrual_instance@accrual))
+  while (
+    # Any arms are recruiting
+    any(trial_structure_instance@treatment_arm_struct) &&
+      # Any sites are recruiting
+      length(accrual_instance@active_sites) > 0 &&
+      # Not out of time
+      accrual_instance@week <= accrual_instance@accrual_period
+  ) {
 
-  return()
+    # Add a week's accrual
+    obj_list <- accrue_week(
+      accrual_instance, 
+      trial_structure_instance,
+      target_arm_size,
+      fixed_site_rates
+    )
 
-  print(paste("Next week", accrual_instance@week))
+    accrual_instance <- obj_list[[1]]
+    trial_structure_instance <- obj_list[[2]]
 
-  accrual_instance <- accrue_week(accrual_instance, target_arm_size)
+    # Increment pointer for the next week to accrue
+    accrual_instance@week <- accrual_instance@week + as.integer(1)
+  }
 
-  print("Accrual week 2")
-  print(head(accrual_instance@accrual))
-  print(paste("Next week", accrual_instance@week))
+  # Trim accrual to actual recruitment length
+  accrual_instance@accrual <- 
+    accrual_instance@accrual[seq(accrual_instance@week - 1), , ]
 
-  accrual_instance <- accrue_week(
-    list(accrual_instance, trial_structure_instance), target_arm_size
-  )
-
-  print("Accrual week 3")
-  print(head(accrual_instance@accrual))
-  print(paste("Next week", accrual_instance@week))
-
-  accrual_instance <- accrue_week(accrual_instance, target_arm_size)
-  
-  print(c("Site sums", site_sums(accrual_instance)))
-  print(c(
-    "Arm sums", treat_sums(accrual_instance)[
-      seq_len(length(accrual_instance@phase_changes))
-    ]
+  # Return summary statistics
+  return(list(
+    accrual_instance@phase_changes, 
+    treat_sums(accrual_instance)
   ))
 }

@@ -86,12 +86,7 @@ trial_structure <- S7::new_class("trial_structure",
       )))
     ) {
       "Elements from the treatment arm list should be integer vectors or NA"
-    } else if (
-      nrow(self@recruit_arm_prevalence) < 
-        max(unlist(self@treatment_arm_ids), na.rm = TRUE)
-    ) {
-      "More recruitment arms defined than prevalences specified"
-    }
+    } 
   }
 
 )
@@ -177,7 +172,7 @@ get_array_prevalence <- function(arm_structure_mx, recruit_arm_prevalence, share
 #' Class object will automatically generate new trial structure and 
 #' prevalence matrices.
 #' 
-#' @param arms vector or scalar of integer arm ID numbers
+#' @param arms vector or scalar of integer arm ID numbers to remove
 #' @rdname trial-structure
 #' @export
 #' 
@@ -186,27 +181,20 @@ S7::method(remove_treat_arms, trial_structure) <- function(obj, arms) {
   
   # Mark treatment arms as removed using NA; 
   # automatic getter for treatment_arm_struct does the rest
-  arms_ls <- obj@treatment_arm_ids
-
-  obj@treatment_arm_ids <- lapply(arms_ls, function(l) {
-    # Remove allocations from the recruitment arms in arms
-    l <- l[!(l %in% arms)]
-    # Remove treatment arm if no more arms recruiting to it
-    if (length(l) < 1) {
-      return(NA_integer_)
-    } else {
-      # Return remaining allocations to treatment arm
-      return(l)
-    }
-  })
+  obj@treatment_arm_ids[arms] <- NA_integer_
 
   # Set prevalence to 0 for any recruitment arms which now have no
   # experimental arms to recruit to
-  obj@recruit_arm_prevalence[which(colSums(obj@treatment_arm_struct) < 1)] <- 0
+  obj@recruit_arm_prevalence[which(colSums(obj@treatment_arm_struct) < 1), ] <- 
+    0
+    
   # Rescale prevalence so it adds to 1
   # (corresponds to recruitment closing for those characteristics)
-  obj@recruit_arm_prevalence <- 
-    obj@recruit_arm_prevalence / sum(obj@recruit_arm_prevalence)
+  for (iset in seq_len(ncol(obj@recruit_arm_prevalence))) {
+    obj@recruit_arm_prevalence[, iset] <- 
+      obj@recruit_arm_prevalence[, iset] / 
+      sum(obj@recruit_arm_prevalence[, iset])
+  }
 
   return(obj)
 }

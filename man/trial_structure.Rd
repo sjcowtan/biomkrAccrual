@@ -9,6 +9,7 @@ trial_structure(
   props_df = S7::class_missing,
   arms_ls = S7::class_missing,
   centres_df = S7::class_missing,
+  shared_control = S7::class_missing,
   ...
 )
 }
@@ -37,7 +38,7 @@ number of recruitment arms recruiting to each treatment arm.}
 \item{\code{treatment_arm_struct}}{Automatically generated logical matrix of
 treatment arms by recruitment arms.}
 
-\item{\code{treatment_arm_prevalence}}{Automatically generated matrix of recruitment
+\item{\code{experimental_arm_prevalence}}{Automatically generated matrix of recruitment
 prevalences of treatment arms by recruitment arms}
 }}
 

@@ -5,7 +5,7 @@
 \title{Make array with the prevalences by treatment arm, recruitment arm and
 prevalence set}
 \usage{
-get_array_prevalence(arm_structure_mx, recruit_arm_prevalence)
+get_array_prevalence(arm_structure_mx, recruit_arm_prevalence, shared_control)
 }
 \arguments{
 \item{arm_structure_mx}{Logical matrix of recruitment arms by treatment arm}
@@ -15,7 +15,7 @@ columns, for each arm (rows)}
 }
 \value{
 arm_prevalence_ar Array of prevalences, recruitment arms *
-treatment arms * prevalence sets
+(treatment arms + control arms) * prevalence sets
 }
 \description{
 Make array with the prevalences by treatment arm, recruitment arm and

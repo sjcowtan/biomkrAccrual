@@ -12,6 +12,7 @@ accrual <- S7::new_class("accrual",
   package = "biomkrAccrual",
   properties = list(
     accrual = S7::class_integer,
+    accrual_period = S7::class_integer,
     phase_changes = S7::class_integer,
     site_closures = S7::class_integer,
     week = S7::class_integer,
@@ -65,6 +66,7 @@ accrual <- S7::new_class("accrual",
           Centres = c(paste("Centre", unique(centres_df$site)))
         )
       ),
+      accrual_period = accrual_period,
       phase_changes = rep(NA_integer_, length(treatment_arm_ids)),
       site_closures = rep(NA_integer_, length(unique(centres_df$site))),
       week = as.integer(1),
@@ -157,10 +159,10 @@ get_weeks <- function(months) {
 #' @return Modified object with new site rates
 #' 
 set_site_rates <- S7::new_generic("do_site_start_rates", "obj")
-S7::method(set_site_rates, accrual) <- function(obj) {
+S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
 
   # If this is the first time calling this, initialise with rate 0
-  if (is.na(obj@site_rate)) {
+  if (any(is.na(obj@site_rate))) {
     obj@site_rate <- rep(0, dim(obj@accrual)[3])
   }
 
@@ -168,12 +170,17 @@ S7::method(set_site_rates, accrual) <- function(obj) {
 
   if (length(indices) > 0) {
 
-    # mean_rates are in recruitment per month, so rate = 4 converts
-    rates <- rgamma(
-      n = length(indices),
-      shape = obj@site_mean_rate[indices],
-      rate = 4
-    )
+    if (fixed_site_rates) {
+      rates <- obj@site_mean_rate(indices)
+    } else {
+      # mean_rates are in recruitment per month, so scale = 4 converts
+      rates <- rgamma(
+        n = length(indices),
+        shape = obj@site_mean_rate[indices],
+        # Per week not per month
+        rate = 4
+      )
+    }
 
     # When multiple recruitment sources at a given site, want them
     # to stack
@@ -225,9 +232,92 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 
   # Don't remove sites from active_sites here, because they may
   # be reinstated during arm capping
-
+  
   return(obj)
 }
+
+
+#' Implement arm cap on week's accrual to experimental arms
+#' @param accrual_obj Object of class "accrual"
+#' @param struct_obj Object of class "trial_structure"
+#' @param target_arm_size Maximum number of patients per arm
+#' (can be a vector with a value for each arm, or a scalar)
+#' @param site_cap Maximum number of patients per site
+#' @return Modified accrual object with capped week's accrual
+#' 
+apply_arm_cap <- 
+  S7::new_generic("apply_arm_cap", c("accrual_obj", "struct_obj"))
+S7::method(apply_arm_cap, list(accrual, trial_structure)) <- 
+  function(accrual_obj, struct_obj, target_arm_size) {
+    
+    # Get totals for experimental arms (dropping control)
+    arm_sums <- 
+      treat_sums(accrual_obj)[seq_len(length(accrual_obj@phase_changes))]
+
+    # Compare with cap
+    arm_captotal <- arm_sums - target_arm_size
+
+    # Inactive arms can be at cap but not exceed it
+    if (any(arm_captotal[-accrual_obj@active_arms] > 0)) {
+      rlang::error(paste(
+        "Inactive arm exceeded cap:", 
+        which(arm_captotal[-accrual_obj@active_arms] > 0)
+      ))
+    }
+
+    ### Change references to active arms
+
+    # Active arm indices which exceed cap
+    active_tocap <- which(arm_captotal > 0)
+
+    if (length(active_tocap) > 0) {
+      for (arm in active_tocap) {
+        # Which sites recruited to that arm this week?
+        population <- as.integer(unlist(sapply(
+          which(accrual_obj@accrual[accrual_obj@week, arm, ] > 0), 
+          function(j) rep(j, accrual_obj@accrual[accrual_obj@week, arm, j])
+        )))
+
+        # Possible accruals to remove
+        if (length(population) > 0) {
+          capped <- do_choose_cap(population, arm_captotal[arm])
+
+          # Remove capped instances
+          for (i in capped) {
+            accrual_obj@accrual[accrual_obj@week, arm, i] <- 
+              as.integer(accrual_obj@accrual[accrual_obj@week, arm, i] - 1)
+          }
+        }
+      }
+    }
+
+    # Record closing week for capped arms
+    capped_arms <- arm_captotal[accrual_obj@active_arms] >= 0
+
+    accrual_obj@phase_changes[accrual_obj@active_arms[capped_arms]] <- 
+      accrual_obj@week
+    
+
+    # Update active_arms
+    accrual_obj@active_arms <- which(arm_captotal < 0)
+    # Also on the trial structure object
+    struct_obj <- remove_treat_arms(struct_obj, which(arm_captotal >= 0))
+
+    # Recheck site caps
+    site_captotal <- site_sums(accrual_obj) - accrual_obj@site_cap
+    
+    # Record closing week for capped sites
+    capped_sites <- site_captotal[accrual_obj@active_sites] >= 0
+    accrual_obj@site_closures[accrual_obj@active_sites[capped_sites]] <-
+      accrual_obj@week
+
+    # Update active sites
+    accrual_obj@active_sites <- which(site_captotal < 0)
+
+    return(list(accrual_obj, struct_obj)) 
+  }
+
+
 
 
 #' Randomise a week's expected accrual amongst the sites, according to 
@@ -238,19 +328,19 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 #' 
 week_accrue <- S7::new_generic("week_accrue", c("accrual_obj", "struct_obj"))
 S7::method(week_accrue, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj) {
+  function(accrual_obj, struct_obj, fixed_site_rates) {
 
     # Update the site rates
-    accrual_obj <- set_site_rates(accrual_obj)
+    accrual_obj <- set_site_rates(accrual_obj, fixed_site_rates)
 
     # Initialising (sites * experimental arms)
     week_mx <- matrix(
-      0, 
+      as.integer(0), 
       nrow = dim(accrual_obj@accrual)[2], 
       ncol = dim(accrual_obj@accrual)[3]
     )
 
-    week_acc <- rep(0, dim(accrual_obj@accrual)[3])
+    week_acc <- as.integer(rep(0, dim(accrual_obj@accrual)[3]))
 
     # Accrual per site is poisson distributed
     week_acc[accrual_obj@active_sites] <- rpois(
@@ -267,6 +357,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
         , , accrual_obj@site_prevalence_set[isite]
       ])
 
+
       # Sample experimental arms according to probabilities
       assigns <- sample(
         seq_len(length(probs)),
@@ -281,7 +372,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
       }
     }
 
-    return(week_mx)
+    return(list(accrual_obj, week_mx))
   }
 
 
@@ -294,33 +385,30 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #'
 accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))
 S7::method(accrue_week, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj, target_arm_size) {
+  function(accrual_obj, struct_obj, target_arm_size, fixed_site_rates) {
 
-    print("Active sites:")
-    print(accrual_obj@active_sites)
-
-    # For now, just populate randomly
+    # Should not get here if there aren't any but
     if (length(accrual_obj@active_sites) > 0) {
+
+      week_acc_ls <- week_accrue(accrual_obj, struct_obj, fixed_site_rates)
+      accrual_obj <- week_acc_ls[[1]]
+      week_acc <- week_acc_ls[[2]]
 
       # Assign the week's accrual to the object
       accrual_obj@accrual[accrual_obj@week, , ] <-
-        week_accrue(accrual_obj, struct_obj)
-
-      return(accrual_obj)
+        week_acc#rue(accrual_obj, struct_obj)
 
       # Apply site cap
       accrual_obj <- apply_site_cap(accrual_obj)
 
-      # Apply arm cap
-      accrual_obj <- apply_arm_cap(accrual_obj, target_arm_size)
+      # Apply arm cap, and then adjust site cap appropriately
+      obj_list <- apply_arm_cap(accrual_obj, struct_obj, target_arm_size)
+      accrual_obj <- obj_list[[1]]
+      struct_obj <- obj_list[[2]]
 
-      # Increment pointer for the next week to accrue
-      accrual_obj@week <- accrual_obj@week + as.integer(1)
-
-      return(accrual_obj)
     }
 
-    return(accrual_obj)
+    return(list(accrual_obj, struct_obj))
   }
 
 
