@@ -171,7 +171,7 @@ S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
   if (length(indices) > 0) {
 
     if (fixed_site_rates) {
-      rates <- obj@site_mean_rate(indices)
+      rates <- obj@site_mean_rate(indices) / 4
     } else {
       # mean_rates are in recruitment per month, so scale = 4 converts
       rates <- rgamma(

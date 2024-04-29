@@ -3,7 +3,7 @@
 #' @param output_path Directory where output .csvs are written
 #' @export
 ggclosures <- function(
-  file_prefix = "arm_closures_24-04-28_",
+  file_prefix = "arm_closures_24-04-29_",
   output_path = "output_data/"
 ) {
   # What output files do we have?
@@ -16,15 +16,19 @@ ggclosures <- function(
   # Read files
   closures_ls <- lapply(filenames, read.csv)
 
+  print(filenames)
+
   # Summarise files
-  summ <- lapply(closures_ls, summary)
-  name_types <- c("1", "2", "mixed", "unbalanced")
+  summ <- lapply(closures_ls, function(d) summary(d[, -1]))
+  name_types <- c("1", "2", "mixed", "unbalanced", "multirate")
   names(summ) <- c(
     paste0("gamma_rate_closures_", name_types),
     paste0("fixed_rate_closures_", name_types)
   )
 
   print(summ)
+
+  write.csv(summ, "output_data/arm_closure_summary.csv")
 
   # Standard Deviations
   sd_mx <- t(sapply(
@@ -41,9 +45,11 @@ ggclosures <- function(
 
   colnames(sd_mx) <- paste0("T", 1:3, "_sd")
   rownames(sd_mx) <- c(
-   paste0("gamma_rate_closures_", name_types),
+    paste0("gamma_rate_closures_", name_types),
     paste0("fixed_rate_closures_", name_types)
   )
+
+  write.csv(as.data.frame(sd_mx), "output_data/arm_closures_sd.csv")
 
   print(sd_mx)
 }
