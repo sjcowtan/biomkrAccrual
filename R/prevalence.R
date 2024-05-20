@@ -188,13 +188,13 @@ S7::method(remove_treat_arms, trial_structure) <- function(obj, arms) {
   obj@recruit_arm_prevalence[which(colSums(obj@treatment_arm_struct) < 1), ] <- 
     0
     
-  # Rescale prevalence so it adds to 1
+  # Rescale prevalence so it adds to 1 <- not doing this, unrealistic
   # (corresponds to recruitment closing for those characteristics)
-  for (iset in seq_len(ncol(obj@recruit_arm_prevalence))) {
-    obj@recruit_arm_prevalence[, iset] <- 
-      obj@recruit_arm_prevalence[, iset] / 
-      sum(obj@recruit_arm_prevalence[, iset])
-  }
+  #for (iset in seq_len(ncol(obj@recruit_arm_prevalence))) {
+  #  obj@recruit_arm_prevalence[, iset] <- 
+  #    obj@recruit_arm_prevalence[, iset] / 
+  #    sum(obj@recruit_arm_prevalence[, iset])
+  #}
 
   return(obj)
 }

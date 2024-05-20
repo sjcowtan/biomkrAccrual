@@ -28,7 +28,6 @@ spine <- function(
   figs_path = "figures/",
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE
-  
 ) {
   # Verify inputs
   ## fail if directory doesn't exist

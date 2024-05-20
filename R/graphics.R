@@ -20,7 +20,7 @@ ggclosures <- function(
 
   # Summarise files
   summ <- lapply(closures_ls, function(d) summary(d[, -1]))
-  name_types <- c("1", "2", "mixed", "unbalanced", "multirate")
+  name_types <- c("1", "2", "mixed", "unbalanced", "multirate", "multimix")
   names(summ) <- c(
     paste0("gamma_rate_closures_", name_types),
     paste0("fixed_rate_closures_", name_types)
