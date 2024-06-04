@@ -5,7 +5,7 @@
 \title{Display arm closure summaries}
 \usage{
 ggclosures(
-  file_prefix = "arm_closures_24-04-28_",
+  file_prefix = "arm_closures_24-04-29_",
   output_path = "output_data/"
 )
 }

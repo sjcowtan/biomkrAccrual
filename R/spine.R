@@ -25,7 +25,7 @@ spine <- function(
   # Use this if expected site rates not equal
   site_rate_file = "site_rates.csv",
   data_path = "inst/extdata/",
-  figs_path = "figures/",
+  figs_path = "output_data/figures/",
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE
 ) {

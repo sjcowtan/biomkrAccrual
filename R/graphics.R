@@ -1,3 +1,42 @@
+ 
+#' Custom colours (colourblind friendly) -
+#' omits colours nearest black and white
+#' @param palette Defaults to "viridis"
+#' @param no_colours Defaults to 4
+#' 
+bma_colours <- function(palette = "viridis", no_colours = 4) {
+  scales::viridis_pal(option = palette)(no_colours * 2)[
+    seq(2, no_colours * 2, by = 2)
+  ]
+}
+
+
+#' Theme for ggplot2
+#' @param base_size Legend title size, all other sizes scaled appropriately 
+#' to this
+#' @param base_family Font family
+#' 
+#' @importFrom ggplot2 %+replace%
+#' 
+theme_bma <- function(base_size = 10, base_family = "") {
+  ggplot2::theme_bw(base_size = base_size, base_family = base_family) %+replace%
+    ggplot2::theme(
+      axis.text = ggplot2::element_text(size = base_size - 1),
+      axis.title = ggplot2::element_text(size = base_size + 4),
+      axis.title.x = ggplot2::element_text(
+        margin = ggplot2::margin(t = base_size - 2)
+      ),
+      axis.title.y = ggplot2::element_text(
+        margin = ggplot2::margin(l = 0, r = base_size + 2), 
+        angle = 90
+      ),
+      legend.text = ggplot2::element_text(size = base_size - 2),
+      legend.title = ggplot2::element_text(size = base_size),
+      strip.background = ggplot2::element_rect(fill = "grey90")
+    )
+}
+
+
 #' Display arm closure summaries
 #' @param file_prefix Consistent beginning of filename
 #' @param output_path Directory where output .csvs are written
@@ -52,4 +91,36 @@ ggclosures <- function(
   write.csv(as.data.frame(sd_mx), "output_data/arm_closures_sd.csv")
 
   print(sd_mx)
+}
+
+
+#' Plot a scatter plot with error bars for time to recruit against prevalence
+#' 
+#' @param prevalences Vector of prevalences
+#' @param e_time Vector of expected times
+#' @param v_time Vector of variances
+#' 
+ggscatterError <- function(prevalences, e_time, v_time) {
+  plot_df <- data.frame(
+    Prevalences = prevalences,
+    Months = e_time,
+    ymin = e_time - (1.96 * sqrt(v_time)),
+    ymax = e_time + (1.96 * sqrt(v_time))
+  )
+
+  plot_col <- bma_colours()[1]
+
+  ggplot2::ggplot(
+    plot_df, 
+    ggplot2::aes(x = factor(Prevalences), y = Months)
+  ) +
+    ggplot2::geom_point(col = plot_col) +
+    ggplot2::geom_pointrange(
+      col = plot_col,
+      ggplot2::aes(ymin = ymin, ymax = ymax)
+    ) +
+    ggplot2::labs(
+      x = "Prevalences"
+    ) +
+    theme_bma(14)
 }

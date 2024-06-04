@@ -15,6 +15,7 @@ Collate:
     'input.R'
     'prevalence.R'
     'recruit.R'
+    'sensitivity.R'
     'spine.R'
     'test_batches.R'
     'zzz.R'
