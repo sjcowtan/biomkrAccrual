@@ -57,7 +57,7 @@ sens_analysis <- function(
   if (length(site_rates) > 0) {
     if (is.null(no_centres)) {
       no_centres <- length(site_rates)
-    } else if (length(site_rates) != no_centres) {
+    } else if (length(site_rates) != no_centres && length(site_rates) != 1) {
       rlang::abort(paste(
         "Inconsistent number of centres; no_centres should", 
         "match the length of site_rates or be unspecified when",
@@ -123,8 +123,8 @@ do_sensitivity <- function(target_arm_size, site_rates, no_centres, figs_path) {
 
   ggplot2::ggsave(paste0(figs_path, "sensitivity.png"),
     plot = p,
-    width = 8,
-    height = 6,
+    width = 12,
+    height = 8,
     dpi = 400
   )
 

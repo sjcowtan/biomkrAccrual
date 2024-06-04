@@ -24,10 +24,10 @@ theme_bma <- function(base_size = 10, base_family = "") {
       axis.text = ggplot2::element_text(size = base_size - 1),
       axis.title = ggplot2::element_text(size = base_size + 4),
       axis.title.x = ggplot2::element_text(
-        margin = ggplot2::margin(t = base_size - 2)
+        margin = ggplot2::margin(t = base_size - 1)
       ),
       axis.title.y = ggplot2::element_text(
-        margin = ggplot2::margin(l = 0, r = base_size + 2), 
+        margin = ggplot2::margin(l = 0, r = base_size + 1), 
         angle = 90
       ),
       legend.text = ggplot2::element_text(size = base_size - 2),
