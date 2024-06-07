@@ -124,3 +124,38 @@ ggscatterError <- function(prevalences, e_time, v_time) {
     ) +
     theme_bma(14)
 }
+
+
+#' Creates sensitivity plot for Poisson distribution with 
+#' specified site rates for simultaneous start
+#' 
+#' @param plot_name Name for sensitivity plot file (.png will be appended).
+#' @param target_arm_size Number of patients to be recruited.
+#' @param site_rates Total site rate.
+#' 
+do_sensitivity_plot_simultaneous <- function( 
+  target_arm_size, 
+  site_rates,
+  plot_name,
+  figs_path
+) {
+  # Fixed, regularly spaced prevalences
+  prevalences <- seq(0.1, 0.9, by = 0.1)
+
+  # Expectation
+  e_time <- target_arm_size / (prevalences * site_rates)
+
+  # Variance
+  v_time <- target_arm_size / (prevalences * site_rates)^2
+
+  p <- ggscatterError(prevalences, e_time, v_time)
+
+  print(p)
+
+  ggplot2::ggsave(paste0(figs_path, plot_name, ".png"),
+    plot = p,
+    width = 12,
+    height = 8,
+    dpi = 400
+  )
+}

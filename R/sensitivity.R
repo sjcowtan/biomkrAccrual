@@ -81,7 +81,11 @@ sens_analysis <- function(
     # Do not need simulations
     if (fixed_centre_starts && fixed_site_rates && is.null(centre_starts)) {
       # Simplest case
-      do_sensitivity(target_arm_size, site_rates, no_centres, figs_path)
+      do_poisson_sensitivity(target_arm_size, site_rates, no_centres, figs_path)
+    } else if (!fixed_centre_starts && is.null(centre_starts)) {
+      do_poisson_gamma_sensitivity(
+        target_arm_size, site_rates, no_centres, figs_path
+      )
     }
   }
 }
@@ -95,7 +99,7 @@ sens_analysis <- function(
 #' identical.
 #' @param no_centres Number of sites.
 #' 
-do_sensitivity <- function(target_arm_size, site_rates, no_centres, figs_path) {
+do_poisson_sensitivity <- function(target_arm_size, site_rates, no_centres, figs_path) {
   # Fixed, simultaneous centre starts and fixed site rates
   if (
     is.null(no_centres) || 
@@ -107,25 +111,36 @@ do_sensitivity <- function(target_arm_size, site_rates, no_centres, figs_path) {
   ) {
     site_rates <- site_rates * no_centres
   }
+  
+  do_sensitivity_plot_simultaneous( 
+    target_arm_size, 
+    site_rates,
+    "sensitivity_poisson_",
+    figs_path
+  )
 
-  # Fixed, regularly spaced prevalences
-  prevalences <- seq(0.1, 0.9, by = 0.1)
+}
 
-  # Expectation
-  e_time <- target_arm_size / (prevalences * site_rates)
+#' Sensitivity analysis for simple Poisson-gamma model; 
+#' gamma-varying site rates, simultaneous centre starts 
+#' and no site capping.
+#' 
+#' @param target_arm_size Number of patients to be recruited.
+#' @param site_rates Vector of site rates, one per site; or scalar if all 
+#' identical.
+#' @param no_centres Number of sites.
+#' 
+do_poisson_gamma_sensitivity <- function(
+  target_arm_size, site_rates, no_centres, figs_path
+) {
 
-  # Variance
-  v_time <- target_arm_size / (prevalences * site_rates)^2
+  site_rates <- sum(rgamma(no_centres, rate = 1, shape = site_rates))
 
-  p <- ggscatterError(prevalences, e_time, v_time)
-
-  print(p)
-
-  ggplot2::ggsave(paste0(figs_path, "sensitivity.png"),
-    plot = p,
-    width = 12,
-    height = 8,
-    dpi = 400
+  do_sensitivity_plot_simultaneous(
+    target_arm_size, 
+    site_rates, 
+    "sensitivity_poisson_gamma", 
+    figs_path
   )
 
 }
