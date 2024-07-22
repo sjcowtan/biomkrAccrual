@@ -9,7 +9,11 @@
 #' @param phi Parameter representing precision, where precision is 
 #' 1/variance. Must be positive.
 #'
-#' @example rdirichlet_alt(3, c(0.001, 0.029, 0.7), 4)
+#' @examples 
+#' rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 4)
+#' 
+#' @import checkmate
+#' 
 rdirichlet_alt <- function(n = 1, mu = c(0.2, 0.3, 0.5), phi = 1) {
 
   ### Check and convert inputs

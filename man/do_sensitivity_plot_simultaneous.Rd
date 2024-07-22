@@ -5,14 +5,19 @@
 \title{Creates sensitivity plot for Poisson distribution with
 specified site rates for simultaneous start}
 \usage{
-do_sensitivity_plot_simultaneous(plot_name, target_arm_size, site_rates)
+do_sensitivity_plot_simultaneous(
+  target_arm_size,
+  site_rates,
+  plot_name,
+  figs_path
+)
 }
 \arguments{
-\item{plot_name}{Name for sensitivity plot file (.png will be appended).}
-
 \item{target_arm_size}{Number of patients to be recruited.}
 
 \item{site_rates}{Total site rate.}
+
+\item{plot_name}{Name for sensitivity plot file (.png will be appended).}
 }
 \description{
 Creates sensitivity plot for Poisson distribution with
