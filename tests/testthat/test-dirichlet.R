@@ -14,8 +14,8 @@ test_that("Error if mu is not a vector", {
   expect_error(rdirichlet_alt(n, as.matrix(mu, nrow = 4), phi))
 })
 
-test_that("Error if mu is not between 0 and 1", {
-  expect_error(rdirichlet_alt(n, c(0.02, 1), phi))
+test_that("Error if mu is negative", {
+  expect_error(rdirichlet_alt(n, c(-0.02, 1), phi))
 })
 
 test_that("Error if n is not a numeric scalar greater than 0", {
@@ -28,19 +28,19 @@ test_that("Error if n is not a numeric scalar greater than 0", {
 dirichlet_output <- rdirichlet_alt(n, mu, phi)
 
 test_that("Output of rdirichlet_alt is a matrix", {
-  expect_s3_class(dirichlet_output, "matrix")
+  expect_true(is.matrix(dirichlet_output))
 })
 
 test_that("Output of rdirichlet_alt is floating point", {
-  expect_type(rdirichlet_alt, "double")
+  expect_type(dirichlet_output, "double")
 })
 
 test_that("Matrix dimensions from rdirichlet_alt are correct", {
-  expect_equal(dim(dirichlet_output), c(n, length(mu)))
+  expect_equal(dim(dirichlet_output), c(n, length(mu) + 1))
 })
 
 test_that("No missing values in output from rdirichlet_alt", {
-  expect_equal(sum(is.na(dirichlet_output), 0))
+  expect_equal(sum(is.na(dirichlet_output)), 0)
 })
 
 test_that("Values from rdirichlet_alt are greater than 0", {
@@ -55,6 +55,3 @@ test_that("Matrix rows from rdirichlet_alt sum to 1", {
   expect_equal(rowSums(dirichlet_output), rep(1, n))
 })
 
-test_that("Matrix rows from rdirichlet_alt sum to 2", {
-  expect_equal(rowSums(dirichlet_output), rep(2, n))
-})
