@@ -25,7 +25,7 @@ rdirichlet_alt <- function(n = 1, mu = c(1, 1, 1), phi = 1) {
     n, lower = 1, , upper = 10^7, len = 1, any.missing = FALSE
   )
 
-  # mu should be a numeric vector in the range (0, 1)
+  # mu should be a numeric vector in the range [0,)
   checkmate::assert_vector(
     mu, min.len = 1, strict = TRUE, any.missing = FALSE
   )
