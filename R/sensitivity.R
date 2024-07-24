@@ -20,6 +20,8 @@
 #' 
 #' @export
 #' 
+#' @importFrom rlang abort
+#' 
 sens_analysis <- function(
   target_arm_size = 308, 
   site_rates,
@@ -130,11 +132,12 @@ do_poisson_sensitivity <- function(target_arm_size, site_rates, no_centres, figs
 #' identical.
 #' @param no_centres Number of sites.
 #' 
+#' @importFrom  stats rgamma
 do_poisson_gamma_sensitivity <- function(
   target_arm_size, site_rates, no_centres, figs_path
 ) {
 
-  site_rates <- sum(rgamma(no_centres, rate = 1, shape = site_rates))
+  site_rates <- sum(stats::rgamma(no_centres, rate = 1, shape = site_rates))
 
   do_sensitivity_plot_simultaneous(
     target_arm_size, 

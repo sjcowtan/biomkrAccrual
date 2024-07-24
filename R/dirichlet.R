@@ -1,6 +1,6 @@
 #' Generate a matrix of `n` rows of sets of probabilities 
 #' generated from the Dirichlet distribution, each row 
-#' summing to 1. Uses the alternative $\mu$, $\phi$ 
+#' summing to 1. Uses the alternative \eqn{\mu} \eqn{\phi} 
 #' parameterisation for the Dirichlet distribution, 
 #' representing means and precision.
 #' 
@@ -15,6 +15,7 @@
 #' rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 4)
 #' 
 #' @import checkmate
+#' @importFrom stats rgamma
 #' 
 rdirichlet_alt <- function(n = 1, mu = c(1, 1, 1), phi = 1) {
 

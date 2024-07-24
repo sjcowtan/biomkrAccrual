@@ -17,6 +17,8 @@
 #' prevalences of treatment arms by recruitment arms
 #' @name trial_structure
 #' 
+#' @importFrom rlang check_dots_empty
+#' 
 trial_structure <- S7::new_class("trial_structure",
   package = "biomkrAccrual",
   properties = list(

@@ -4,7 +4,7 @@
 \alias{rdirichlet_alt}
 \title{Generate a matrix of \code{n} rows of sets of probabilities
 generated from the Dirichlet distribution, each row
-summing to 1. Uses the alternative $\mu$, $\phi$
+summing to 1. Uses the alternative \eqn{\mu} \eqn{\phi}
 parameterisation for the Dirichlet distribution,
 representing means and precision.}
 \usage{
@@ -23,7 +23,7 @@ contain at least one value.}
 \description{
 Generate a matrix of \code{n} rows of sets of probabilities
 generated from the Dirichlet distribution, each row
-summing to 1. Uses the alternative $\mu$, $\phi$
+summing to 1. Uses the alternative \eqn{\mu} \eqn{\phi}
 parameterisation for the Dirichlet distribution,
 representing means and precision.
 }

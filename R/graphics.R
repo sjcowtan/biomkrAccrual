@@ -4,6 +4,8 @@
 #' @param palette Defaults to "viridis"
 #' @param no_colours Defaults to 4
 #' 
+#' @importFrom scales viridis_pal
+#' 
 bma_colours <- function(palette = "viridis", no_colours = 4) {
   scales::viridis_pal(option = palette)(no_colours * 2)[
     seq(2, no_colours * 2, by = 2)
@@ -41,6 +43,8 @@ theme_bma <- function(base_size = 10, base_family = "") {
 #' @param file_prefix Consistent beginning of filename
 #' @param output_path Directory where output .csvs are written
 #' @export
+#' @importFrom stats sd
+#' @importFrom utils read.csv write.csv
 ggclosures <- function(
   file_prefix = "arm_closures_24-04-29_",
   output_path = "output_data/"
@@ -75,7 +79,7 @@ ggclosures <- function(
     function(a_df) {
       sapply(
         seq_len(ncol(a_df)),
-        function(i) sd(a_df[i, ], na.rm = TRUE)
+        function(i) stats::sd(a_df[i, ], na.rm = TRUE)
       )
     }
   ))

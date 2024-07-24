@@ -9,6 +9,9 @@ License: MIT + file LICENSE
 Depends: 
     R (>= 4.4.0)
 Imports: 
+    jsonlite,
+    rlang,
+    scales,
     checkmate (>= 2.3.0),
     ggplot2 (>= 3.5.0),
     S7 (>= 0.1.1)

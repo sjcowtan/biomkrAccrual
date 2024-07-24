@@ -15,6 +15,9 @@
 #' @return Dataframe of experimental arm totals
 #' @export
 #' 
+#' @importFrom jsonlite read_json
+#' @importFrom utils write.csv
+#' 
 batch <- function(
   n = 100,
   centres_file = "centres.csv",

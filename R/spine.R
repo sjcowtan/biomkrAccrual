@@ -1,10 +1,16 @@
 #' @include prevalence.R
 
-#' Driver for the procedure
+
+
+#' @title Driver for the procedure
 #' @param target_arm_size Number of patients required per treatment arm
 #' 
 #' @examples 
 #' spine()
+#' 
+#' @importFrom jsonlite read_json
+#' @importFrom rlang abort
+#' @importFrom utils read.csv
 #' 
 #' @export
 spine <- function(

@@ -23,6 +23,38 @@ by site, treatment/control arm and week
 \item{\code{accrual}}{3-D array with axes site, experimental arm
 and week}
 
+\item{\code{accrual_period}}{Number of weeks in planned recruitment period}
+
 \item{\code{phase_changes}}{Vector of week numbers when arms closed}
+
+\item{\code{site_closures}}{Vector of weeks sites closed; NA indicates open}
+
+\item{\code{week}}{Current recruitment week}
+
+\item{\code{active_arms}}{Vector of indices of open arms}
+
+\item{\code{active_sites}}{Vector of indices of open sites}
+
+\item{\code{shared_control}}{TRUE if a shared control arm is being used, else FALSE}
+
+\item{\code{site_prevalence_set}}{Vector of indices for which set of expected
+prevalences each site should use}
+
+\item{\code{site_cap}}{Vector of maximum number of patients for each site}
+
+\item{\code{site_mean_rate}}{Vector of expected recruitment rates for each site}
+
+\item{\code{site_rate}}{Vector of recruitment rates for each site, drawn from a
+gamma distribution}
+
+\item{\code{start_week}}{Vector of weeks that each site opens recruitment}
+
+\item{\code{index}}{Vector of index numbers for each site}
+
+\item{\code{treatment_arm_ids}}{Named list of lists of recruitment arms by
+treatment arm}
+
+\item{\code{centres_df}}{Input dataframe of site information; site index,
+start month, mean rate, prevalence set and site cap}
 }}
 
