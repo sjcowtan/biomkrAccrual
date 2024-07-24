@@ -8,15 +8,17 @@ summing to 1. Uses the alternative $\mu$, $\phi$
 parameterisation for the Dirichlet distribution,
 representing means and precision.}
 \usage{
-rdirichlet_alt(n = 1, mu = c(0.2, 0.3, 0.5), phi = 1)
+rdirichlet_alt(n = 1, mu = c(1, 1, 1), phi = 1)
 }
 \arguments{
 \item{n}{Number of sets of probabilities (defaults to 1)}
 
-\item{mu}{Vector of mean values for each probability in the set}
+\item{mu}{Vector of mean values for each probability in the set
+(defaults to c(1, 1, 1)). Must be greater than 0 and finite, and
+contain at least one value.}
 
 \item{phi}{Parameter representing precision, where precision is
-1/variance. Must be positive.}
+1/variance. Must be positive and finite. Defaults to 1.}
 }
 \description{
 Generate a matrix of \code{n} rows of sets of probabilities

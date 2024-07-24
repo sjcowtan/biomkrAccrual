@@ -10,6 +10,7 @@ Depends:
     R (>= 4.4.0)
 Imports: 
     checkmate (>= 2.3.0)
+    ggplot2 (>= 3.5.0)
 Suggests: 
     testthat (>= 3.0.0), tinytest
 Config/testthat/edition: 3

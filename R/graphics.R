@@ -16,7 +16,7 @@ bma_colours <- function(palette = "viridis", no_colours = 4) {
 #' to this
 #' @param base_family Font family
 #' 
-#' @importFrom ggplot2 %+replace%
+#' @import ggplot2
 #' 
 theme_bma <- function(base_size = 10, base_family = "") {
   ggplot2::theme_bw(base_size = base_size, base_family = base_family) %+replace%
