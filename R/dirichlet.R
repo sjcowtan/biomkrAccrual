@@ -6,10 +6,10 @@
 #' 
 #' @param n Number of sets of probabilities (defaults to 1)
 #' @param mu Vector of mean values for each probability in the set
-#' (defaults to c(1, 1, 1)). Must be greater than 0 and finite, and
-#' contain at least one value.
+#' (defaults to c(0.001, 0.029. 0.7)). Must be greater than 0 and 
+#' finite, and contain at least two values.
 #' @param phi Parameter representing precision, where precision is 
-#' 1/variance. Must be positive and finite. Defaults to 1.
+#' 1/variance. Must be positive and finite. Defaults to 10.
 #'
 #' @examples 
 #' rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 10)
@@ -34,7 +34,7 @@ rdirichlet_alt <- function(
 
   # mu should be a numeric vector in the range [0, 1)
   checkmate::assert_vector(
-    mu, min.len = 1, strict = TRUE, any.missing = FALSE
+    mu, min.len = 2, strict = TRUE, any.missing = FALSE
   )
   checkmate::assert_numeric(
     mu, lower = 10^-7, upper = 1 - 10^-7
@@ -51,12 +51,12 @@ rdirichlet_alt <- function(
   no_probs <- length(mu)
 
   # Dirichlet is a set of normalised independent gamma(alpha, 1)
-  draws <- matrix(
-    rgamma(n * no_probs, alpha), 
+  draws_mx <- matrix(
+    stats::rgamma(n * no_probs, alpha), 
     ncol = no_probs, 
     byrow = TRUE
   )
-  draws <- draws / rowSums(draws)
+  draws_mx <- draws_mx / rowSums(draws_mx)
 
-  return(draws)
+  return(draws_mx)
 }

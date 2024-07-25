@@ -14,6 +14,10 @@ test_that("Error if mu is not a vector", {
   expect_error(rdirichlet_alt(n, as.matrix(mu, nrow = 4), phi))
 })
 
+test_that("Error if mu is of length < 2", {
+  expect_error(rdirichlet_alt(n, c(1), phi))
+})
+
 test_that("Error if mu is negative", {
   expect_error(rdirichlet_alt(n, c(-0.02, 0.9), phi))
 })

@@ -4,10 +4,10 @@
 #' @param palette Defaults to "viridis"
 #' @param no_colours Defaults to 4
 #' 
-#' @importFrom scales viridis_pal
+#' @importFrom viridisLite viridis
 #' 
 bma_colours <- function(palette = "viridis", no_colours = 4) {
-  scales::viridis_pal(option = palette)(no_colours * 2)[
+  viridisLite::viridis(no_colours * 2, option = palette)[
     seq(2, no_colours * 2, by = 2)
   ]
 }
@@ -116,12 +116,12 @@ ggscatterError <- function(prevalences, e_time, v_time) {
 
   ggplot2::ggplot(
     plot_df, 
-    ggplot2::aes(x = factor(Prevalences), y = Months)
+    ggplot2::aes(x = factor(get("Prevalences")), y = get("Months"))
   ) +
     ggplot2::geom_point(col = plot_col) +
     ggplot2::geom_pointrange(
       col = plot_col,
-      ggplot2::aes(ymin = ymin, ymax = ymax)
+      ggplot2::aes(ymin = get("ymin"), ymax = get("ymax"))
     ) +
     ggplot2::labs(
       x = "Prevalences"
