@@ -15,7 +15,15 @@ test_that("Error if mu is not a vector", {
 })
 
 test_that("Error if mu is negative", {
-  expect_error(rdirichlet_alt(n, c(-0.02, 1), phi))
+  expect_error(rdirichlet_alt(n, c(-0.02, 0.9), phi))
+})
+
+test_that("Error if mu is zero", {
+  expect_error(rdirichlet_alt(n, c(0.02, 0), phi))
+})
+
+test_that("Error if phi is zero", {
+  expect_error(rdirichlet_alt(n, mu, 0))
 })
 
 test_that("Error if n is not a numeric scalar greater than 0", {
@@ -36,7 +44,7 @@ test_that("Output of rdirichlet_alt is floating point", {
 })
 
 test_that("Matrix dimensions from rdirichlet_alt are correct", {
-  expect_equal(dim(dirichlet_output), c(n, length(mu) + 1))
+  expect_equal(dim(dirichlet_output), c(n, length(mu)))
 })
 
 test_that("No missing values in output from rdirichlet_alt", {

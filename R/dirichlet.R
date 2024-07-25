@@ -12,12 +12,18 @@
 #' 1/variance. Must be positive and finite. Defaults to 1.
 #'
 #' @examples 
-#' rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 4)
+#' rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 10)
+#' 
+#' @export 
 #' 
 #' @import checkmate
 #' @importFrom stats rgamma
 #' 
-rdirichlet_alt <- function(n = 1, mu = c(1, 1, 1), phi = 1) {
+rdirichlet_alt <- function(
+  n = 1, 
+  mu = c(0.3, 0.3, 0.3), 
+  phi = 10
+) {
 
   ### Check and convert inputs
 
@@ -26,12 +32,12 @@ rdirichlet_alt <- function(n = 1, mu = c(1, 1, 1), phi = 1) {
     n, lower = 1, , upper = 10^7, len = 1, any.missing = FALSE
   )
 
-  # mu should be a numeric vector in the range [0,)
+  # mu should be a numeric vector in the range [0, 1)
   checkmate::assert_vector(
     mu, min.len = 1, strict = TRUE, any.missing = FALSE
   )
   checkmate::assert_numeric(
-    mu, lower = 0, finite = TRUE
+    mu, lower = 10^-7, upper = 1 - 10^-7
   )
 
   # phi should be a positive number
@@ -40,9 +46,9 @@ rdirichlet_alt <- function(n = 1, mu = c(1, 1, 1), phi = 1) {
   # Make n actually an integer
   n <- as.integer(n)
 
-  # Shape parameter (alpha) from mu and phi
-  alpha <- phi * c(1, mu)
-  no_probs <- length(alpha)
+  # Shape parameter (alpha) from mu and phi; alpha_0 = phi
+  alpha <- phi * mu / mu[1]
+  no_probs <- length(mu)
 
   # Dirichlet is a set of normalised independent gamma(alpha, 1)
   draws <- matrix(
