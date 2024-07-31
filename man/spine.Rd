@@ -20,7 +20,8 @@ spine(
   average_file = "mean_recruitment.csv",
   site_rate_file = "site_rates.csv",
   data_path = "inst/extdata/",
-  figs_path = "output_data/figures/",
+  output_path = "biomkrAccrual_output_data/",
+  figs_path = paste0(output_path, "figures/"),
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE
 )

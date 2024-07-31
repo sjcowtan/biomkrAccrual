@@ -12,7 +12,8 @@ sens_analysis(
   fixed_site_rates = TRUE,
   fixed_centre_starts = TRUE,
   site_caps = NULL,
-  figs_path = "output_data/figures/"
+  output_path = "biomkrAccrual_output_data/",
+  figs_path = paste0(output_path, "figures/")
 )
 }
 \arguments{
@@ -35,12 +36,19 @@ fixed (TRUE) or do they vary randomly according to the gamma distribuiton
 the month specified (TRUE) or does the time vary randomly; defaults to TRUE.}
 
 \item{site_caps}{Vector of site caps; if all sites are capped to the same
-value can be a scalar. Defaults to NULL, for no site capping.}
+value can be a scalar. Defaults to NULL, for no site capping}
+
+\item{output_path}{Location of output directory where figures directory is
+located; defaults to \verb{biomkrAccrual_output_data/}. \code{figs_path} overrides
+this.}
+
+\item{figs_path}{Location of figures directory; defaults to
+\code{output_path}/figures/}
 }
 \description{
 Driver for the procedure
 }
 \examples{
-sensitivity(10, 100)
+sens_analysis(10, 100, figs_path = "/tmp/figs")
 
 }

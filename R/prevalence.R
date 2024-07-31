@@ -5,6 +5,8 @@
 #' of patients eligible for each recruitment arm.
 #' @slot recruit_arm_names Character vector of the names of the recruitment 
 #' arms.
+#' @slot shared_control TRUE if using a shared control arm for all 
+#' experimental arms
 #' @slot treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
 #' @slot recruit_arm_id Automatically generated integer vector of the ID 
@@ -175,7 +177,7 @@ get_array_prevalence <- function(arm_structure_mx, recruit_arm_prevalence, share
 #' prevalence matrices.
 #' 
 #' @param arms vector or scalar of integer arm ID numbers to remove
-#' @rdname trial-structure
+#' 
 #' @export
 #' 
 remove_treat_arms <- S7::new_generic("remove_treat_arms", "obj")

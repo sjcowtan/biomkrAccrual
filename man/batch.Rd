@@ -11,7 +11,7 @@ batch(
   centres_file = "centres.csv",
   arms_file = "arms.json",
   data_path = "inst/extdata/",
-  output_path = "output_data/",
+  output_path = "biomkrAccrual_output_data/",
   accrual_period = 10,
   target_arm_size = 100,
   shared_control = TRUE,

@@ -6,7 +6,7 @@
 \usage{
 ggclosures(
   file_prefix = "arm_closures_24-04-29_",
-  output_path = "output_data/"
+  output_path = "biomkrAccrual_output_data/"
 )
 }
 \arguments{

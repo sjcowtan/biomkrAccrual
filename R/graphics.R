@@ -47,7 +47,7 @@ theme_bma <- function(base_size = 10, base_family = "") {
 #' @importFrom utils read.csv write.csv
 ggclosures <- function(
   file_prefix = "arm_closures_24-04-29_",
-  output_path = "output_data/"
+  output_path = "biomkrAccrual_output_data/"
 ) {
   # What output files do we have?
   filenames <- list.files(

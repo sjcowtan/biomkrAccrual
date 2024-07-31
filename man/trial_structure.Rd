@@ -26,6 +26,9 @@ of patients eligible for each recruitment arm.}
 \item{\code{recruit_arm_names}}{Character vector of the names of the recruitment
 arms.}
 
+\item{\code{shared_control}}{TRUE if using a shared control arm for all
+experimental arms}
+
 \item{\code{treatment_arm_ids}}{Named list of lists of recruitment arms by
 treatment arm.}
 

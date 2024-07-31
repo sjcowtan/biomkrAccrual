@@ -31,19 +31,30 @@ spine <- function(
   # Use this if expected site rates not equal
   site_rate_file = "site_rates.csv",
   data_path = "inst/extdata/",
-  figs_path = "output_data/figures/",
+  output_path = "biomkrAccrual_output_data/",
+  figs_path = paste0(output_path, "figures/"),
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE
 ) {
   # Verify inputs
-  ## fail if directory doesn't exist
   ## append "/" if no slash on end
+  data_path <- gsub("(\\w+)$", "\\1/", data_path)
+  output_path <- gsub("(\\w+)$", "\\1/", output_path)
+  
   ## If _file doesn't end in .csv add it 
-  ## Check if files exist and are readable
-  ## Check for switches e.g. av_site_rate_month first
+  
 
+  ## Check for switches e.g. av_site_rate_month first
+  checkmate::assert_directory_exists(data_path, access = "rx")
+  checkmate::assert_file_exists(paste0(data_path, prop_file), access = "r")
+  checkmate::assert_file_exists(paste0(data_path, arms_file), access = "r")
+  checkmate::assert_file_exists(paste0(data_path, centres_file), access = "r")
+
+  checkmate::assert_directory_exists(output_path, access = "rwx")
+  
   # Read parameters
-  prop_params_df <- read.csv(paste0(data_path, prop_file))
+  prop_params_df <- read.csv(paste0(data_path, prop_file)) 
+    
   arms_ls <- 
     jsonlite::read_json(paste0(data_path, arms_file), simplifyVector = TRUE)
   centres_df <- read.csv(paste0(data_path, centres_file))
@@ -62,6 +73,15 @@ spine <- function(
       "Format error: centres.csv should have columns site,",
       "start_month, mean_rate, prevalence_set, and optionally site_cap"
     ))
+  }
+
+  ### Create output directory if it doesn't exist
+  
+  if (!dir.exists(output_path)) {
+    dir.create(output_path)
+  }
+  if (!dir.exists(figs_path)) {
+    dir.create(figs_path)
   }
 
   # Get start weeks & order centres_df by start week and site number

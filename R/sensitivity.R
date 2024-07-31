@@ -13,10 +13,15 @@
 #' @param fixed_centre_starts Logical; do sites open at the beginning of 
 #' the month specified (TRUE) or does the time vary randomly; defaults to TRUE.
 #' @param site_caps Vector of site caps; if all sites are capped to the same
-#' value can be a scalar. Defaults to NULL, for no site capping.
+#' value can be a scalar. Defaults to NULL, for no site capping
+#' @param output_path Location of output directory where figures directory is 
+#' located; defaults to `biomkrAccrual_output_data/`. `figs_path` overrides 
+#' this.
+#' @param figs_path Location of figures directory; defaults to 
+#' `output_path`/figures/
 #' 
 #' @examples 
-#' sensitivity(10, 100)
+#' sens_analysis(10, 100, figs_path = "/tmp/figs")
 #' 
 #' @export
 #' 
@@ -30,7 +35,8 @@ sens_analysis <- function(
   fixed_site_rates = TRUE,
   fixed_centre_starts = TRUE,
   site_caps = NULL,
-  figs_path = "output_data/figures/"
+  output_path = "biomkrAccrual_output_data/",
+  figs_path = paste0(output_path, "figures/")
 ) {
 
   # Input cleaning
@@ -75,6 +81,11 @@ sens_analysis <- function(
     )
   ) {
     rlang::abort("Centre start times should be integers.")
+  }
+
+  # Create figure path if does not exist
+  if (!dir.exists(figs_path)) {
+    dir.create(figs_path)
   }
 
   # Choose appropriate analysis
