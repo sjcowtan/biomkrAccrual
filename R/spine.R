@@ -31,33 +31,84 @@ spine <- function(
   # Use this if expected site rates not equal
   site_rate_file = "site_rates.csv",
   data_path = "extdata/",
-  output_path = "biomkrAccrual_output_data/",
+  output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE
 ) {
   # Verify inputs
   ## append "/" if no slash on end
-  data_path <- gsub("(\\w+)$", "\\1/", data_path)
+  #data_path <- gsub("(\\w+)$", "\\1/", data_path)
   output_path <- gsub("(\\w+)$", "\\1/", output_path)
+  # Make into full path so only one set of syntax needed
+  if (!grepl("^/", output_path)) {
+    output_path <- paste0(getwd(), "/", output_path)
+  }
   
   ## If _file doesn't end in .csv add it 
   
 
   ## Check for switches e.g. av_site_rate_month first
-  checkmate::assert_directory_exists(data_path, access = "rx")
-  checkmate::assert_file_exists(paste0(data_path, prop_file), access = "r")
-  checkmate::assert_file_exists(paste0(data_path, arms_file), access = "r")
-  checkmate::assert_file_exists(paste0(data_path, centres_file), access = "r")
+  checkmate::assert_directory_exists(system.file(
+    data_path, package = "biomkrAccrual"
+  ), access = "rx")
+  checkmate::assert_file_exists(system.file(
+    data_path, prop_file, package = "biomkrAccrual"
+  ), access = "r")
+  checkmate::assert_file_exists(system.file(
+    data_path, arms_file, package = "biomkrAccrual"
+  ), access = "r")
+  checkmate::assert_file_exists(system.file(
+    data_path, centres_file, package = "biomkrAccrual"
+  ), access = "r")
 
-  checkmate::assert_directory_exists(output_path, access = "rwx")
+  # Set up output directory if does not already exist
+  if (checkmate::test_directory_exists(file.path(
+    output_path
+  ))) {
+    # Can we write to it?
+    checkmate::assert_access(file.path(
+      output_path, access = "wx"
+    )) 
+  } else {
+    # Wrap me in a tryCatch
+    tryCatch(
+      dir.create(output_path),
+      # Convert warning to error
+      warning = function(w) rlang::abort(w$message)
+    )
+  }
+
+  # Set up output figures directory if does not already exist
+  if (checkmate::test_directory_exists(file.path(
+    figs_path
+  ))) {
+    # Can we write to it?
+    checkmate::assert_access(file.path(
+      figs_path, access = "wx"
+    )) 
+  } else {
+    # Wrap me in a tryCatch
+    tryCatch(
+      dir.create(figs_path),
+      # Convert warning to error
+      warning = function(w) rlang::abort(w$message)
+    )
+  }
   
   # Read parameters
-  prop_params_df <- read.csv(paste0(data_path, prop_file)) 
+  prop_params_df <- read.csv(system.file(
+    data_path, prop_file, package = "biomkrAccrual"
+  )) 
     
   arms_ls <- 
-    jsonlite::read_json(paste0(data_path, arms_file), simplifyVector = TRUE)
-  centres_df <- read.csv(paste0(data_path, centres_file))
+    jsonlite::read_json(system.file(
+      data_path, arms_file, package = "biomkrAccrual"
+    ), simplifyVector = TRUE)
+  
+  centres_df <- read.csv(system.file(
+    data_path, centres_file, package = "biomkrAccrual"
+  ))
 
   # Add fail if read fails
 
@@ -73,15 +124,6 @@ spine <- function(
       "Format error: centres.csv should have columns site,",
       "start_month, mean_rate, prevalence_set, and optionally site_cap"
     ))
-  }
-
-  ### Create output directory if it doesn't exist
-  
-  if (!dir.exists(output_path)) {
-    dir.create(output_path)
-  }
-  if (!dir.exists(figs_path)) {
-    dir.create(figs_path)
   }
 
   # Get start weeks & order centres_df by start week and site number
