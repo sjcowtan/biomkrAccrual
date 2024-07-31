@@ -30,7 +30,7 @@ spine <- function(
   average_file = "mean_recruitment.csv",
   # Use this if expected site rates not equal
   site_rate_file = "site_rates.csv",
-  data_path = "inst/extdata/",
+  data_path = "extdata/",
   output_path = "biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
   fixed_centre_starts = TRUE,
