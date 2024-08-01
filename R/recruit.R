@@ -18,10 +18,6 @@
 #' gamma distribution
 #' @slot start_week Vector of weeks that each site opens recruitment
 #' @slot index Vector of index numbers for each site
-#' @slot treatment_arm_ids Named list of lists of recruitment arms by 
-#' treatment arm
-#' @slot centres_df Input dataframe of site information; site index, 
-#' start month, mean rate, prevalence set and site cap
 #' 
 #' @name accrual
 #' 
@@ -265,7 +261,6 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 #' @param struct_obj Object of class "trial_structure"
 #' @param target_arm_size Maximum number of patients per arm
 #' (can be a vector with a value for each arm, or a scalar)
-#' @param site_cap Maximum number of patients per site
 #' @return Modified accrual object with capped week's accrual
 #' 
 #' @importFrom rlang abort
@@ -404,8 +399,12 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #' Generate accrual for a week and assign it to the 
 #' accrual object. Increments the property "week",
 #' which holds the next week number to accrue.
-#' @param class_list A list consisting of one object of class "accrual"
-#' and one of class "trial_structure"
+#' @param accrual_obj An object of class "accrual"
+#' @param struct_obj An object of class "trial_structure"
+#' @param target_arm_size Number of patients required for each experimental arm
+#' @param fixed_site_rates TRUE if expected site rate to be used; FALSE 
+#' draws the site rate from a gamma distribution
+#' 
 #' @return An object of class "accrual"
 #'
 accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))

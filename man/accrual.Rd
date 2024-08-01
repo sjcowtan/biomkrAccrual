@@ -50,11 +50,5 @@ gamma distribution}
 \item{\code{start_week}}{Vector of weeks that each site opens recruitment}
 
 \item{\code{index}}{Vector of index numbers for each site}
-
-\item{\code{treatment_arm_ids}}{Named list of lists of recruitment arms by
-treatment arm}
-
-\item{\code{centres_df}}{Input dataframe of site information; site index,
-start month, mean rate, prevalence set and site cap}
 }}
 
