@@ -19,8 +19,17 @@
 #' @slot start_week Vector of weeks that each site opens recruitment
 #' @slot index Vector of index numbers for each site
 #' 
-#' @name accrual
+#' @param treatment_arm_ids Named list of lists of recruitment arms by 
+#' treatment arm.
+#' @param shared_control TRUE if all experimental arms share one control arm;
+#' FALSE if each has their own
+#' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
+#' "prevalence_set" and "site_cap"
+#' @param accrual_period Maximum recruitment period, in weeks
 #' 
+#' usage accrual(treatment_arm_ids, shared_control, centres_df, accrual_period)
+#' @name accrual
+#'
 #' @export
 #' 
 #' @importFrom rlang check_dots_empty 
@@ -47,12 +56,8 @@ accrual <- S7::new_class("accrual",
     treatment_arm_ids = S7::class_missing,
     shared_control = S7::class_missing,
     centres_df = S7::class_missing,
-    accrual_period = S7::class_missing,
-    ...
+    accrual_period = S7::class_missing
   ) {
-    # Complain if any other arguments given
-    rlang::check_dots_empty()
-
     # Create the object and populate it
     S7::new_object(
       # Parent class
@@ -257,8 +262,8 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 
 
 #' Implement arm cap on week's accrual to experimental arms
-#' @param accrual_obj Object of class "accrual"
-#' @param struct_obj Object of class "trial_structure"
+#' @param accrual_obj Object of class `accrual`
+#' @param struct_obj Object of class `trial_structure`
 #' @param target_arm_size Maximum number of patients per arm
 #' (can be a vector with a value for each arm, or a scalar)
 #' @return Modified accrual object with capped week's accrual
@@ -401,7 +406,8 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #' which holds the next week number to accrue.
 #' @param accrual_obj An object of class "accrual"
 #' @param struct_obj An object of class "trial_structure"
-#' @param target_arm_size Number of patients required for each experimental arm
+#' @param target_arm_size Maximum number of patients per arm
+#' (can be a vector with a value for each arm, or a scalar)
 #' @param fixed_site_rates TRUE if expected site rate to be used; FALSE 
 #' draws the site rate from a gamma distribution
 #' 
