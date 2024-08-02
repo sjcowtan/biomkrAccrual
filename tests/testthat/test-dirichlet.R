@@ -82,7 +82,7 @@ test_that("At least one site", {
 
 test_that("Sites must be in regions we have prevalences for", {
   expect_error(bio_prevalence(
-    c(sample(1:3, 9, replace = TRUE), nrow(props) + 1), props, 10
+    c(sample(1:3, 9, replace = TRUE), ncol(props) + 1), props, 10
   ))
 })
 
@@ -108,6 +108,10 @@ test_that("Proportions must be valid", {
     ),
     10
   ))
+})
+
+test_that("Precision must be positive > 0", {
+  expect_error(bio_prevalence(site_in_region, props, 0))
 })
 
 bio_prevalence_out <- bio_prevalence(sites_in_region, props, 10)
