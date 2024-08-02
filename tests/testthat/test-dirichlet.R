@@ -69,7 +69,7 @@ test_that("Matrix rows from rdirichlet_alt sum to 1", {
 
 
 ### Testing bio_prevalence
-pos <- sample(1:3, 10, replace = TRUE)
+sites_in_region <- sample(1:3, 10, replace = TRUE)
 props <- data.frame(
   proportion_1 = c(0.2, 0.5),
   proportion_2 = c(0.35, 0.9),
@@ -82,13 +82,13 @@ test_that("At least one site", {
 
 test_that("Sites must be in regions we have prevalences for", {
   expect_error(bio_prevalence(
-    sample(1:4, 10, replace = TRUE), props, 10
+    c(sample(1:3, 9, replace = TRUE), nrow(props) + 1), props, 10
   ))
 })
 
 test_that("Proportions must not be missing", {
   expect_error(bio_prevalence(
-    pos,
+    sites_in_region,
     data.frame(
       proportion_1 = c(0.2, 0.5),
       proportion_2 = c(0.35, NA),
@@ -100,7 +100,7 @@ test_that("Proportions must not be missing", {
 
 test_that("Proportions must be valid", {
   expect_error(bio_prevalence(
-    pos,
+    sites_in_region,
     data.frame(
       proportion_1 = c(0.2, 0.5),
       proportion_2 = c(0.35, 1.6),
@@ -110,14 +110,14 @@ test_that("Proportions must be valid", {
   ))
 })
 
-bio_prevalence_out <- bio_prevalence(pos, props, 10)
+bio_prevalence_out <- bio_prevalence(sites_in_region, props, 10)
 
 test_that("bio_prevalence returns a matrix", {
   checkmate::expect_matrix(
     bio_prevalence_out,
     any.missing = FALSE,
     nrows = nrow(props),
-    ncols = length(pos),
+    ncols = length(sites_in_region),
     null.ok = FALSE
   )
 })
@@ -131,5 +131,5 @@ test_that("bio_prevalence matrix contains valid probabilities", {
 })
 
 test_that("Prevalence sets sum to 1", {
-  expect_equal(colSums(bio_prevalence_out), rep(1, length(pos)))
+  expect_equal(colSums(bio_prevalence_out), rep(1, length(sites_in_region)))
 })
