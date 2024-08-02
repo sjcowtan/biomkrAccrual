@@ -67,19 +67,60 @@ rdirichlet_alt <- function(
 #' expected prevalences for the region. 
 #' 
 #' @param site_in_region Integer vector of region IDs (matching the 
-#' column numbers in `recruit_arm_prevalence`) for each site
+#' column numbers in `recruit_arm_prevalence`) for each site.
 #' @param recruit_arm_prevalence Dataframe of expected prevalences,
-#' one column per region, one row per biomarker
-#' @param precision Measure of variability (analogous to 1 / variance)
+#' one column per region, one row per biomarker.
+#' @param precision Variability decreases as precision increases.
 #' 
 #' @return Matrix of prevalences with one column per site and one 
-#' row per biomarker; each column sums to 1
+#' row per biomarker; each column sums to 1.
 #' 
 bio_prevalence <- function(
   site_in_region,
   recruit_arm_prevalence,
   precision = 10
 ) {
+
+  # Validate input
+
+  checkmate::assert_atomic_vector(
+    site_in_region,
+    any.missing = FALSE,
+    min.len = 1,
+    max.len = 10^4
+  )
+
+  checkmate::assert_integerish(
+    site_in_region,
+    lower = 1,
+    upper = 10^4,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_data_frame(
+    recruit_arm_prevalence,
+    types = "numeric",
+    any.missing = FALSE,
+    min.cols = max(site_in_region),
+    min.rows = 2,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_numeric(
+    as.matrix(recruit_arm_prevalence),
+    lower = 0,
+    upper = 1,
+    finite = TRUE
+  )
+
+  checkmate::assert_numeric(
+    precision,
+    lower = 10^-7,
+    finite = TRUE,
+    len = 1,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
 
   # Predeclare prevalence matrix
   bio_prevalences <- matrix(
@@ -88,18 +129,19 @@ bio_prevalence <- function(
     nrow = nrow(recruit_arm_prevalence)
   )
 
+  # Draw prevalences for sites in each region in turn
   for (region in unique(site_in_region)) {
 
     # Sites in region
-    positions <- which(site_in_region == region)
+    site_indices <- which(site_in_region == region)
 
     bio_prevalence <- rdirichlet_alt(
-      length(positions),
+      length(site_indices),
       recruit_arm_prevalence[, region],
       precision
     )
 
-    bio_prevalences[, positions] <- t(bio_prevalence)
+    bio_prevalences[, site_indices] <- t(bio_prevalence)
   }
   return(bio_prevalences)
 }

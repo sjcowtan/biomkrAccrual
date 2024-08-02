@@ -76,6 +76,40 @@ props <- data.frame(
   proportion_3 = c(0.01, 0.6)
 )
 
+test_that("At least one site", {
+  expect_error(bio_prevalence(0, props, 10))
+})
+
+test_that("Sites must be in regions we have prevalences for", {
+  expect_error(bio_prevalence(
+    sample(1:4, 10, replace = TRUE), props, 10
+  ))
+})
+
+test_that("Proportions must not be missing", {
+  expect_error(bio_prevalence(
+    pos,
+    data.frame(
+      proportion_1 = c(0.2, 0.5),
+      proportion_2 = c(0.35, NA),
+      proportion_3 = c(0.01, 0.6)
+    ),
+    10
+  ))
+})
+
+test_that("Proportions must be valid", {
+  expect_error(bio_prevalence(
+    pos,
+    data.frame(
+      proportion_1 = c(0.2, 0.5),
+      proportion_2 = c(0.35, 1.6),
+      proportion_3 = c(0.01, 0.6)
+    ),
+    10
+  ))
+})
+
 bio_prevalence_out <- bio_prevalence(pos, props, 10)
 
 test_that("bio_prevalence returns a matrix", {
@@ -85,6 +119,14 @@ test_that("bio_prevalence returns a matrix", {
     nrows = nrow(props),
     ncols = length(pos),
     null.ok = FALSE
+  )
+})
+
+test_that("bio_prevalence matrix contains valid probabilities", {
+  checkmate::expect_numeric(
+    bio_prevalence_out,
+    lower = 0,
+    upper = 1
   )
 })
 
