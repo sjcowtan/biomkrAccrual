@@ -11,8 +11,7 @@
 #' @param phi Parameter representing precision, where precision is 
 #' 1/variance. Must be positive and finite. Defaults to 10.
 #'
-#' @examples 
-#' rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 10)
+#' @example rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 10)
 #' 
 #' @export 
 #' 
@@ -59,4 +58,48 @@ rdirichlet_alt <- function(
   draws_mx <- draws_mx / rowSums(draws_mx)
 
   return(draws_mx)
+}
+
+
+#' Dirichet regression model for biomarker prevalence
+#' 
+#' For each site, draws from the Dirichlet distribution using the
+#' expected prevalences for the region. 
+#' 
+#' @param site_in_region Integer vector of region IDs (matching the 
+#' column numbers in `recruit_arm_prevalence`) for each site
+#' @param recruit_arm_prevalence Dataframe of expected prevalences,
+#' one column per region, one row per biomarker
+#' @param precision Measure of variability (analogous to 1 / variance)
+#' 
+#' @return Matrix of prevalences with one column per site and one 
+#' row per biomarker; each column sums to 1
+#' 
+bio_prevalence <- function(
+  site_in_region,
+  recruit_arm_prevalence,
+  precision = 10
+) {
+
+  # Predeclare prevalence matrix
+  bio_prevalences <- matrix(
+    data = NA, 
+    ncol = length(site_in_region),
+    nrow = nrow(recruit_arm_prevalence)
+  )
+
+  for (region in unique(site_in_region)) {
+
+    # Sites in region
+    positions <- which(site_in_region == region)
+
+    bio_prevalence <- rdirichlet_alt(
+      length(positions),
+      recruit_arm_prevalence[, region],
+      precision
+    )
+
+    bio_prevalences[, positions] <- t(bio_prevalence)
+  }
+  return(bio_prevalences)
 }

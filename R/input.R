@@ -1,6 +1,6 @@
 #' Convert centres_df to more useable format
 #' @param centres_df Dataframe with columns site, start_month, mean_rate,
-#' prevalence_set and site_cap
+#' region and site_cap
 #' @return Dataframe with start_week, ordered by start_month and site
 #' 
 do_clean_centres <- function(centres_df) {

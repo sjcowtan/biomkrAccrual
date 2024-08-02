@@ -27,7 +27,3 @@ summing to 1. Uses the alternative \eqn{\mu} \eqn{\phi}
 parameterisation for the Dirichlet distribution,
 representing means and precision.
 }
-\examples{
-rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 10)
-
-}

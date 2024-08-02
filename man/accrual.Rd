@@ -20,7 +20,7 @@ treatment arm.}
 FALSE if each has their own}
 
 \item{centres_df}{Dataframe with columns "site", "start_month", "mean_rate",
-"prevalence_set" and "site_cap"}
+"region" and "site_cap"}
 
 \item{accrual_period}{Maximum recruitment period, in weeks
 
@@ -50,7 +50,7 @@ and week}
 
 \item{\code{shared_control}}{TRUE if a shared control arm is being used, else FALSE}
 
-\item{\code{site_prevalence_set}}{Vector of indices for which set of expected
+\item{\code{site_in_region}}{Vector of indices for which set of expected
 prevalences each site should use}
 
 \item{\code{site_cap}}{Vector of maximum number of patients for each site}

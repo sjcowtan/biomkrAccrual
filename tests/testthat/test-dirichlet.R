@@ -67,3 +67,27 @@ test_that("Matrix rows from rdirichlet_alt sum to 1", {
   expect_equal(rowSums(dirichlet_output), rep(1, n))
 })
 
+
+### Testing bio_prevalence
+pos <- sample(1:3, 10, replace = TRUE)
+props <- data.frame(
+  proportion_1 = c(0.2, 0.5),
+  proportion_2 = c(0.35, 0.9),
+  proportion_3 = c(0.01, 0.6)
+)
+
+bio_prevalence_out <- bio_prevalence(pos, props, 10)
+
+test_that("bio_prevalence returns a matrix", {
+  checkmate::expect_matrix(
+    bio_prevalence_out,
+    any.missing = FALSE,
+    nrows = nrow(props),
+    ncols = length(pos),
+    null.ok = FALSE
+  )
+})
+
+test_that("Prevalence sets sum to 1", {
+  expect_equal(colSums(bio_prevalence_out), rep(1, length(pos)))
+})

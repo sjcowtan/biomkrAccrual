@@ -115,14 +115,14 @@ spine <- function(
   # Fail if centres_file is in wrong format
   if (isFALSE(all.equal(
     names(centres_df), 
-    c("site", "start_month", "mean_rate", "prevalence_set", "site_cap")
+    c("site", "start_month", "mean_rate", "region", "site_cap")
     # site_cap is optional, no cap if not present
   )) || isFALSE(all.equal(
-    names(centres_df), c("site", "start_month", "mean_rate", "prevalence_set")
+    names(centres_df), c("site", "start_month", "mean_rate", "region")
   ))) {
     rlang::abort(paste(
       "Format error: centres.csv should have columns site,",
-      "start_month, mean_rate, prevalence_set, and optionally site_cap"
+      "start_month, mean_rate, region, and optionally site_cap"
     ))
   }
 

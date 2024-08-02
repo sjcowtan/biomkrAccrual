@@ -10,7 +10,7 @@
 #' @slot active_arms Vector of indices of open arms
 #' @slot active_sites Vector of indices of open sites
 #' @slot shared_control TRUE if a shared control arm is being used, else FALSE
-#' @slot site_prevalence_set Vector of indices for which set of expected 
+#' @slot site_in_region Vector of indices for which set of expected 
 #' prevalences each site should use 
 #' @slot site_cap Vector of maximum number of patients for each site
 #' @slot site_mean_rate Vector of expected recruitment rates for each site
@@ -24,7 +24,7 @@
 #' @param shared_control TRUE if all experimental arms share one control arm;
 #' FALSE if each has their own
 #' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
-#' "prevalence_set" and "site_cap"
+#' "region" and "site_cap"
 #' @param accrual_period Maximum recruitment period, in weeks
 #' 
 #' usage accrual(treatment_arm_ids, shared_control, centres_df, accrual_period)
@@ -45,7 +45,7 @@ accrual <- S7::new_class("accrual",
     active_arms = S7::class_integer,
     active_sites = S7::class_integer,
     shared_control = S7::class_logical,
-    site_prevalence_set = S7::class_integer,
+    site_in_region = S7::class_integer,
     site_cap = S7::class_integer,
     site_mean_rate = S7::class_double,
     site_rate = S7::class_double,
@@ -95,7 +95,7 @@ accrual <- S7::new_class("accrual",
       active_arms = seq_len(length(treatment_arm_ids)),
       active_sites = seq_len(length(unique(centres_df$site))),
       shared_control = shared_control,
-      site_prevalence_set = as.integer(centres_df$prevalence_set),
+      site_in_region = as.integer(centres_df$region),
       site_cap = as.integer(centres_df$site_cap),
       site_mean_rate = as.numeric(centres_df$mean_rate),
       site_rate = NA_real_,
@@ -379,7 +379,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
       # Total probability for each experimental arm for the 
       # relevant site prevalence set
       probs <- colSums(struct_obj@experimental_arm_prevalence[
-        , , accrual_obj@site_prevalence_set[isite]
+        , , accrual_obj@site_in_region[isite]
       ])
 
 
