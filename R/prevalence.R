@@ -15,8 +15,26 @@
 #' number of recruitment arms recruiting to each treatment arm.
 #' @slot treatment_arm_struct Automatically generated logical matrix of 
 #' treatment arms by recruitment arms.
-#' @slot experimental_arm_prevalence Automatically generated matrix of recruitment
+#' @slot experimental_arm_prevalence Automatically generated matrix of 
 #' prevalences of treatment arms by recruitment arms
+#' 
+#' @param props_df Dataframe of expected biomarker prevalences for the 
+#' regions, with one column `category` containing names for the 
+#' biomarkers, and one column per region.
+#' @param arms_ls List of lists of recruitment arms which recruit to
+#' each treatment arm.
+#' @param centres_df Dataframe containing columns `site`, the index
+#' number of each site; `start_month`, the month in which that site
+#' is expected to start recruiting; `mean_rate`, the expected number 
+#' of patients from that site per month; `region`, the index of the
+#' region the site is in (should be in the same order as the columns
+#' in `props_df`); and an optional column `site_cap`, if there is a 
+#' recruitment cap on any of the sites.
+#' @param precision For the Dirichlet model of biomarker prevalences, 
+#' variability decreases as precision increases. Defaults to 10.
+#' @param shared_control TRUE if all experimental arms share one 
+#' control arm; FALSE if they each have separate control arms.
+#' 
 #' @name trial_structure
 #' 
 #' @importFrom rlang check_dots_empty
@@ -60,12 +78,8 @@ trial_structure <- S7::new_class("trial_structure",
     arms_ls = S7::class_missing,
     centres_df = S7::class_missing,
     precision = S7::class_missing,
-    shared_control = S7::class_missing,
-    ...
+    shared_control = S7::class_missing
   ) {
-    # Complain if any other arguments given
-    rlang::check_dots_empty()
-
     # Create the object and populate it
     S7::new_object(
       # Parent class

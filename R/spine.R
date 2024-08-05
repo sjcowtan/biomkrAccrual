@@ -60,38 +60,10 @@ spine <- function(
   ), access = "r")
 
   # Set up output directory if does not already exist
-  if (checkmate::test_directory_exists(file.path(
-    output_path
-  ))) {
-    # Can we write to it?
-    checkmate::assert_access(file.path(
-      output_path, access = "wx"
-    )) 
-  } else {
-    # Wrap me in a tryCatch
-    tryCatch(
-      dir.create(output_path),
-      # Convert warning to error
-      warning = function(w) rlang::abort(w$message)
-    )
-  }
-
+  makeifnot_dir(output_path, min_access = "rwx")
+  
   # Set up output figures directory if does not already exist
-  if (checkmate::test_directory_exists(file.path(
-    figs_path
-  ))) {
-    # Can we write to it?
-    checkmate::assert_access(file.path(
-      figs_path, access = "wx"
-    )) 
-  } else {
-    # Wrap me in a tryCatch
-    tryCatch(
-      dir.create(figs_path),
-      # Convert warning to error
-      warning = function(w) rlang::abort(w$message)
-    )
-  }
+  makeifnot_dir(figs_path, min_access = "rwx")
   
   # Read parameters
   prop_params_df <- read.csv(system.file(

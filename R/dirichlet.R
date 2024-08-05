@@ -11,7 +11,7 @@
 #' @param phi Parameter representing precision, where precision is 
 #' 1/variance. Must be positive and finite. Defaults to 10.
 #'
-#' @example rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 10)
+#' @examples rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 10)
 #' 
 #' @export 
 #' 

@@ -9,9 +9,31 @@ trial_structure(
   props_df = S7::class_missing,
   arms_ls = S7::class_missing,
   centres_df = S7::class_missing,
-  shared_control = S7::class_missing,
-  ...
+  precision = S7::class_missing,
+  shared_control = S7::class_missing
 )
+}
+\arguments{
+\item{props_df}{Dataframe of expected biomarker prevalences for the
+regions, with one column \code{category} containing names for the
+biomarkers, and one column per region.}
+
+\item{arms_ls}{List of lists of recruitment arms which recruit to
+each treatment arm.}
+
+\item{centres_df}{Dataframe containing columns \code{site}, the index
+number of each site; \code{start_month}, the month in which that site
+is expected to start recruiting; \code{mean_rate}, the expected number
+of patients from that site per month; \code{region}, the index of the
+region the site is in (should be in the same order as the columns
+in \code{props_df}); and an optional column \code{site_cap}, if there is a
+recruitment cap on any of the sites.}
+
+\item{precision}{For the Dirichlet model of biomarker prevalences,
+variability decreases as precision increases. Defaults to 10.}
+
+\item{shared_control}{TRUE if all experimental arms share one
+control arm; FALSE if they each have separate control arms.}
 }
 \description{
 A class for an object to contain the proportions of arriving patients to be
@@ -41,7 +63,7 @@ number of recruitment arms recruiting to each treatment arm.}
 \item{\code{treatment_arm_struct}}{Automatically generated logical matrix of
 treatment arms by recruitment arms.}
 
-\item{\code{experimental_arm_prevalence}}{Automatically generated matrix of recruitment
+\item{\code{experimental_arm_prevalence}}{Automatically generated matrix of
 prevalences of treatment arms by recruitment arms}
 }}
 
