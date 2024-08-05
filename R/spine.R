@@ -27,10 +27,6 @@ spine <- function(
   prop_file = "proportions.csv",
   centre_start_file = "centre_starts.csv",
   arms_file = "arms.json",
-  phase_file = "phase_change_weeks.csv",
-  average_file = "mean_recruitment.csv",
-  # Use this if expected site rates not equal
-  site_rate_file = "site_rates.csv",
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
