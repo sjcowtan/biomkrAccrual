@@ -18,6 +18,7 @@ spine <- function(
   target_interim = target_arm_size / 2,
   target_control = 704,
   accrual_period = 36,
+  precision = 10,
   shared_control = TRUE,
   # active : control ratio (all active the same)
   ctrl_ratio = c(1, 1),
@@ -165,7 +166,13 @@ spine <- function(
 
   # Create structure object
   trial_structure_instance <- 
-    trial_structure(prop_params_df, arms_ls, centres_df, shared_control)
+    trial_structure(
+      prop_params_df, 
+      arms_ls, 
+      centres_df, 
+      precision, 
+      shared_control
+    )
 
   # Create accrual object
   accrual_instance <- accrual(

@@ -25,7 +25,7 @@ trial_structure <- S7::new_class("trial_structure",
   package = "biomkrAccrual",
   properties = list(
     # These need explicitly setting
-    recruit_arm_prevalence = S7::class_data.frame,
+    recruit_arm_prevalence = S7::class_double,
     recruit_arm_names = S7::class_character,
     shared_control = S7::class_logical,
     treatment_arm_ids = S7::class_list,
@@ -59,6 +59,7 @@ trial_structure <- S7::new_class("trial_structure",
     props_df = S7::class_missing, 
     arms_ls = S7::class_missing,
     centres_df = S7::class_missing,
+    precision = S7::class_missing,
     shared_control = S7::class_missing,
     ...
   ) {
@@ -71,7 +72,7 @@ trial_structure <- S7::new_class("trial_structure",
       S7::S7_object(),
       recruit_arm_names = props_df$category, 
       recruit_arm_prevalence = 
-        props_df[, grepl("^proportion_", names(props_df))], 
+        get_recruit_arm_prevalence(props_df, centres_df, precision),
       shared_control = shared_control,
       treatment_arm_ids = arms_ls
     )
@@ -95,6 +96,134 @@ trial_structure <- S7::new_class("trial_structure",
 
 )
 
+
+#' Dirichet regression model for biomarker prevalence
+#' 
+#' For each site, draws from the Dirichlet distribution using the
+#' expected prevalences for the region. 
+#' expected prevalences by region
+#' 
+#' @param props_df Dataframe with one row per biomarker.  Has one column 
+#' `category`, containing names of the biomarkers, plus one column for 
+#' each region, containing the expected biomarker prevalences for the regions.
+#' @param centres_df Dataframe with one row per site, including one column
+#' `region`, containing the index number for the region for each site.
+#' Indices are assumed to be in the same order as the columns in `props_df`.
+#' @param precision Variability decreases as precision increases.
+#'  
+#' @return Matrix of prevalences with one column per site and one 
+#' row per biomarker; each column sums to 1.
+#' 
+#' @import checkmate
+#' 
+#' 
+get_recruit_arm_prevalence <- function(props_df, centres_df, precision) {
+
+  # Check format and content of centres_df
+
+  checkmate::assert_data_frame(
+    centres_df,
+    types = "numeric",
+    any.missing = FALSE,
+    min.cols = 5,
+    max.cols = 6,
+    min.rows = 1,
+    col.names = "named",
+    null.ok = FALSE
+  )
+
+  checkmate::assert_names(
+    names(centres_df),
+    subset.of = c(
+      "site", "start_month", "mean_rate", "region", "site_cap", "start_week"
+    ),
+    must.include = c(
+      "site", "start_month", "mean_rate", "region", "start_week"
+    )
+  )
+
+  sites_in_region <- centres_df$region
+
+  checkmate::assert_atomic_vector(
+    sites_in_region,
+    any.missing = FALSE,
+    min.len = 1,
+    max.len = 10^4
+  )
+
+  checkmate::assert_integerish(
+    sites_in_region,
+    lower = 1,
+    upper = 10^4,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+  
+  # Check format and content of props_df
+
+  checkmate::assert_data_frame(
+    props_df,
+    types = c("numeric", "character"),
+    any.missing = FALSE,
+    # number of regions + "category"
+    min.cols = max(sites_in_region) + 1,
+    min.rows = 2,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_names(names(props_df), must.include = "category")
+
+
+  # Any column that isn't "category" is assumed to be a region -
+  # allows for named regions
+  region_prevalence <- 
+    props_df[, grep("^category$", names(props_df), invert = TRUE)]
+
+  checkmate::assert_numeric(
+    as.matrix(region_prevalence),
+    lower = 0,
+    upper = 1,
+    finite = TRUE
+  )
+
+  # Check format and content of precision
+
+  checkmate::assert_numeric(
+    precision,
+    lower = 10^-7,
+    finite = TRUE,
+    len = 1,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  # Predeclare prevalence matrix
+  recruit_arm_prevalence <- matrix(
+    data = NA, 
+    ncol = length(sites_in_region),
+    nrow = nrow(region_prevalence)
+  )
+
+  # Draw prevalences for sites in each region in turn
+  for (region in unique(sites_in_region)) {
+
+    # Sites in region
+    site_indices <- which(sites_in_region == region)
+
+    bio_prevalence <- rdirichlet_alt(
+      length(site_indices),
+      region_prevalence[, region],
+      precision
+    )
+
+    recruit_arm_prevalence[, site_indices] <- t(bio_prevalence)
+  }
+
+  return(recruit_arm_prevalence)
+
+}
+
+
 #' Converts trial structure and prevalence information into matrix form
 get_matrix_struct <- function(arms_ls, recruit_arm_prevalence) {
 
@@ -116,6 +245,7 @@ get_matrix_struct <- function(arms_ls, recruit_arm_prevalence) {
 
   return(arm_structure_mx)
 }
+
 
 #' Make array with the prevalences by treatment arm, recruitment arm and 
 #' prevalence set
