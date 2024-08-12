@@ -1,3 +1,35 @@
+### Testing do_dirichlet_draws
+sites_in_region <- c(1, 2, 3, 2, 1)
+region_prevalence <- matrix(c(0.2, 0.6, 0.7, 0.9, 0.4, 0.1), ncol = 3)
+precision <- 10
+
+dirichlet_draws_out <- do_dirichlet_draws(region_prevalence, sites_in_region, precision)
+
+test_that("do_dirichlet_draws returns a matrix", {
+  checkmate::expect_matrix(
+    dirichlet_draws_out,
+    any.missing = FALSE,
+    nrows = nrow(region_prevalence),
+    ncols = length(sites_in_region), 
+    null.ok = FALSE,
+  )
+})
+
+test_that("do_dirichlet_draws contains valid probabilities", {
+  checkmate::expect_numeric(
+    dirichlet_draws_out,
+    lower = 0,
+    upper = 1
+  )
+})
+
+test_that("Columns of do_dirichlet_draws sum to 1", {
+  expect_equal(
+    colSums(dirichlet_draws_out),
+    rep(1, length(sites_in_region))
+  )
+})
+
 ### Testing get_recruit_arm_prevalence
 
 centres_df <- data.frame(
@@ -27,7 +59,8 @@ test_that("At least one site", {
       site_cap = NULL,
       start_week = NULL
     ),  
-    10
+    10,
+    fixed_region_prevalences = FALSE
   ))
 })
 
@@ -43,7 +76,8 @@ test_that("Sites must be in regions we have prevalences for", {
       site_cap = 70,
       start_week = 1
     ),
-    10
+    10,
+    fixed_region_prevalences = FALSE
   ))
 })
 
@@ -55,7 +89,8 @@ test_that("Proportions must not be missing", {
       proportion_2 = c(0.35, NA),
       proportion_3 = c(0.01, 0.6)
     ),
-    10
+    10,
+    fixed_region_prevalences = FALSE
   ))
 })
 
@@ -67,16 +102,17 @@ test_that("Proportions must be valid", {
       proportion_3 = c(0.01, 0.6)
     ),
     centres_df,
-    10
+    10,
+    fixed_region_prevalences = FALSE
   ))
 })
 
 test_that("Precision must be positive > 0", {
-  expect_error(get_recruit_arm_prevalence(props_df, centres_df, 0))
+  expect_error(get_recruit_arm_prevalence(props_df, centres_df, 0, TRUE))
 })
 
 recruit_arm_prevalence_out <- 
-  get_recruit_arm_prevalence(props_df, centres_df, 10)
+  get_recruit_arm_prevalence(props_df, centres_df, 10, FALSE)
 
 test_that("get_recruit_arm_prevalence returns a matrix", {
   checkmate::expect_matrix(

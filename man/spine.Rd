@@ -8,24 +8,79 @@ spine(
   target_arm_size = 308,
   target_interim = target_arm_size/2,
   target_control = 704,
+  shared_control = TRUE,
   accrual_period = 36,
   precision = 10,
-  shared_control = TRUE,
   ctrl_ratio = c(1, 1),
-  no_samples = 100,
   centres_file = "centres.csv",
   prop_file = "proportions.csv",
-  centre_start_file = "centre_starts.csv",
   arms_file = "arms.json",
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
   fixed_centre_starts = TRUE,
-  fixed_site_rates = FALSE
+  fixed_site_rates = FALSE,
+  fixed_region_prevalences = FALSE
 )
 }
 \arguments{
-\item{target_arm_size}{Number of patients required per treatment arm}
+\item{target_arm_size}{Number of patients required per
+treatment arm}
+
+\item{target_interim}{Number of patients required per
+arm for interim analysis; defaults to \verb{target_arm_size \\ 2}}
+
+\item{target_control}{Number of patients required for the
+control arm(s)}
+
+\item{shared_control}{TRUE if all treatment arms share the
+same control arm; FALSE if each treatment arm has its own
+control. Defaults to TRUE.}
+
+\item{accrual_period}{Recruitment period (months).}
+
+\item{precision}{For the Dirichlet model of biomarker prevalences,
+variability decreases as precision increases. Defaults to 10.}
+
+\item{ctrl_ratio}{Ratio of patient allocation to treatment arm
+versus control for all active arms; defaults to c(1, 1).}
+
+\item{centres_file}{Name of CSV file with information about
+each recruitment centre; this should have columns "site",
+"start_month", "mean_rate", "region" and optionally "site_cap"
+if recruitment is capped per site. Defaults to \code{centres.csv}.}
+
+\item{prop_file}{Name of CSV file with expected biomarker prevalences
+for each region; this should have one column "category", naming
+the biomarkers or biomarker combinations, and one column per
+region. Defaults to \code{proportions.csv}.}
+
+\item{arms_file}{Name of JSON file describing which recruitment
+arms (defined by biomarkers) recruit to which treatment arms.
+Defaults to \code{arms_json}.}
+
+\item{data_path}{Folder where \code{centres_file}, \code{prop_file} and
+\code{arms_file} are located. Defaults to the location of the package
+example data in the package installation; this should be changed.}
+
+\item{output_path}{Folder where data generated during execution
+will be stored; defaults to \verb{../biomkrAccrual_output_data/}.}
+
+\item{figs_path}{Folder where figures generated during execution
+will be stored; defaults to the \code{figures} subdirectory in
+\code{output_path}.}
+
+\item{fixed_centre_starts}{TRUE if centres are assumed to start
+exactly when planned; FALSE if some randomisation should be added.}
+
+\item{fixed_site_rates}{TRUE if centre recruitment rates should
+be treated as exact; FALSE if they should be drawn from a gamma
+distribution with a mean of the specified rate.}
+
+\item{fixed_region_prevalences}{TRUE if biomarker prevalences
+should be considered to be identical for all sites within a
+region; FALSE if they should be drawn from a Dirichlet distribution
+with a mean of the specified prevalence.}
 }
 \description{
 Driver for the procedure

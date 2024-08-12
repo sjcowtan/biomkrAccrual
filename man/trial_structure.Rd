@@ -10,7 +10,8 @@ trial_structure(
   arms_ls = S7::class_missing,
   centres_df = S7::class_missing,
   precision = S7::class_missing,
-  shared_control = S7::class_missing
+  shared_control = S7::class_missing,
+  fixed_region_prevalences = S7::class_missing
 )
 }
 \arguments{

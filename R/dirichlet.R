@@ -55,6 +55,7 @@ rdirichlet_alt <- function(
     ncol = no_probs, 
     byrow = TRUE
   )
+  # Each set should sum to 1
   draws_mx <- draws_mx / rowSums(draws_mx)
 
   return(draws_mx)

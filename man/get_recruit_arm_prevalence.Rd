@@ -4,7 +4,12 @@
 \alias{get_recruit_arm_prevalence}
 \title{Dirichet regression model for biomarker prevalence}
 \usage{
-get_recruit_arm_prevalence(props_df, centres_df, precision)
+get_recruit_arm_prevalence(
+  props_df,
+  centres_df,
+  precision,
+  fixed_region_prevalences
+)
 }
 \arguments{
 \item{props_df}{Dataframe with one row per biomarker.  Has one column

@@ -441,5 +441,4 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
     return(list(accrual_obj, struct_obj))
   }
 
-
  
