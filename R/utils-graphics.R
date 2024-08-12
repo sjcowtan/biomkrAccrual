@@ -261,7 +261,8 @@ accrual_plot_from_file <- function(
 #' a line plot of cumulative recruitment, grouped by trial arm,
 #' using ggplot2.
 #' 
-#' @name plot.accrual
+#' @name plot
+#' @alias plot.accrual
 #' 
 #' @param accrual_obj Object of class `accrual`.
 #' @param plot_prefix Prefix for file name to identify plot type.
@@ -276,24 +277,22 @@ accrual_plot_from_file <- function(
 #' 
 #' @export
 #' 
-plot.accrual <- function(
+S7::new_generic("plot", "accrual")
+S7::method(plot, accrual) <- function(
   accrual_obj,
   plot_prefix = "accrual_plot",
   run_time = "2024-08-07-18-35-09",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/")
 ) {
+  accrual_ar <- accrual_obj@accrual
 
   # Sum across sites
-  accrual_df <- data.frame(rowSums(accrual_obj@accrual, dims = 2))
-
-  print("ok 1")
+  accrual_df <- data.frame(rowSums(accrual_ar, dims = 2))
 
   # Convert to long format of class "accrualplotdata"
   accrual_df <- accrual_to_long(accrual_df)
 
-  print("ok 2")
-  
   # Plot and save plot in figs_path
   plot(
     accrual_df, 
