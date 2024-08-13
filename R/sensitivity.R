@@ -13,12 +13,19 @@
 #' @param fixed_centre_starts Logical; do sites open at the beginning of 
 #' the month specified (TRUE) or does the time vary randomly; defaults to TRUE.
 #' @param site_caps Vector of site caps; if all sites are capped to the same
-#' value can be a scalar. Defaults to NULL, for no site capping.
+#' value can be a scalar. Defaults to NULL, for no site capping
+#' @param output_path Location of output directory where figures directory is 
+#' located; defaults to `biomkrAccrual_output_data/`. `figs_path` overrides 
+#' this.
+#' @param figs_path Location of figures directory; defaults to 
+#' `output_path`/figures/
 #' 
 #' @examples 
-#' sensitivity(10, 100)
+#' sens_analysis(10, 100, figs_path = "/tmp/figs")
 #' 
 #' @export
+#' 
+#' @importFrom rlang abort
 #' 
 sens_analysis <- function(
   target_arm_size = 308, 
@@ -28,7 +35,8 @@ sens_analysis <- function(
   fixed_site_rates = TRUE,
   fixed_centre_starts = TRUE,
   site_caps = NULL,
-  figs_path = "output_data/figures/"
+  output_path = "biomkrAccrual_output_data/",
+  figs_path = paste0(output_path, "figures/")
 ) {
 
   # Input cleaning
@@ -73,6 +81,11 @@ sens_analysis <- function(
     )
   ) {
     rlang::abort("Centre start times should be integers.")
+  }
+
+  # Create figure path if does not exist
+  if (!dir.exists(figs_path)) {
+    dir.create(figs_path)
   }
 
   # Choose appropriate analysis
@@ -130,11 +143,12 @@ do_poisson_sensitivity <- function(target_arm_size, site_rates, no_centres, figs
 #' identical.
 #' @param no_centres Number of sites.
 #' 
+#' @importFrom  stats rgamma
 do_poisson_gamma_sensitivity <- function(
   target_arm_size, site_rates, no_centres, figs_path
 ) {
 
-  site_rates <- sum(rgamma(no_centres, rate = 1, shape = site_rates))
+  site_rates <- sum(stats::rgamma(no_centres, rate = 1, shape = site_rates))
 
   do_sensitivity_plot_simultaneous(
     target_arm_size, 

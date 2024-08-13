@@ -8,7 +8,7 @@ do_clean_centres(centres_df)
 }
 \arguments{
 \item{centres_df}{Dataframe with columns site, start_month, mean_rate,
-prevalence_set and site_cap}
+region and site_cap}
 }
 \value{
 Dataframe with start_week, ordered by start_month and site

@@ -1,62 +1,181 @@
 #' @include prevalence.R
 
-#' Driver for the procedure
-#' @param target_arm_size Number of patients required per treatment arm
+
+
+#' @title Driver for the procedure
+#' 
+#' @param target_arm_size Number of patients required per 
+#' treatment arm
+#' @param target_interim Number of patients required per 
+#' arm for interim analysis; defaults to `target_arm_size \ 2`
+#' @param target_control Number of patients required for the
+#' control arm(s)
+#' @param shared_control TRUE if all treatment arms share the
+#' same control arm; FALSE if each treatment arm has its own 
+#' control. Defaults to TRUE.
+#' @param accrual_period Recruitment period (months).
+#' @param precision For the Dirichlet model of biomarker prevalences, 
+#' variability decreases as precision increases. Defaults to 10.
+#' @param ctrl_ratio Ratio of patient allocation to treatment arm
+#' versus control for all active arms; defaults to c(1, 1).
+#' @param centres_file Name of CSV file with information about 
+#' each recruitment centre; this should have columns "site", 
+#' "start_month", "mean_rate", "region" and optionally "site_cap"
+#' if recruitment is capped per site. Defaults to `centres.csv`.
+#' @param prop_file Name of CSV file with expected biomarker prevalences
+#' for each region; this should have one column "category", naming
+#' the biomarkers or biomarker combinations, and one column per
+#' region. Defaults to `proportions.csv`.
+#' @param arms_file Name of JSON file describing which recruitment
+#' arms (defined by biomarkers) recruit to which treatment arms. 
+#' Defaults to `arms_json`.
+#' @param data_path Folder where `centres_file`, `prop_file` and
+#' `arms_file` are located. Defaults to the location of the package
+#' example data in the package installation; this should be changed. 
+#' @param output_path Folder where data generated during execution
+#' will be stored; defaults to `../biomkrAccrual_output_data/`.
+#' @param figs_path Folder where figures generated during execution
+#' will be stored; defaults to the `figures` subdirectory in
+#' `output_path`.
+#' @param fixed_centre_starts TRUE if centres are assumed to start
+#' exactly when planned; FALSE if some randomisation should be added.
+#' @param fixed_site_rates TRUE if centre recruitment rates should 
+#' be treated as exact; FALSE if they should be drawn from a gamma
+#' distribution with a mean of the specified rate.
+#' @param fixed_region_prevalences TRUE if biomarker prevalences 
+#' should be considered to be identical for all sites within a 
+#' region; FALSE if they should be drawn from a Dirichlet distribution
+#' with a mean of the specified prevalence.
 #' 
 #' @examples 
 #' spine()
+#' 
+#' @import checkmate 
+#' @importFrom jsonlite read_json
+#' @importFrom rlang abort warn
+#' @importFrom utils read.csv
 #' 
 #' @export
 spine <- function(
   target_arm_size = 308,
   target_interim = target_arm_size / 2,
   target_control = 704,
-  accrual_period = 36,
   shared_control = TRUE,
+  accrual_period = 36,
+  precision = 10,
   # active : control ratio (all active the same)
   ctrl_ratio = c(1, 1),
-  no_samples = 100,
   centres_file = "centres.csv",
   prop_file = "proportions.csv",
-  centre_start_file = "centre_starts.csv",
   arms_file = "arms.json",
-  phase_file = "phase_change_weeks.csv",
-  average_file = "mean_recruitment.csv",
-  # Use this if expected site rates not equal
-  site_rate_file = "site_rates.csv",
-  data_path = "inst/extdata/",
-  figs_path = "output_data/figures/",
+  data_path = "extdata/",
+  output_path = "../biomkrAccrual_output_data/",
+  figs_path = paste0(output_path, "figures/"),
   fixed_centre_starts = TRUE,
-  fixed_site_rates = FALSE
+  fixed_site_rates = FALSE,
+  fixed_region_prevalences = FALSE
 ) {
-  # Verify inputs
-  ## fail if directory doesn't exist
-  ## append "/" if no slash on end
-  ## If _file doesn't end in .csv add it 
-  ## Check if files exist and are readable
-  ## Check for switches e.g. av_site_rate_month first
 
+  checkmate::assert_logical(
+    fixed_region_prevalences,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  if (fixed_region_prevalences && 
+    checkmate::test_numeric(
+      precision, 
+      any.missing = FALSE, 
+      null.ok = FALSE
+    )
+  )  {
+    rlang::warn(paste("Value given for precision when", 
+      "fixed_region_prevalences is TRUE: fixed_region_prevalences",
+      "will take precendence."
+    ))
+    precision <- NULL
+  }
+
+  checkmate::assert_numeric(
+    precision,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 1,
+    null.ok = TRUE
+  )
+
+  if (!fixed_region_prevalences && is.null(precision)) {
+    rlang::abort(paste("Either fixed_region_prevalences", 
+      "must be TRUE, or a value must be given for the",
+      "precision of the Dirichlet distribution."
+    ))
+  }
+
+
+  # Verify inputs
+  ## append "/" if no slash on end
+  data_path <- gsub("(\\w+)$", "\\1/", data_path)
+  output_path <- gsub("(\\w+)$", "\\1/", output_path)
+  figs_path <- gsub("(\\w+)$", "\\1/", figs_path)
+
+  # Make into full path so only one set of syntax needed
+  if (!grepl("^/", output_path)) {
+    output_path <- paste0(getwd(), "/", output_path)
+  }
+  
+  ## Check for switches e.g. av_site_rate_month first
+  checkmate::assert_directory_exists(system.file(
+    data_path, package = "biomkrAccrual"
+  ), access = "rx")
+  checkmate::assert_file_exists(system.file(
+    data_path, prop_file, package = "biomkrAccrual"
+  ), access = "r")
+  checkmate::assert_file_exists(system.file(
+    data_path, arms_file, package = "biomkrAccrual"
+  ), access = "r")
+  checkmate::assert_file_exists(system.file(
+    data_path, centres_file, package = "biomkrAccrual"
+  ), access = "r")
+
+  # Set up output directory if does not already exist
+  makeifnot_dir(output_path, min_access = "rwx")
+  
+  # Set up output figures directory if does not already exist
+  makeifnot_dir(figs_path, min_access = "rwx")
+  
   # Read parameters
-  prop_params_df <- read.csv(paste0(data_path, prop_file))
+  prop_params_df <- utils::read.csv(system.file(
+    data_path, prop_file, package = "biomkrAccrual"
+  )) 
+    
   arms_ls <- 
-    jsonlite::read_json(paste0(data_path, arms_file), simplifyVector = TRUE)
-  centres_df <- read.csv(paste0(data_path, centres_file))
+    jsonlite::read_json(system.file(
+      data_path, arms_file, package = "biomkrAccrual"
+    ), simplifyVector = TRUE)
+  
+  centres_df <- utils::read.csv(system.file(
+    data_path, centres_file, package = "biomkrAccrual"
+  ))
 
   # Add fail if read fails
 
   # Fail if centres_file is in wrong format
   if (isFALSE(all.equal(
     names(centres_df), 
-    c("site", "start_month", "mean_rate", "prevalence_set", "site_cap")
+    c("site", "start_month", "mean_rate", "region", "site_cap")
     # site_cap is optional, no cap if not present
   )) || isFALSE(all.equal(
-    names(centres_df), c("site", "start_month", "mean_rate", "prevalence_set")
+    names(centres_df), c("site", "start_month", "mean_rate", "region")
   ))) {
     rlang::abort(paste(
       "Format error: centres.csv should have columns site,",
-      "start_month, mean_rate, prevalence_set, and optionally site_cap"
+      "start_month, mean_rate, region, and optionally site_cap"
     ))
   }
+
+  # Set run_time to timestamp output files
+  run_time <- format(Sys.time(), "%F-%H-%M-%S")
 
   # Get start weeks & order centres_df by start week and site number
   centres_df <- do_clean_centres(centres_df)
@@ -97,7 +216,14 @@ spine <- function(
 
   # Create structure object
   trial_structure_instance <- 
-    trial_structure(prop_params_df, arms_ls, centres_df, shared_control)
+    trial_structure(
+      prop_params_df, 
+      arms_ls, 
+      centres_df, 
+      precision, 
+      shared_control,
+      fixed_region_prevalences
+    )
 
   # Create accrual object
   accrual_instance <- accrual(
@@ -134,6 +260,15 @@ spine <- function(
   # Trim accrual to actual recruitment length
   accrual_instance@accrual <- 
     accrual_instance@accrual[seq(accrual_instance@week - 1), , ]
+
+  write.csv(
+    accrual_instance@accrual, 
+    paste0(output_path, "accrual-", run_time, ".csv"),
+    row.names = FALSE
+  )
+
+  # Plot outcome
+  plot(accrual_instance)
 
   # Return summary statistics
   return(list(

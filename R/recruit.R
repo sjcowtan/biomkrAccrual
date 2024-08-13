@@ -3,10 +3,36 @@
 #' 
 #' @slot accrual 3-D array with axes site, experimental arm
 #' and week
+#' @slot accrual_period Number of weeks in planned recruitment period
 #' @slot phase_changes Vector of week numbers when arms closed
-#' @name accrual
+#' @slot site_closures Vector of weeks sites closed; NA indicates open
+#' @slot week Current recruitment week
+#' @slot active_arms Vector of indices of open arms
+#' @slot active_sites Vector of indices of open sites
+#' @slot shared_control TRUE if a shared control arm is being used, else FALSE
+#' @slot site_in_region Vector of indices for which set of expected 
+#' prevalences each site should use 
+#' @slot site_cap Vector of maximum number of patients for each site
+#' @slot site_mean_rate Vector of expected recruitment rates for each site
+#' @slot site_rate Vector of recruitment rates for each site, drawn from a 
+#' gamma distribution
+#' @slot start_week Vector of weeks that each site opens recruitment
+#' @slot index Vector of index numbers for each site
 #' 
-#' @export 
+#' @param treatment_arm_ids Named list of lists of recruitment arms by 
+#' treatment arm.
+#' @param shared_control TRUE if all experimental arms share one control arm;
+#' FALSE if each has their own
+#' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
+#' "region" and "site_cap"
+#' @param accrual_period Maximum recruitment period, in weeks
+#' 
+#' usage accrual(treatment_arm_ids, shared_control, centres_df, accrual_period)
+#' @name accrual
+#'
+#' @export
+#' 
+#' @importFrom rlang check_dots_empty 
 #' 
 accrual <- S7::new_class("accrual",
   package = "biomkrAccrual",
@@ -19,7 +45,7 @@ accrual <- S7::new_class("accrual",
     active_arms = S7::class_integer,
     active_sites = S7::class_integer,
     shared_control = S7::class_logical,
-    site_prevalence_set = S7::class_integer,
+    site_in_region = S7::class_integer,
     site_cap = S7::class_integer,
     site_mean_rate = S7::class_double,
     site_rate = S7::class_double,
@@ -30,12 +56,8 @@ accrual <- S7::new_class("accrual",
     treatment_arm_ids = S7::class_missing,
     shared_control = S7::class_missing,
     centres_df = S7::class_missing,
-    accrual_period = S7::class_missing,
-    ...
+    accrual_period = S7::class_missing
   ) {
-    # Complain if any other arguments given
-    rlang::check_dots_empty()
-
     # Create the object and populate it
     S7::new_object(
       # Parent class
@@ -73,7 +95,7 @@ accrual <- S7::new_class("accrual",
       active_arms = seq_len(length(treatment_arm_ids)),
       active_sites = seq_len(length(unique(centres_df$site))),
       shared_control = shared_control,
-      site_prevalence_set = as.integer(centres_df$prevalence_set),
+      site_in_region = as.integer(centres_df$region),
       site_cap = as.integer(centres_df$site_cap),
       site_mean_rate = as.numeric(centres_df$mean_rate),
       site_rate = NA_real_,
@@ -158,7 +180,9 @@ get_weeks <- function(months) {
 #' @param obj An object of type "accrual"
 #' @return Modified object with new site rates
 #' 
-set_site_rates <- S7::new_generic("do_site_start_rates", "obj")
+#' @importFrom stats rgamma
+#' 
+set_site_rates <- S7::new_generic("site_start_rates", "obj")
 S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
 
   # If this is the first time calling this, initialise with rate 0
@@ -174,7 +198,7 @@ S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
       rates <- obj@site_mean_rate(indices) / 4
     } else {
       # mean_rates are in recruitment per month, so scale = 4 converts
-      rates <- rgamma(
+      rates <- stats::rgamma(
         n = length(indices),
         shape = obj@site_mean_rate[indices],
         # Per week not per month
@@ -238,12 +262,13 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 
 
 #' Implement arm cap on week's accrual to experimental arms
-#' @param accrual_obj Object of class "accrual"
-#' @param struct_obj Object of class "trial_structure"
+#' @param accrual_obj Object of class `accrual`
+#' @param struct_obj Object of class `trial_structure`
 #' @param target_arm_size Maximum number of patients per arm
 #' (can be a vector with a value for each arm, or a scalar)
-#' @param site_cap Maximum number of patients per site
 #' @return Modified accrual object with capped week's accrual
+#' 
+#' @importFrom rlang abort
 #' 
 apply_arm_cap <- 
   S7::new_generic("apply_arm_cap", c("accrual_obj", "struct_obj"))
@@ -259,7 +284,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 
     # Inactive arms can be at cap but not exceed it
     if (any(arm_captotal[-accrual_obj@active_arms] > 0)) {
-      rlang::error(paste(
+      rlang::abort(paste(
         "Inactive arm exceeded cap:", 
         which(arm_captotal[-accrual_obj@active_arms] > 0)
       ))
@@ -354,7 +379,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
       # Total probability for each experimental arm for the 
       # relevant site prevalence set
       probs <- colSums(struct_obj@experimental_arm_prevalence[
-        , , accrual_obj@site_prevalence_set[isite]
+        , , accrual_obj@site_in_region[isite]
       ])
 
 
@@ -379,8 +404,13 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #' Generate accrual for a week and assign it to the 
 #' accrual object. Increments the property "week",
 #' which holds the next week number to accrue.
-#' @param class_list A list consisting of one object of class "accrual"
-#' and one of class "trial_structure"
+#' @param accrual_obj An object of class "accrual"
+#' @param struct_obj An object of class "trial_structure"
+#' @param target_arm_size Maximum number of patients per arm
+#' (can be a vector with a value for each arm, or a scalar)
+#' @param fixed_site_rates TRUE if expected site rate to be used; FALSE 
+#' draws the site rate from a gamma distribution
+#' 
 #' @return An object of class "accrual"
 #'
 accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))
@@ -412,4 +442,3 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
   }
 
 
- 

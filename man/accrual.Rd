@@ -9,9 +9,22 @@ accrual(
   treatment_arm_ids = S7::class_missing,
   shared_control = S7::class_missing,
   centres_df = S7::class_missing,
-  accrual_period = S7::class_missing,
-  ...
+  accrual_period = S7::class_missing
 )
+}
+\arguments{
+\item{treatment_arm_ids}{Named list of lists of recruitment arms by
+treatment arm.}
+
+\item{shared_control}{TRUE if all experimental arms share one control arm;
+FALSE if each has their own}
+
+\item{centres_df}{Dataframe with columns "site", "start_month", "mean_rate",
+"region" and "site_cap"}
+
+\item{accrual_period}{Maximum recruitment period, in weeks
+
+usage accrual(treatment_arm_ids, shared_control, centres_df, accrual_period)}
 }
 \description{
 A class to contain the accrued patient allocations,
@@ -23,6 +36,32 @@ by site, treatment/control arm and week
 \item{\code{accrual}}{3-D array with axes site, experimental arm
 and week}
 
+\item{\code{accrual_period}}{Number of weeks in planned recruitment period}
+
 \item{\code{phase_changes}}{Vector of week numbers when arms closed}
+
+\item{\code{site_closures}}{Vector of weeks sites closed; NA indicates open}
+
+\item{\code{week}}{Current recruitment week}
+
+\item{\code{active_arms}}{Vector of indices of open arms}
+
+\item{\code{active_sites}}{Vector of indices of open sites}
+
+\item{\code{shared_control}}{TRUE if a shared control arm is being used, else FALSE}
+
+\item{\code{site_in_region}}{Vector of indices for which set of expected
+prevalences each site should use}
+
+\item{\code{site_cap}}{Vector of maximum number of patients for each site}
+
+\item{\code{site_mean_rate}}{Vector of expected recruitment rates for each site}
+
+\item{\code{site_rate}}{Vector of recruitment rates for each site, drawn from a
+gamma distribution}
+
+\item{\code{start_week}}{Vector of weeks that each site opens recruitment}
+
+\item{\code{index}}{Vector of index numbers for each site}
 }}
 

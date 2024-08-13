@@ -9,8 +9,15 @@ which holds the next week number to accrue.}
 accrue_week(accrual_obj, struct_obj, ...)
 }
 \arguments{
-\item{class_list}{A list consisting of one object of class "accrual"
-and one of class "trial_structure"}
+\item{accrual_obj}{An object of class "accrual"}
+
+\item{struct_obj}{An object of class "trial_structure"}
+
+\item{target_arm_size}{Maximum number of patients per arm
+(can be a vector with a value for each arm, or a scalar)}
+
+\item{fixed_site_rates}{TRUE if expected site rate to be used; FALSE
+draws the site rate from a gamma distribution}
 }
 \value{
 An object of class "accrual"
