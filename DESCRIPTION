@@ -1,6 +1,6 @@
 Package: biomkrAccrual
 Title: What the Package Does (One Line, Title Case)
-Version: 0.0.1.9000
+Version: 0.0.2.9000
 Authors@R: 
     person("S J", "Cowtan", , "cowtansj@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-7668-4109"))
@@ -11,7 +11,6 @@ Depends:
 Imports: 
     jsonlite,
     rlang,
-    viridisLite,
     checkmate (>= 2.3.0),
     ggplot2 (>= 3.5.0),
     S7 (>= 0.1.1)

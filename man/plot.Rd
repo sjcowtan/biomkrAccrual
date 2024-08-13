@@ -2,6 +2,7 @@
 % Please edit documentation in R/utils-graphics.R
 \name{plot}
 \alias{plot}
+\alias{plot.accrual}
 \title{Plot method for an object of class \code{accrual}.  Creates
 a line plot of cumulative recruitment, grouped by trial arm,
 using ggplot2.}

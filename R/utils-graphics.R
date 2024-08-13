@@ -1,18 +1,4 @@
  
-#' Custom colours (colourblind friendly) -
-#' omits colours nearest black and white
-#' @param palette Defaults to "viridis"
-#' @param no_colours Defaults to 4
-#' 
-#' @importFrom viridisLite viridis
-#' 
-bma_colours <- function(palette = "viridis", no_colours = 4) {
-  viridisLite::viridis(no_colours * 2 + 1, option = palette)[
-    seq(3, no_colours * 2 + 1, by = 2)
-  ]
-}
-
-
 #' Theme for ggplot2
 #' @param base_size Legend title size, all other sizes scaled appropriately 
 #' to this
@@ -133,7 +119,7 @@ ggscatterError <- function(prevalences, e_time, v_time) {
     ymax = e_time + (1.96 * sqrt(v_time))
   )
 
-  plot_col <- bma_colours()[1]
+  plot_col <- grDevices::palette.colors(3)[3]
 
   ggplot2::ggplot(
     plot_df, 
@@ -262,7 +248,7 @@ accrual_plot_from_file <- function(
 #' using ggplot2.
 #' 
 #' @name plot
-#' @alias plot.accrual
+#' @aliases plot.accrual
 #' 
 #' @param accrual_obj Object of class `accrual`.
 #' @param plot_prefix Prefix for file name to identify plot type.
