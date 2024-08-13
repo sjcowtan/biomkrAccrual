@@ -414,3 +414,17 @@ S7::method(remove_treat_arms, trial_structure) <- function(obj, arms) {
 }
 
 
+#' Check whether an object is of class "trial_structure".
+#' 
+#' @param x Object to test
+#' 
+#' @return TRUE or FALSE
+#' 
+#' @importFrom S7 new_generic method class_any
+#' @export
+#' 
+is.trial_structure <- S7::new_generic("is.trial_structure", "x")
+S7::method(is.trial_structure, S7::class_any) <- function(x) {
+  inherits(x, "biomkrAccrual::trial_structure")
+}
+

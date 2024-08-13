@@ -442,3 +442,17 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
   }
 
 
+
+#' Check whether an object is of class "accrual".
+#' 
+#' @param x Object to test
+#' 
+#' @return TRUE or FALSE
+#' 
+#' @importFrom S7 new_generic method class_any
+#' @export
+#' 
+is.accrual <- S7::new_generic("is.accrual", "x")
+S7::method(is.accrual, S7::class_any) <- function(x) {
+  inherits(x, "biomkrAccrual::accrual")
+}

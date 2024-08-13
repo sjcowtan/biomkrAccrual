@@ -138,3 +138,46 @@ test_that("Prevalence sets sum to 1", {
     rep(1, nrow(centres_df))
   )
 })
+
+
+### Testing constructor trial_structure()
+
+ts_obj <- trial_structure(
+  props_df <- data.frame(
+    category = LETTERS[1:2],
+    A = c(0.2, 0.8),
+    B = c(0.35, 0.65)
+  ),
+  arms_ls = list(
+    T1 = as.integer(1),
+    T2 = as.integer(2)
+  ),
+  centres_df = data.frame(
+    site = 1:2,
+    start_month = c(1, 5),
+    mean_rate = c(10, 18),
+    region = c(1, 1),
+    site_cap = c(40, 20),
+    start_week = c(1, 20)
+  ),
+  precision = 10,
+  shared_control = TRUE,
+  fixed_region_prevalences = FALSE
+)
+
+test_that(paste(
+  "Constructor for trial_structure produces an object of classes",
+  "S7_object and biomkrAccrual::trial_structure"
+), {
+  checkmate::expect_class(ts_obj, c(
+    "biomkrAccrual::trial_structure",
+    "S7_object"
+  ))
+})
+
+
+### Testing is.trial_structure
+
+test_that("is.trial_structure correctly identifies class", {
+  expect_true(is.trial_structure(ts_obj))
+})
