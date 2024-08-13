@@ -1,3 +1,3 @@
 # biomkrAccrual
-## Predicting accrual for biomarker-driven adaptive umbrella trials
+## Predicting accrual for multi-site adaptive clinical trials with arm eligibility defined by biomarkers
 
