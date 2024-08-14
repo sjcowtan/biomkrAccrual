@@ -456,3 +456,5 @@ is.accrual <- S7::new_generic("is.accrual", "x")
 S7::method(is.accrual, S7::class_any) <- function(x) {
   inherits(x, "biomkrAccrual::accrual")
 }
+
+

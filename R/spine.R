@@ -57,9 +57,9 @@
 #' 
 #' @export
 spine <- function(
-  target_arm_size = 308,
+  target_arm_size = 60,
   target_interim = target_arm_size / 2,
-  target_control = 704,
+  target_control = 180,
   shared_control = TRUE,
   accrual_period = 36,
   precision = 10,
@@ -270,9 +270,12 @@ spine <- function(
   # Plot outcome
   plot(accrual_instance)
 
+  # Print accrual object
+  print(accrual_instance)
+
+  # Print summary of accrual object
+  summary(accrual_instance)
+
   # Return summary statistics
-  return(list(
-    accrual_instance@phase_changes, 
-    treat_sums(accrual_instance)
-  ))
+  return(accrual_instance@accrual)
 }

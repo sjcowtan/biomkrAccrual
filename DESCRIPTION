@@ -26,6 +26,7 @@ Collate:
     'input.R'
     'prevalence.R'
     'recruit.R'
+    's3_generics.R'
     'sensitivity.R'
     'spine.R'
     'test_batches.R'

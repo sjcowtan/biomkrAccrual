@@ -243,52 +243,6 @@ accrual_plot_from_file <- function(
 }
 
 
-#' Plot method for an object of class `accrual`.  Creates
-#' a line plot of cumulative recruitment, grouped by trial arm,
-#' using ggplot2.
-#' 
-#' @name plot
-#' @aliases plot.accrual
-#' 
-#' @param accrual_obj Object of class `accrual`.
-#' @param plot_prefix Prefix for file name to identify plot type.
-#' Defaults to `accrual_plot`.
-#' @param run_time Specify a particular instance of `spine()`
-#' execution using a date-time format `yyyy-mm-dd-hh-mm-ss`.
-#' @param output_path = Directory where the output files from the 
-#' `spine()` instance are located.
-#' @param figs_path Folder where figures generated during execution
-#' will be stored; defaults to the `figures` subdirectory in
-#' `output_path`.
-#' 
-#' @export
-#' 
-S7::new_generic("plot", "accrual")
-S7::method(plot, accrual) <- function(
-  accrual_obj,
-  plot_prefix = "accrual_plot",
-  run_time = "2024-08-07-18-35-09",
-  output_path = "../biomkrAccrual_output_data/",
-  figs_path = paste0(output_path, "figures/")
-) {
-  accrual_ar <- accrual_obj@accrual
-
-  # Sum across sites
-  accrual_df <- data.frame(rowSums(accrual_ar, dims = 2))
-
-  # Convert to long format of class "accrualplotdata"
-  accrual_df <- accrual_to_long(accrual_df)
-
-  # Plot and save plot in figs_path
-  plot(
-    accrual_df, 
-    plot_prefix = plot_prefix,
-    run_time = run_time,
-    figs_path = figs_path
-  )
-}
-
-
 #' Convert accrual data to long format dataframe of class
 #' `accrualplotformat`.
 #' 

@@ -5,9 +5,9 @@
 \title{Driver for the procedure}
 \usage{
 spine(
-  target_arm_size = 308,
+  target_arm_size = 60,
   target_interim = target_arm_size/2,
-  target_control = 704,
+  target_control = 180,
   shared_control = TRUE,
   accrual_period = 36,
   precision = 10,
