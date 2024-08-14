@@ -9,6 +9,7 @@ dataframe of class "accrualplotdata".}
   data,
   plot_prefix = "accrual_plot",
   run_time = NULL,
+  output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/")
 )
 }
@@ -22,12 +23,12 @@ Defaults to \code{accrual_plot}.}
 \item{run_time}{Specify a particular instance of \code{spine()}
 execution using a date-time format \code{yyyy-mm-dd-hh-mm-ss}.}
 
+\item{output_path}{= Directory where the output files from the
+\code{spine()} instance are located.}
+
 \item{figs_path}{Folder where figures generated during execution
 will be stored; defaults to the \code{figures} subdirectory in
 \code{output_path}.}
-
-\item{output_path}{= Directory where the output files from the
-\code{spine()} instance are located.}
 }
 \description{
 S3 method to plot predicted recruitment from a long format

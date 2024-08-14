@@ -6,11 +6,26 @@
 #' (defaults to "centres.csv")
 #' @param arms_file File containing list of which recruitment
 #' arms recruit to which experimental arm
+#' @param data_path Folder where `centres_file`, `prop_file` and
+#' `arms_file` are located. Defaults to the location of the package
+#' example data in the package installation; this should be changed. 
+#' @param output_path Folder where data generated during execution
+#' will be stored; defaults to `../biomkrAccrual_output_data/`.
 #' @param accrual_period Maximum number of weeks to recruit 
 #' (defaults to 80)
 #' @param target_arm_size Maximum size for all experimental arms
 #' (defaults to 308)
 #' @param shared_control = TRUE,
+#' @param fixed_centre_starts TRUE if centres are assumed to start
+#' exactly when planned; FALSE if some randomisation should be added.
+#' @param fixed_site_rates TRUE if centre recruitment rates should 
+#' be treated as exact; FALSE if they should be drawn from a gamma
+#' distribution with a mean of the specified rate.
+#' @param fixed_region_prevalences TRUE if biomarker prevalences 
+#' should be considered to be identical for all sites within a 
+#' region; FALSE if they should be drawn from a Dirichlet distribution
+#' with a mean of the specified prevalence.
+#' 
 #' @return Dataframe of site closing times
 #' @return Dataframe of experimental arm totals
 #' @export
@@ -27,7 +42,9 @@ batch <- function(
   accrual_period = 10,
   target_arm_size = 100,
   shared_control = TRUE,
-  fixed_site_rates = FALSE
+  fixed_centre_starts = TRUE,
+  fixed_site_rates = FALSE,
+  fixed_region_prevalences = FALSE
 ) {
 
   # Information for setting up dataframe
@@ -58,7 +75,10 @@ batch <- function(
       data_path = data_path,
       accrual_period = accrual_period,
       target_arm_size = target_arm_size,
-      shared_control = shared_control
+      shared_control = shared_control,
+      fixed_centre_starts = fixed_centre_starts,
+      fixed_site_rates = fixed_site_rates,
+      fixed_region_prevalences = fixed_region_prevalences
     )
 
     arm_closures_mx[irun, ] <- out_ls[[1]]
