@@ -296,6 +296,7 @@ accrual_to_long <- function(accrual_df) {
 #' 
 #' @import ggplot2
 #' @importFrom grDevices palette.colors
+#' @importFrom rlang .data
 #' 
 plot.accrualplotdata <- function(
   data,
@@ -309,7 +310,12 @@ plot.accrualplotdata <- function(
 
   p <- ggplot2::ggplot(
     accrual_df, 
-    ggplot2::aes(x = Week, y = Recruitment, group = Arm, color = Arm)
+    ggplot2::aes(
+      x = .data$Week, 
+      y = .data$Recruitment, 
+      group = .data$Arm, 
+      color = .data$Arm
+    )
   ) +
     ggplot2::geom_line() +
     # Use colourblind friendly Okabe-Ito palette
