@@ -29,6 +29,6 @@ Collate:
     's3_generics.R'
     'sensitivity.R'
     'spine.R'
-    'test_batches.R'
+    'utils-batches.R'
     'utils-graphics.R'
     'zzz.R'
