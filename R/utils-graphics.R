@@ -302,6 +302,7 @@ plot.accrualplotdata <- function(
   data,
   plot_prefix = "accrual_plot",
   run_time = NULL,
+  output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/")
 ) {
   
