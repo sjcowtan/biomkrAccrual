@@ -127,7 +127,11 @@ trial_structure <- S7::new_class("trial_structure",
 #' `region`, containing the index number for the region for each site.
 #' Indices are assumed to be in the same order as the columns in `props_df`.
 #' @param precision Variability decreases as precision increases.
-#'  
+#' @param fixed_region_prevalences TRUE if biomarker prevalences 
+#' should be considered to be identical for all sites within a 
+#' region; FALSE if they should be drawn from a Dirichlet distribution
+#' with a mean of the specified prevalence.
+#'   
 #' @return Matrix of prevalences with one column per site and one 
 #' row per biomarker; each column sums to 1.
 #' 
@@ -332,10 +336,16 @@ get_matrix_struct <- function(arms_ls, recruit_arm_prevalence) {
 #' @param arm_structure_mx Logical matrix of recruitment arms by treatment arm
 #' @param recruit_arm_prevalence Data frame with sets of prevalences, in 
 #' columns, for each arm (rows) 
+#' @param shared_control TRUE if all treatment arms share the
+#' same control arm; FALSE if each treatment arm has its own 
+#' control. Defaults to TRUE.
+#' 
 #' @return arm_prevalence_ar Array of prevalences, recruitment arms * 
 #' (treatment arms + control arms) * prevalence sets
 #' 
-get_array_prevalence <- function(arm_structure_mx, recruit_arm_prevalence, shared_control) {
+get_array_prevalence <- function(
+  arm_structure_mx, recruit_arm_prevalence, shared_control
+) {
   no_treatments <- ncol(arm_structure_mx)
   no_recruit_arms <- nrow(arm_structure_mx)
   
@@ -386,21 +396,26 @@ get_array_prevalence <- function(arm_structure_mx, recruit_arm_prevalence, share
 #' Class object will automatically generate new trial structure and 
 #' prevalence matrices.
 #' 
-#' @param arms vector or scalar of integer arm ID numbers to remove
+#' @param structure_obj An object of class `trial_structure`.
+#' @param arms Vector or scalar of integer arm ID numbers to remove
 #' 
 #' @export
 #' 
-remove_treat_arms <- S7::new_generic("remove_treat_arms", "obj")
-S7::method(remove_treat_arms, trial_structure) <- function(obj, arms) {
+remove_treat_arms <- S7::new_generic("remove_treat_arms", "structure_obj")
+S7::method(remove_treat_arms, trial_structure) <- function(
+  structure_obj,
+  arms
+) {
   
   # Mark treatment arms as removed using NA; 
   # automatic getter for treatment_arm_struct does the rest
-  obj@treatment_arm_ids[arms] <- NA_integer_
+  structure_obj@treatment_arm_ids[arms] <- NA_integer_
 
   # Set prevalence to 0 for any recruitment arms which now have no
   # experimental arms to recruit to
-  obj@recruit_arm_prevalence[which(colSums(obj@treatment_arm_struct) < 1), ] <- 
-    0
+  structure_obj@recruit_arm_prevalence[which(colSums(
+    structure_obj@treatment_arm_struct
+  ) < 1), ] <- 0
     
   # Rescale prevalence so it adds to 1 <- not doing this, unrealistic
   # (corresponds to recruitment closing for those characteristics)
@@ -410,7 +425,7 @@ S7::method(remove_treat_arms, trial_structure) <- function(obj, arms) {
   #    sum(obj@recruit_arm_prevalence[, iset])
   #}
 
-  return(obj)
+  return(structure_obj)
 }
 
 

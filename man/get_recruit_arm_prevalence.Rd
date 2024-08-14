@@ -21,6 +21,11 @@ each region, containing the expected biomarker prevalences for the regions.}
 Indices are assumed to be in the same order as the columns in \code{props_df}.}
 
 \item{precision}{Variability decreases as precision increases.}
+
+\item{fixed_region_prevalences}{TRUE if biomarker prevalences
+should be considered to be identical for all sites within a
+region; FALSE if they should be drawn from a Dirichlet distribution
+with a mean of the specified prevalence.}
 }
 \value{
 Matrix of prevalences with one column per site and one

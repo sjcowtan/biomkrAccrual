@@ -12,6 +12,10 @@ get_array_prevalence(arm_structure_mx, recruit_arm_prevalence, shared_control)
 
 \item{recruit_arm_prevalence}{Data frame with sets of prevalences, in
 columns, for each arm (rows)}
+
+\item{shared_control}{TRUE if all treatment arms share the
+same control arm; FALSE if each treatment arm has its own
+control. Defaults to TRUE.}
 }
 \value{
 arm_prevalence_ar Array of prevalences, recruitment arms *

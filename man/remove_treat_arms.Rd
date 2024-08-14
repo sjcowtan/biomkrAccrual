@@ -11,10 +11,12 @@ those characteristics will be recruited from that point.
 Class object will automatically generate new trial structure and
 prevalence matrices.}
 \usage{
-remove_treat_arms(obj, ...)
+remove_treat_arms(structure_obj, ...)
 }
 \arguments{
-\item{arms}{vector or scalar of integer arm ID numbers to remove}
+\item{structure_obj}{An object of class \code{trial_structure}.}
+
+\item{arms}{Vector or scalar of integer arm ID numbers to remove}
 }
 \description{
 Close off treatment arms.
