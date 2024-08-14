@@ -72,7 +72,7 @@ get_arm_closures <- function(
 
   write.csv(
     summ, 
-    paste0(output_data, "arm_closure_summary-", run_time, ".csv")
+    paste0(output_path, "arm_closure_summary-", run_time, ".csv")
   )
 
   # Standard Deviations
@@ -96,7 +96,7 @@ get_arm_closures <- function(
 
   write.csv(
     as.data.frame(sd_mx), 
-    paste0(output_data, "arm_closures_sd", run_time, ".csv")
+    paste0(output_path, "arm_closures_sd", run_time, ".csv")
   )
 
   print(sd_mx)
