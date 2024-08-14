@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils-graphics.R
 \name{get_arm_closures}
 \alias{get_arm_closures}
-\title{Generate arm closure summaries}
+\title{Generate arm closure summaries for batches}
 \usage{
 get_arm_closures(
   file_prefix = "closures",
@@ -22,5 +22,5 @@ Used to select which files will be summarised.}
 and the output files will be written.}
 }
 \description{
-Generate arm closure summaries
+Generate arm closure summaries for batches
 }

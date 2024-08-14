@@ -27,7 +27,6 @@ Collate:
     'prevalence.R'
     'recruit.R'
     's3_generics.R'
-    'sensitivity.R'
     'spine.R'
     'utils-batches.R'
     'utils-graphics.R'

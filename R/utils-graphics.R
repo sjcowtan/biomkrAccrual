@@ -28,7 +28,7 @@ theme_bma <- function(base_size = 10, base_family = "") {
 }
 
 
-#' Generate arm closure summaries
+#' Generate arm closure summaries for batches
 #' 
 #' @param file_prefix Consistent beginning of filenames holding 
 #' arm closure data. Defaults to `closures`.
@@ -102,73 +102,6 @@ get_arm_closures <- function(
   print(sd_mx)
 
   return(list(summ, sd_mx))
-}
-
-
-#' Plot a scatter plot with error bars for time to recruit against prevalence
-#' 
-#' @param prevalences Vector of prevalences
-#' @param e_time Vector of expected times
-#' @param v_time Vector of variances
-#' 
-ggscatterError <- function(prevalences, e_time, v_time) {
-  plot_df <- data.frame(
-    Prevalences = prevalences,
-    Months = e_time,
-    ymin = e_time - (1.96 * sqrt(v_time)),
-    ymax = e_time + (1.96 * sqrt(v_time))
-  )
-
-  plot_col <- grDevices::palette.colors(3)[3]
-
-  ggplot2::ggplot(
-    plot_df, 
-    ggplot2::aes(x = factor(get("Prevalences")), y = get("Months"))
-  ) +
-    ggplot2::geom_point(col = plot_col) +
-    ggplot2::geom_pointrange(
-      col = plot_col,
-      ggplot2::aes(ymin = get("ymin"), ymax = get("ymax"))
-    ) +
-    ggplot2::labs(
-      x = "Prevalences"
-    ) +
-    theme_bma(14)
-}
-
-
-#' Creates sensitivity plot for Poisson distribution with 
-#' specified site rates for simultaneous start
-#' 
-#' @param plot_name Name for sensitivity plot file (.png will be appended).
-#' @param target_arm_size Number of patients to be recruited.
-#' @param site_rates Total site rate.
-#' 
-do_sensitivity_plot_simultaneous <- function( 
-  target_arm_size, 
-  site_rates,
-  plot_name,
-  figs_path
-) {
-  # Fixed, regularly spaced prevalences
-  prevalences <- seq(0.1, 0.9, by = 0.1)
-
-  # Expectation
-  e_time <- target_arm_size / (prevalences * site_rates)
-
-  # Variance
-  v_time <- target_arm_size / (prevalences * site_rates)^2
-
-  p <- ggscatterError(prevalences, e_time, v_time)
-
-  print(p)
-
-  ggplot2::ggsave(paste0(figs_path, plot_name, ".png"),
-    plot = p,
-    width = 12,
-    height = 8,
-    dpi = 400
-  )
 }
 
 
