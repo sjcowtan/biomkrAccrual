@@ -118,9 +118,11 @@ S7::method(site_sums, accrual) <- function(obj) {
 }
 
 
-#' Sum accrual array by experimental arm (including control)
-#' @param obj Object of class "accrual" 
-#' @param control_total Logical; if TRUE return single total for control arms
+#' Sum accrual array by experimental arm (including control).
+#' 
+#' @param accrual_obj Object of class `accrual`. 
+#' @param control_total Logical; if TRUE return single total for all 
+#' control arms
 #' @return vector of total accrual by experimental arm
 #' 
 treat_sums <- S7::new_generic("treat_sums", "obj")
@@ -347,8 +349,11 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 
 #' Randomise a week's expected accrual amongst the sites, according to 
 #' prevalence.
-#' @param class_list A list of one object of class "accrual" and one
-#' of class "trial_structure".
+#' @param accrual_obj An object of class `accrual`.
+#' @param struct_obj An object of class `trial_structure`.
+#' @param fixed_site_rates TRUE if centre recruitment rates should 
+#' be treated as exact; FALSE if they should be drawn from a gamma
+#' distribution with a mean of the specified rate.
 #' @return Matrix of week's accrual by site and recruitment arm.
 #' 
 week_accrue <- S7::new_generic("week_accrue", c("accrual_obj", "struct_obj"))

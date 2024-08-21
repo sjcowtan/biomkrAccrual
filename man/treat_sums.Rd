@@ -2,18 +2,19 @@
 % Please edit documentation in R/recruit.R
 \name{treat_sums}
 \alias{treat_sums}
-\title{Sum accrual array by experimental arm (including control)}
+\title{Sum accrual array by experimental arm (including control).}
 \usage{
 treat_sums(obj, ...)
 }
 \arguments{
-\item{obj}{Object of class "accrual"}
+\item{accrual_obj}{Object of class \code{accrual}.}
 
-\item{control_total}{Logical; if TRUE return single total for control arms}
+\item{control_total}{Logical; if TRUE return single total for all
+control arms}
 }
 \value{
 vector of total accrual by experimental arm
 }
 \description{
-Sum accrual array by experimental arm (including control)
+Sum accrual array by experimental arm (including control).
 }

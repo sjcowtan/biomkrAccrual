@@ -35,6 +35,11 @@ variability decreases as precision increases. Defaults to 10.}
 
 \item{shared_control}{TRUE if all experimental arms share one
 control arm; FALSE if they each have separate control arms.}
+
+\item{fixed_region_prevalences}{TRUE if biomarker prevalences
+should be considered to be identical for all sites within a
+region; FALSE if they should be drawn from a Dirichlet distribution
+with a mean of the specified prevalence.}
 }
 \description{
 A class for an object to contain the proportions of arriving patients to be
