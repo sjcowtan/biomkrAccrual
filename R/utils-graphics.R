@@ -60,12 +60,12 @@ gg_base_family <- function() {
         "sans"
       )     
     }
-  } else if (os == "windows") {
-    base_family <- ifelse(
-      "Arial" %in% names(grDevices::windowsFonts()),
-      "Arial",
-      "sans"
-    )
+  #} else if (os == "windows") {
+  #  base_family <- ifelse(
+  #    "Arial" %in% names(grDevices::windowsFonts()),
+  #    "Arial",
+  #   "sans"
+  #  )
   } else {
     base_family <- "sans"
   }
