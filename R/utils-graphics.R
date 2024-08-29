@@ -8,11 +8,12 @@
 #' 
 theme_bma <- function(
   base_size = 10, 
-  base_family = gg_base_family()
+  base_family = NULL
 ) {
 
   `%+replace%` <- ggplot2::`%+replace%`
 
+  base_family <- ifelse(is.null(base_family), gg_base_family(), base_family)
 
   ggplot2::theme_bw(base_size = base_size, base_family = base_family) %+replace%
     ggplot2::theme(
