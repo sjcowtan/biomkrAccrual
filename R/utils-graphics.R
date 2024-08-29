@@ -55,18 +55,14 @@ gg_base_family <- function() {
 
   if (os == "linux") {
     if (capabilities()[["X11"]]) {
+
+      arial <- grepl("Arial", names(grDevices::postscriptFonts()))
       base_family <- ifelse(
-        "Arial" %in% names(grDevices::X11Fonts()), 
-        "Arial", 
+        any(arial), 
+        names(grDevices::postscriptFonts()[which(arial)[1]]), 
         "sans"
       )     
     }
-  #} else if (os == "windows") {
-  #  base_family <- ifelse(
-  #    "Arial" %in% names(grDevices::windowsFonts()),
-  #    "Arial",
-  #   "sans"
-  #  )
   } else {
     base_family <- "sans"
   }
