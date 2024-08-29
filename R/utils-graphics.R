@@ -54,18 +54,18 @@ theme_bma <- function(
 #' @importFrom grDevices postscriptFonts
 #' 
 gg_base_family <- function() {
-  os <- tolower(Sys.info()["sysname"])
+  avail_fonts <- tryCatch(
+    grDevices::postscriptFonts(),
+    error = function(cond) NULL,
+    warning = function(cond) NULL
+  )
 
-  if (os == "linux") {
-    if (capabilities()[["X11"]]) {
+  avail_fontnames <- names(avail_fonts)
 
-      arial <- grepl("Arial", names(grDevices::postscriptFonts()))
-      base_family <- ifelse(
-        any(arial), 
-        names(grDevices::postscriptFonts()[which(arial)[1]]), 
-        "sans"
-      )     
-    }
+  if (is.null(avail_fontnames)) {
+    base_family <- "sans"
+  } else if (any(grepl("Arial", avail_fontnames))) {
+    base_family <- names(avail_fonts)[grep("Arial", avail_fontnames)[1]]
   } else {
     base_family <- "sans"
   }
