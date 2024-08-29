@@ -7,7 +7,7 @@ a single run}
 \usage{
 accrual_plot_from_file(
   file_prefix = "accrual",
-  plot_prefix = "accrual_plot",
+  plot_prefix = "accrual-from-file",
   run_time = "2024-08-07-18-35-09",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/")
