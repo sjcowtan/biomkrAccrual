@@ -6,9 +6,13 @@
 #' 
 #' @import ggplot2
 #' 
-theme_bma <- function(base_size = 10, base_family = "Arial") {
+theme_bma <- function(
+  base_size = 10, 
+  base_family = gg_base_family()
+) {
 
   `%+replace%` <- ggplot2::`%+replace%`
+
 
   ggplot2::theme_bw(base_size = base_size, base_family = base_family) %+replace%
     ggplot2::theme(
@@ -38,6 +42,35 @@ theme_bma <- function(base_size = 10, base_family = "Arial") {
       legend.title = ggplot2::element_text(size = base_size + 2),
       strip.background = ggplot2::element_rect(fill = "grey90")
     )
+}
+
+
+#' Set base font family for ggplot2
+#' 
+#' import grDevices
+#' 
+gg_base_family <- function() {
+  os <- tolower(Sys.info()["sysname"])
+
+  if (os == "linux") {
+    if (capabilities()[["X11"]]) {
+      base_family <- ifelse(
+        "Arial" %in% names(grDevices::X11Fonts()), 
+        "Arial", 
+        "sans"
+      )     
+    }
+  } else if (os == "windows") {
+    base_family <- ifelse(
+      "Arial" %in% names(grDevices::windowsFonts()),
+      "Arial",
+      "sans"
+    )
+  } else {
+    base_family <- "sans"
+  }
+
+  return(base_family)
 }
 
 
