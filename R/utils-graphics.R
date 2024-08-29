@@ -62,9 +62,7 @@ gg_base_family <- function() {
 
   avail_fontnames <- names(avail_fonts)
 
-  if (is.null(avail_fontnames)) {
-    base_family <- "sans"
-  } else if (any(grepl("Arial", avail_fontnames))) {
+  if (any(grepl("Arial", avail_fontnames))) {
     base_family <- names(avail_fonts)[grep("Arial", avail_fontnames)[1]]
   } else {
     base_family <- "sans"
