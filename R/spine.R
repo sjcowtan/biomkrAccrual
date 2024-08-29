@@ -54,6 +54,7 @@
 #' @importFrom jsonlite read_json
 #' @importFrom rlang abort warn
 #' @importFrom utils read.csv
+#' @importFrom ggplot2 ggsave
 #' 
 #' @export
 spine <- function(
@@ -268,13 +269,44 @@ spine <- function(
   )
 
   # Plot outcome
-  plot(accrual_instance)
+  p <- plot(accrual_instance)
+  print(p)
+  ggplot2::ggsave(
+    paste0(figs_path, "accrual-", run_time, ".png"),
+    plot = p,
+    width = 12,
+    height = 8,
+    dpi = 400
+  )
+
+
 
   # Print accrual object
   print(accrual_instance)
 
   # Print summary of accrual object
   summary(accrual_instance)
+
+  # Print trial structure object
+  print(trial_structure_instance)
+
+  cat("\n\nTreatment arm ids\n")
+  print(trial_structure_instance@treatment_arm_ids_start)
+
+  # Print summary of trial structure object
+  cat("\n\nSite prevalences\n")
+  summary(trial_structure_instance)$site_prev
+
+  # Plot trial structure object
+  p <- plot(trial_structure_instance)
+  print(p)
+  ggplot2::ggsave(
+    paste0(figs_path, "structure-", run_time, ".png"),
+    plot = p,
+    width = 12,
+    height = 8,
+    dpi = 400
+  )
 
   # Return summary statistics
   return(accrual_instance@accrual)

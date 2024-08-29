@@ -3,6 +3,7 @@
 \name{plot}
 \alias{plot}
 \alias{plot.accrual}
+\alias{plot.trial_strucutre}
 \title{Plot method for an object of class \code{accrual}.  Creates
 a line plot of cumulative recruitment, grouped by trial arm,
 using ggplot2.}
@@ -21,9 +22,14 @@ execution using a date-time format \code{yyyy-mm-dd-hh-mm-ss}.}
 \item{figs_path}{Folder where figures generated during execution
 will be stored; defaults to the \code{figures} subdirectory in
 \code{output_path}.}
+
+\item{x}{An object of class \code{trial_structure}.}
 }
 \description{
 Plot method for an object of class \code{accrual}.  Creates
 a line plot of cumulative recruitment, grouped by trial arm,
 using ggplot2.
+
+Prints initial trial structure as a matrix of prevalences by recruitment
+and experimental arms.
 }

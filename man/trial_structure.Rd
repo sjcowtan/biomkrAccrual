@@ -51,6 +51,9 @@ allocated to each arm of the trial.
 \item{\code{recruit_arm_prevalence}}{Numeric vector of the expected proportion
 of patients eligible for each recruitment arm.}
 
+\item{\code{recruit_arm_prevalence_start}}{Numeric vector of the initial proportions
+of patients eligible for each recruitment arm.}
+
 \item{\code{recruit_arm_names}}{Character vector of the names of the recruitment
 arms.}
 
@@ -60,6 +63,9 @@ experimental arms}
 \item{\code{treatment_arm_ids}}{Named list of lists of recruitment arms by
 treatment arm.}
 
+\item{\code{treatment_arm_ids_start}}{Named list of lists of the initial
+configuration of recruitment arms by treatment arm.}
+
 \item{\code{recruit_arm_id}}{Automatically generated integer vector of the ID
 numbers of the recruitment arms.}
 
@@ -68,6 +74,9 @@ number of recruitment arms recruiting to each treatment arm.}
 
 \item{\code{treatment_arm_struct}}{Automatically generated logical matrix of
 treatment arms by recruitment arms.}
+
+\item{\code{treatment_arm_struct_start}}{Automatically generated logical matrix of
+the initial configuration of treatment arms by recruitment arms.}
 
 \item{\code{experimental_arm_prevalence}}{Automatically generated matrix of
 prevalences of treatment arms by recruitment arms}

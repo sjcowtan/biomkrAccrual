@@ -99,3 +99,137 @@ S7::method(plot, accrual) <- function(
   )
 }
 
+
+#' Prints initial trial structure as a matrix of prevalences by recruitment
+#' and experimental arms.
+#' 
+#' @name print
+#' @aliases print.trial_strucutre
+#' 
+#' @param x An object of class `trial_structure`.
+#' 
+#' @importFrom S7 new_generic method
+#' @importFrom withr with_options
+#' 
+#' @export
+#' 
+S7::new_generic("print", "trial_structure")
+S7::method(print, trial_structure) <- function(x) {
+  
+  orig_struct_df <- data.frame(
+    x@treatment_arm_struct_start
+  )
+
+  colnames(orig_struct_df) <- names(x@treatment_arm_ids_start)
+  rownames(orig_struct_df) <- x@recruit_arm_names
+
+  print(orig_struct_df)
+
+}
+
+
+#' Prints initial trial structure as a matrix of prevalences by recruitment
+#' and experimental arms.
+#' 
+#' @name plot
+#' @aliases plot.trial_strucutre
+#' 
+#' @param x An object of class `trial_structure`.
+#' 
+#' @importFrom S7 new_generic method
+#' @importFrom grDevices palette.colors
+#' 
+#' @export
+#' 
+S7::new_generic("plot", "trial_structure")
+S7::method(plot, trial_structure) <- function(x) {
+  
+  orig_struct_df <- data.frame(
+    x@treatment_arm_struct_start
+  )
+
+  colnames(orig_struct_df) <- names(x@treatment_arm_ids_start)
+  orig_struct_df$Recruitment <- x@recruit_arm_names
+
+  print(orig_struct_df)
+
+  orig_struct_df <- stats::reshape(
+    orig_struct_df,
+    direction = "long",
+    v.names = "Recruits",
+    varying = list(names(x@treatment_arm_ids_start)),
+    idvar = "Recruitment",
+    timevar = "Treatment",
+    times = names(x@treatment_arm_ids_start)
+  )
+
+  orig_struct_df$Recruits <- as.factor(as.integer(orig_struct_df$Recruits))
+
+  p <- ggplot2::ggplot(
+    data = orig_struct_df,
+    ggplot2::aes(x = Treatment, y = Recruitment, fill = Recruits)
+  ) +
+    ggplot2::geom_tile(
+      color = "white",
+      lwd = 1.5,
+      linetype = 1
+    ) +
+    ggplot2::coord_fixed() +
+    ggplot2::scale_fill_manual(
+      values = c("white", grDevices::palette.colors(4)[4]),
+      labels = c("No", "Yes")
+    ) +
+    ggplot2::scale_y_discrete(limits = rev) +
+    ggplot2::labs(
+      x = "Treatment arm",
+      y = "Recruitment arm",
+      title = "Trial structure",
+      subtitle = paste0(
+        ifelse(x@shared_control, "Shared", "Individual"), 
+        " control arm",
+        ifelse(x@shared_control, "", "s")
+      )
+    ) +
+    theme_bma(base_size = 16)
+
+  return(p)
+}
+
+
+#' Summary of trial structure.
+#' 
+#' @name summary
+#' @aliases summary.trial_structure
+#' 
+#' @param x An object of class `trial_structure`.
+#' 
+#' @importFrom S7 new_generic method
+#' @importFrom withr with_options
+#' 
+#' @export
+#' 
+S7::new_generic("summary", "trial_structure")
+S7::method(summary, trial_structure) <- 
+  function(
+    x, 
+    maxsum = 7L, 
+    digits = max(3L, getOption("digits") - 3L), ...
+  ) {
+
+    summary_ls <- vector(mode = "list", length = 1)
+
+    # Site prevalences by recruitment arm
+
+    orig_prev_df <- data.frame(
+      x@recruit_arm_prevalence_start,
+      row.names = x@recruit_arm_names
+    )
+    colnames(orig_prev_df) <- paste("Site", seq_len(ncol(orig_prev_df)))
+
+    summary_ls$site_prev <- withr::with_options(
+      list(scipen = 10),
+      print(round(orig_prev_df, digits = digits))
+    )
+
+    summary_ls
+  }

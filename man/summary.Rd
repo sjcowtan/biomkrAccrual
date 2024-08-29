@@ -3,10 +3,13 @@
 \name{summary}
 \alias{summary}
 \alias{summary.accrual}
+\alias{summary.trial_structure}
 \title{Summary of predicted accrual.}
 \arguments{
-\item{x}{An object of class \code{accrual}.}
+\item{x}{An object of class \code{trial_structure}.}
 }
 \description{
 Summary of predicted accrual.
+
+Summary of trial structure.
 }

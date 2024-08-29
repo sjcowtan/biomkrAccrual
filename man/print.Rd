@@ -3,14 +3,18 @@
 \name{print}
 \alias{print}
 \alias{print.accrual}
+\alias{print.trial_strucutre}
 \title{Prints synthesised recruitment as a dataframe with
 one column for each treatment and control arm, and
 one row for each week.}
 \arguments{
-\item{x}{An object of class \code{accrual}.}
+\item{x}{An object of class \code{trial_structure}.}
 }
 \description{
 Prints synthesised recruitment as a dataframe with
 one column for each treatment and control arm, and
 one row for each week.
+
+Prints initial trial structure as a matrix of prevalences by recruitment
+and experimental arms.
 }

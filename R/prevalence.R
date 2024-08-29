@@ -3,18 +3,24 @@
 #' 
 #' @slot recruit_arm_prevalence Numeric vector of the expected proportion 
 #' of patients eligible for each recruitment arm.
+#' @slot recruit_arm_prevalence_start Numeric vector of the initial proportions
+#' of patients eligible for each recruitment arm.
 #' @slot recruit_arm_names Character vector of the names of the recruitment 
 #' arms.
 #' @slot shared_control TRUE if using a shared control arm for all 
 #' experimental arms
 #' @slot treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
+#' @slot treatment_arm_ids_start Named list of lists of the initial 
+#' configuration of recruitment arms by treatment arm.
 #' @slot recruit_arm_id Automatically generated integer vector of the ID 
 #' numbers of the recruitment arms.
 #' @slot treatment_counts Automatically generated named integer vector of 
 #' number of recruitment arms recruiting to each treatment arm.
 #' @slot treatment_arm_struct Automatically generated logical matrix of 
 #' treatment arms by recruitment arms.
+#' @slot treatment_arm_struct_start Automatically generated logical matrix of 
+#' the initial configuration of treatment arms by recruitment arms.
 #' @slot experimental_arm_prevalence Automatically generated matrix of 
 #' prevalences of treatment arms by recruitment arms
 #' 
@@ -48,9 +54,11 @@ trial_structure <- S7::new_class("trial_structure",
   properties = list(
     # These need explicitly setting
     recruit_arm_prevalence = S7::class_double,
+    recruit_arm_prevalence_start = S7::class_double,
     recruit_arm_names = S7::class_character,
     shared_control = S7::class_logical,
     treatment_arm_ids = S7::class_list,
+    treatment_arm_ids_start = S7::class_list,
     # These are generated from existing properties at the time they execute
     recruit_arm_ids = S7::new_property(
       getter = function(self) seq_len(nrow(self@recruit_arm_prevalence))
@@ -62,6 +70,13 @@ trial_structure <- S7::new_class("trial_structure",
     treatment_arm_struct = S7::new_property(
       getter = function(self) {
         get_matrix_struct(self@treatment_arm_ids, self@recruit_arm_prevalence)
+      }
+    ),
+    treatment_arm_struct_start = S7::new_property(
+      getter = function(self) {
+        get_matrix_struct(
+          self@treatment_arm_ids_start, self@recruit_arm_prevalence_start
+        )
       }
     ),
     # array[recruit arms, treat arms, prevalence set]
@@ -94,8 +109,13 @@ trial_structure <- S7::new_class("trial_structure",
         get_recruit_arm_prevalence(
           props_df, centres_df, precision, fixed_region_prevalences
         ),
+      recruit_arm_prevalence_start = 
+        get_recruit_arm_prevalence(
+          props_df, centres_df, precision, fixed_region_prevalences
+        ),
       shared_control = shared_control,
-      treatment_arm_ids = arms_ls
+      treatment_arm_ids = arms_ls,
+      treatment_arm_ids_start = arms_ls
     )
   },
   validator = function(self) {
@@ -420,14 +440,6 @@ S7::method(remove_treat_arms, trial_structure) <- function(
   structure_obj@recruit_arm_prevalence[which(colSums(
     structure_obj@treatment_arm_struct
   ) < 1), ] <- 0
-    
-  # Rescale prevalence so it adds to 1 <- not doing this, unrealistic
-  # (corresponds to recruitment closing for those characteristics)
-  #for (iset in seq_len(ncol(obj@recruit_arm_prevalence))) {
-  #  obj@recruit_arm_prevalence[, iset] <- 
-  #    obj@recruit_arm_prevalence[, iset] / 
-  #    sum(obj@recruit_arm_prevalence[, iset])
-  #}
 
   return(structure_obj)
 }

@@ -6,12 +6,25 @@
 #' 
 #' @import ggplot2
 #' 
-theme_bma <- function(base_size = 10, base_family = "") {
+theme_bma <- function(base_size = 10, base_family = "Arial") {
 
   `%+replace%` <- ggplot2::`%+replace%`
 
   ggplot2::theme_bw(base_size = base_size, base_family = base_family) %+replace%
     ggplot2::theme(
+      text = ggplot2::element_text(family = base_family),
+      plot.title = ggplot2::element_text(
+        size = base_size + 6,
+        margin = margin(0, 0, 13, 0),
+        hjust = 0,
+        face = "bold"
+      ),
+      plot.title.position = "plot",
+      plot.subtitle = ggplot2::element_text(
+        size = base_size + 4,
+        margin = margin(0, 0, 13, 0),
+        hjust = 0
+      ),
       axis.text = ggplot2::element_text(size = base_size - 1),
       axis.title = ggplot2::element_text(size = base_size + 4),
       axis.title.x = ggplot2::element_text(
@@ -125,7 +138,7 @@ get_arm_closures <- function(
 #' 
 accrual_plot_from_file <- function(
   file_prefix = "accrual",
-  plot_prefix = "accrual_plot",
+  plot_prefix = "accrual-from-file",
   run_time = "2024-08-07-18-35-09",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/")
@@ -166,12 +179,21 @@ accrual_plot_from_file <- function(
   # Convert to long format of class "accrualplotdata"
   accrual_df <- accrual_to_long(accrual_df)
 
-  # Plot and save plot in figs_path
-  plot(
+  # Plot 
+  p <- plot(
     accrual_df, 
     plot_prefix = plot_prefix,
-    run_time = run_time,
-    figs_path = figs_path
+    run_time = run_time
+  )
+
+  print(p)
+
+  ggplot2::ggsave(
+    paste0(figs_path, plot_prefix, "-", run_time, ".png"),
+    plot = p,
+    width = 12,
+    height = 8,
+    dpi = 400
   )
 }
 
@@ -256,15 +278,10 @@ plot.accrualplotdata <- function(
     ggplot2::scale_colour_manual(
       values = grDevices::palette.colors(length(arm_names))
     ) +
-    theme_bma(base_size = 12)
+    ggplot2::labs(
+      title = "Accrual plot"
+    ) +
+    theme_bma(base_size = 16)
 
-  ggplot2::ggsave(
-    paste0(figs_path, plot_prefix, "-", run_time, ".png"),
-    plot = p,
-    width = 12,
-    height = 8,
-    dpi = 400
-  )
-
-  print(p)
+  return(p)
 }
