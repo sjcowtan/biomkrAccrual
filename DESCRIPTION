@@ -12,6 +12,7 @@ Imports:
     jsonlite,
     rlang,
     withr,
+    grDevices,
     checkmate (>= 2.3.0),
     ggplot2 (>= 3.5.0),
     S7 (>= 0.1.1)

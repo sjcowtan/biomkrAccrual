@@ -8,7 +8,7 @@
 #' 
 theme_bma <- function(
   base_size = 10, 
-  base_family = NULL
+  base_family = gg_base_family()
 ) {
 
   `%+replace%` <- ggplot2::`%+replace%`
@@ -46,9 +46,12 @@ theme_bma <- function(
 }
 
 
-#' Set base font family for ggplot2
+#' Set base font family for ggplot2.
 #' 
-#' import grDevices
+#' @return Character string of the name of a postscript font related to 
+#' Arial if available, otherwise "sans".
+#' 
+#' @importFrom grDevices postscriptFonts
 #' 
 gg_base_family <- function() {
   os <- tolower(Sys.info()["sysname"])

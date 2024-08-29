@@ -2,10 +2,14 @@
 % Please edit documentation in R/utils-graphics.R
 \name{gg_base_family}
 \alias{gg_base_family}
-\title{Set base font family for ggplot2}
+\title{Set base font family for ggplot2.}
 \usage{
 gg_base_family()
 }
+\value{
+Character string of the name of a postscript font related to
+Arial if available, otherwise "sans".
+}
 \description{
-import grDevices
+Set base font family for ggplot2.
 }
