@@ -3,7 +3,12 @@
 #' 
 #' @slot accrual 3-D array with axes site, experimental arm
 #' and week
-#' @slot accrual_period Number of weeks in planned recruitment period
+#' @slot target_arm_size Number of subjects required for each treatment arm.
+#' @slot target_control Number of subjects required for control arm(s).
+#' @slot target_interim Number of subjects required for treatment arm at 
+#' interim analysis.
+#' @slot accrual_period Number of weeks in recruitment period.
+#' @slot interim_period Number of weeks to recruit for interim analysis.
 #' @slot phase_changes Vector of week numbers when arms closed
 #' @slot site_closures Vector of weeks sites closed; NA indicates open
 #' @slot week Current recruitment week
@@ -17,17 +22,25 @@
 #' @slot site_rate Vector of recruitment rates for each site, drawn from a 
 #' gamma distribution
 #' @slot start_week Vector of weeks that each site opens recruitment
-#' @slot index Vector of index numbers for each site
+#' @slot site_index Vector of index numbers for each site
+#' @slot treatment_arm_ids Named list of lists of recruitment arms by 
+#' treatment arm.
 #' 
 #' @param treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
 #' @param shared_control TRUE if all experimental arms share one control arm;
 #' FALSE if each has their own
+#' @param target_arm_size Number of subjects required for each treatment arm.
+#' @param target_control Number of subjects required for control arm(s).
+#' @param target_interim Number of subjects required for treatment arm at 
+#' interim analysis.
+#' @param accrual_period Number of weeks in recruitment period.
+#' @param interim_period Number of weeks to recruit for interim analysis.
 #' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
 #' "region" and "site_cap"
-#' @param accrual_period Maximum recruitment period, in weeks
 #' 
-#' usage accrual(treatment_arm_ids, shared_control, centres_df, accrual_period)
+#' @usage accrual(treatment_arm_ids, shared_control, target_arm_size, 
+#' target_control, target_interim, accrual_period, interim_period, centres_df)
 #' @name accrual
 #'
 #' @export
@@ -38,7 +51,11 @@ accrual <- S7::new_class("accrual",
   package = "biomkrAccrual",
   properties = list(
     accrual = S7::class_integer,
+    target_arm_size = S7::class_integer,
+    target_control = S7::class_integer,
+    target_interim = S7::class_integer,
     accrual_period = S7::class_integer,
+    interim_period = S7::class_integer,
     phase_changes = S7::class_integer,
     site_closures = S7::class_integer,
     week = S7::class_integer,
@@ -50,13 +67,18 @@ accrual <- S7::new_class("accrual",
     site_mean_rate = S7::class_double,
     site_rate = S7::class_double,
     site_start_week = S7::class_integer,
-    site_index = S7::class_integer
+    site_index = S7::class_integer,
+    treatment_arm_ids = S7::class_list
   ),
   constructor = function(
     treatment_arm_ids = S7::class_missing,
     shared_control = S7::class_missing,
-    centres_df = S7::class_missing,
-    accrual_period = S7::class_missing
+    target_arm_size = S7::class_missing,
+    target_control = S7::class_missing,
+    target_interim = S7::class_missing,
+    accrual_period = S7::class_missing,
+    interim_period = S7::class_missing,
+    centres_df = S7::class_missing
   ) {
     # Create the object and populate it
     S7::new_object(
@@ -88,7 +110,11 @@ accrual <- S7::new_class("accrual",
           Centres = c(paste("Centre", unique(centres_df$site)))
         )
       ),
+      target_arm_size = as.integer(target_arm_size),
+      target_control = as.integer(target_control),
+      target_interim = as.integer(target_interim),
       accrual_period = accrual_period,
+      interim_period = interim_period,
       phase_changes = rep(NA_integer_, length(treatment_arm_ids)),
       site_closures = rep(NA_integer_, length(unique(centres_df$site))),
       week = as.integer(1),
@@ -100,7 +126,8 @@ accrual <- S7::new_class("accrual",
       site_mean_rate = as.numeric(centres_df$mean_rate),
       site_rate = NA_real_,
       site_start_week = as.integer(centres_df$start_week),
-      site_index = as.integer(centres_df$site)
+      site_index = as.integer(centres_df$site),
+      treatment_arm_ids = treatment_arm_ids
     )
   }
 )
@@ -266,8 +293,6 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 #' Implement arm cap on week's accrual to experimental arms
 #' @param accrual_obj Object of class `accrual`
 #' @param struct_obj Object of class `trial_structure`
-#' @param target_arm_size Maximum number of patients per arm
-#' (can be a vector with a value for each arm, or a scalar)
 #' @return Modified accrual object with capped week's accrual
 #' 
 #' @importFrom rlang abort
@@ -275,14 +300,14 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 apply_arm_cap <- 
   S7::new_generic("apply_arm_cap", c("accrual_obj", "struct_obj"))
 S7::method(apply_arm_cap, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj, target_arm_size) {
+  function(accrual_obj, struct_obj) {
     
     # Get totals for experimental arms (dropping control)
     arm_sums <- 
       treat_sums(accrual_obj)[seq_len(length(accrual_obj@phase_changes))]
 
     # Compare with cap
-    arm_captotal <- arm_sums - target_arm_size
+    arm_captotal <- arm_sums - accrual_obj@target_arm_size
 
     # Inactive arms can be at cap but not exceed it
     if (any(arm_captotal[-accrual_obj@active_arms] > 0)) {
@@ -411,8 +436,6 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #' which holds the next week number to accrue.
 #' @param accrual_obj An object of class "accrual"
 #' @param struct_obj An object of class "trial_structure"
-#' @param target_arm_size Maximum number of patients per arm
-#' (can be a vector with a value for each arm, or a scalar)
 #' @param fixed_site_rates TRUE if expected site rate to be used; FALSE 
 #' draws the site rate from a gamma distribution
 #' 
@@ -420,7 +443,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #'
 accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))
 S7::method(accrue_week, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj, target_arm_size, fixed_site_rates) {
+  function(accrual_obj, struct_obj, fixed_site_rates) {
 
     # Should not get here if there aren't any but
     if (length(accrual_obj@active_sites) > 0) {
@@ -437,7 +460,7 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
       accrual_obj <- apply_site_cap(accrual_obj)
 
       # Apply arm cap, and then adjust site cap appropriately
-      obj_list <- apply_arm_cap(accrual_obj, struct_obj, target_arm_size)
+      obj_list <- apply_arm_cap(accrual_obj, struct_obj)
       accrual_obj <- obj_list[[1]]
       struct_obj <- obj_list[[2]]
 

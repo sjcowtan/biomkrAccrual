@@ -279,6 +279,12 @@ accrual_to_long <- function(accrual_df) {
 #' @param figs_path Folder where figures generated during execution
 #' will be stored; defaults to the `figures` subdirectory in
 #' `output_path`.
+#' @param target_arm_size Number of subjects required for each treatment arm.
+#' @param target_control Number of subjects required for control arm(s).
+#' @param target_interim Number of subjects required for treatment arm at 
+#' interim analysis.
+#' @param accrual_period Number of weeks in recruitment period.
+#' @param interim_period Number of weeks to recruit for interim analysis.
 #' 
 #' @import ggplot2
 #' @importFrom grDevices palette.colors
@@ -289,7 +295,12 @@ plot.accrualplotdata <- function(
   plot_prefix = "accrual_plot",
   run_time = NULL,
   output_path = "../biomkrAccrual_output_data/",
-  figs_path = paste0(output_path, "figures/")
+  figs_path = paste0(output_path, "figures/"),
+  target_arm_size = NA_integer_,
+  target_control = NA_integer_,
+  target_interim = NA_integer_,
+  accrual_period = NA_integer_,
+  interim_period = NA_integer_
 ) {
   
   accrual_df <- data
@@ -309,6 +320,11 @@ plot.accrualplotdata <- function(
     ggplot2::scale_colour_manual(
       values = grDevices::palette.colors(length(arm_names))
     ) +
+    ggplot2::geom_hline(yintercept = target_arm_size) +
+    ggplot2::geom_hline(yintercept = target_control) +
+    ggplot2::geom_hline(yintercept = target_interim) +
+    ggplot2::geom_vline(xintercept = accrual_period) +
+    ggplot2::geom_vline(xintercept = interim_period) +
     ggplot2::labs(
       title = "Accrual plot"
     ) +

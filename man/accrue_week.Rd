@@ -13,9 +13,6 @@ accrue_week(accrual_obj, struct_obj, ...)
 
 \item{struct_obj}{An object of class "trial_structure"}
 
-\item{target_arm_size}{Maximum number of patients per arm
-(can be a vector with a value for each arm, or a scalar)}
-
 \item{fixed_site_rates}{TRUE if expected site rate to be used; FALSE
 draws the site rate from a gamma distribution}
 }

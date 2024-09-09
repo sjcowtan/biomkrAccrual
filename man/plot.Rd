@@ -3,7 +3,7 @@
 \name{plot}
 \alias{plot}
 \alias{plot.accrual}
-\alias{plot.trial_strucutre}
+\alias{plot.trial_structure}
 \title{Plot method for an object of class \code{accrual}.  Creates
 a line plot of cumulative recruitment, grouped by trial arm,
 using ggplot2.}

@@ -8,7 +8,7 @@
 #' @slot recruit_arm_names Character vector of the names of the recruitment 
 #' arms.
 #' @slot shared_control TRUE if using a shared control arm for all 
-#' experimental arms
+#' experimental arms.
 #' @slot treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
 #' @slot treatment_arm_ids_start Named list of lists of the initial 

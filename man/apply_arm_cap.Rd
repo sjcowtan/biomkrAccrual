@@ -10,9 +10,6 @@ apply_arm_cap(accrual_obj, struct_obj, ...)
 \item{accrual_obj}{Object of class \code{accrual}}
 
 \item{struct_obj}{Object of class \code{trial_structure}}
-
-\item{target_arm_size}{Maximum number of patients per arm
-(can be a vector with a value for each arm, or a scalar)}
 }
 \value{
 Modified accrual object with capped week's accrual

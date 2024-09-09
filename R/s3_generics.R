@@ -95,7 +95,12 @@ S7::method(plot, accrual) <- function(
     accrual_df, 
     plot_prefix = plot_prefix,
     run_time = run_time,
-    figs_path = figs_path
+    figs_path = figs_path,
+    target_arm_size = accrual_obj@target_arm_size,
+    target_control = accrual_obj@target_control,
+    target_interim = accrual_obj@target_interim,
+    accrual_period = accrual_obj@accrual_period,
+    interim_period = accrual_obj@interim_period
   )
 }
 
@@ -132,7 +137,7 @@ S7::method(print, trial_structure) <- function(x) {
 #' and experimental arms.
 #' 
 #' @name plot
-#' @aliases plot.trial_strucutre
+#' @aliases plot.trial_structure
 #' 
 #' @param x An object of class `trial_structure`.
 #' 

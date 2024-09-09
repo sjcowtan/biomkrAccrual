@@ -5,12 +5,8 @@
 \title{A class to contain the accrued patient allocations,
 by site, treatment/control arm and week}
 \usage{
-accrual(
-  treatment_arm_ids = S7::class_missing,
-  shared_control = S7::class_missing,
-  centres_df = S7::class_missing,
-  accrual_period = S7::class_missing
-)
+accrual(treatment_arm_ids, shared_control, target_arm_size, 
+target_control, target_interim, accrual_period, interim_period, centres_df)
 }
 \arguments{
 \item{treatment_arm_ids}{Named list of lists of recruitment arms by
@@ -19,12 +15,19 @@ treatment arm.}
 \item{shared_control}{TRUE if all experimental arms share one control arm;
 FALSE if each has their own}
 
+\item{target_arm_size}{Number of subjects required for each treatment arm.}
+
+\item{target_control}{Number of subjects required for control arm(s).}
+
+\item{target_interim}{Number of subjects required for treatment arm at
+interim analysis.}
+
+\item{accrual_period}{Number of weeks in recruitment period.}
+
+\item{interim_period}{Number of weeks to recruit for interim analysis.}
+
 \item{centres_df}{Dataframe with columns "site", "start_month", "mean_rate",
 "region" and "site_cap"}
-
-\item{accrual_period}{Maximum recruitment period, in weeks
-
-usage accrual(treatment_arm_ids, shared_control, centres_df, accrual_period)}
 }
 \description{
 A class to contain the accrued patient allocations,
@@ -36,7 +39,16 @@ by site, treatment/control arm and week
 \item{\code{accrual}}{3-D array with axes site, experimental arm
 and week}
 
-\item{\code{accrual_period}}{Number of weeks in planned recruitment period}
+\item{\code{target_arm_size}}{Number of subjects required for each treatment arm.}
+
+\item{\code{target_control}}{Number of subjects required for control arm(s).}
+
+\item{\code{target_interim}}{Number of subjects required for treatment arm at
+interim analysis.}
+
+\item{\code{accrual_period}}{Number of weeks in recruitment period.}
+
+\item{\code{interim_period}}{Number of weeks to recruit for interim analysis.}
 
 \item{\code{phase_changes}}{Vector of week numbers when arms closed}
 
@@ -62,6 +74,9 @@ gamma distribution}
 
 \item{\code{start_week}}{Vector of weeks that each site opens recruitment}
 
-\item{\code{index}}{Vector of index numbers for each site}
+\item{\code{site_index}}{Vector of index numbers for each site}
+
+\item{\code{treatment_arm_ids}}{Named list of lists of recruitment arms by
+treatment arm.}
 }}
 

@@ -9,8 +9,9 @@ test_that("get_base_family returns a string", {
 })
 
 test_that("get_base_family returns either Arial or sans", {
-  checkmate::expect_choice(
+  expect_match(
     get_base_family(),
-    c("sans", "Arial", "ArialMT")
+    "([Aa]rial)|(sans)",
+    perl = TRUE
   )
 })

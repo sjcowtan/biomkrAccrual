@@ -10,7 +10,12 @@ dataframe of class "accrualplotdata".}
   plot_prefix = "accrual_plot",
   run_time = NULL,
   output_path = "../biomkrAccrual_output_data/",
-  figs_path = paste0(output_path, "figures/")
+  figs_path = paste0(output_path, "figures/"),
+  target_arm_size = NA_integer_,
+  target_control = NA_integer_,
+  target_interim = NA_integer_,
+  accrual_period = NA_integer_,
+  interim_period = NA_integer_
 )
 }
 \arguments{
@@ -29,6 +34,17 @@ execution using a date-time format \code{yyyy-mm-dd-hh-mm-ss}.}
 \item{figs_path}{Folder where figures generated during execution
 will be stored; defaults to the \code{figures} subdirectory in
 \code{output_path}.}
+
+\item{target_arm_size}{Number of subjects required for each treatment arm.}
+
+\item{target_control}{Number of subjects required for control arm(s).}
+
+\item{target_interim}{Number of subjects required for treatment arm at
+interim analysis.}
+
+\item{accrual_period}{Number of weeks in recruitment period.}
+
+\item{interim_period}{Number of weeks to recruit for interim analysis.}
 }
 \description{
 S3 method to plot predicted recruitment from a long format

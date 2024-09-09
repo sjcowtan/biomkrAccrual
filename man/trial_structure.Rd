@@ -58,7 +58,7 @@ of patients eligible for each recruitment arm.}
 arms.}
 
 \item{\code{shared_control}}{TRUE if using a shared control arm for all
-experimental arms}
+experimental arms.}
 
 \item{\code{treatment_arm_ids}}{Named list of lists of recruitment arms by
 treatment arm.}

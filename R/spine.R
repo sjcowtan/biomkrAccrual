@@ -2,7 +2,7 @@
 
 
 
-#' @title Driver for the procedure
+#' @title Command line 
 #' 
 #' @param target_arm_size Number of patients required per 
 #' treatment arm
@@ -14,6 +14,7 @@
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
 #' @param accrual_period Recruitment period (months).
+#' @param interim_period Recruitment period to interim (months).
 #' @param precision For the Dirichlet model of biomarker prevalences, 
 #' variability decreases as precision increases. Defaults to 10.
 #' @param ctrl_ratio Ratio of patient allocation to treatment arm
@@ -48,7 +49,7 @@
 #' with a mean of the specified prevalence.
 #' 
 #' @examples 
-#' spine()
+#' biomkrAccrual()
 #' 
 #' @import checkmate 
 #' @importFrom jsonlite read_json
@@ -57,12 +58,13 @@
 #' @importFrom ggplot2 ggsave
 #' 
 #' @export
-spine <- function(
+biomkrAccrual <- function(
   target_arm_size = 60,
   target_interim = target_arm_size / 2,
   target_control = 180,
   shared_control = TRUE,
   accrual_period = 36,
+  interim_period = accrual_period / 2,
   precision = 10,
   # active : control ratio (all active the same)
   ctrl_ratio = c(1, 1),
@@ -230,9 +232,15 @@ spine <- function(
   accrual_instance <- accrual(
     treatment_arm_ids = trial_structure_instance@treatment_arm_ids,
     shared_control = shared_control,
-    centres_df = centres_df,
-    accrual_period = get_weeks(accrual_period)
+    target_arm_size = target_arm_size,
+    target_control = target_control,
+    target_interim = target_interim,
+    accrual_period = get_weeks(accrual_period),
+    interim_period = get_weeks(interim_period),
+    centres_df = centres_df
   )
+
+  cat("Created accrual object\n")
 
   while (
     # Any arms are recruiting
@@ -247,7 +255,6 @@ spine <- function(
     obj_list <- accrue_week(
       accrual_instance, 
       trial_structure_instance,
-      target_arm_size,
       fixed_site_rates
     )
 
