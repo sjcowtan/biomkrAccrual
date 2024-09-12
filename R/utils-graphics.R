@@ -306,6 +306,14 @@ plot.accrualplotdata <- function(
   accrual_df <- data
   arm_names <- levels(accrual_df$Arm)
 
+  linetypes <- c(
+        "Interim arm" = 2, "Experimental arm" = 3, "Control arm" = 4,
+        "Interim accrual" = 5, "Total accrual" = 6
+      )
+
+  hline_y <- c(target_interim, target_arm_size, target_control)
+  vline_x <- c(interim_period, accrual_period)
+
   p <- ggplot2::ggplot(
     accrual_df, 
     ggplot2::aes(
@@ -320,11 +328,16 @@ plot.accrualplotdata <- function(
     ggplot2::scale_colour_manual(
       values = grDevices::palette.colors(length(arm_names))
     ) +
-    ggplot2::geom_hline(yintercept = target_arm_size) +
-    ggplot2::geom_hline(yintercept = target_control) +
-    ggplot2::geom_hline(yintercept = target_interim) +
-    ggplot2::geom_vline(xintercept = accrual_period) +
-    ggplot2::geom_vline(xintercept = interim_period) +
+    ggplot2::geom_vline(
+      xintercept = vline_x,
+      linetype = 2:3,
+      color = "grey75"
+    ) +
+    ggplot2::geom_hline(
+      yintercept = hline_y,
+      linetype = 4:6,
+      color = "grey65"
+    ) +
     ggplot2::labs(
       title = "Accrual plot"
     ) +
