@@ -11,9 +11,14 @@ batch(
   centres_file = "centres.csv",
   arms_file = "arms.json",
   data_path = "extdata/",
-  output_path = "biomkrAccrual_output_data/",
-  accrual_period = 10,
-  target_arm_size = 100,
+  output_path = "../biomkrAccrual_output_data/",
+  figs_path = paste0(output_path, "figures/"),
+  accrual_period = 6,
+  interim_period = 3,
+  target_arm_size = 60,
+  target_interim = target_arm_size/2,
+  target_control = 180,
+  target_interim_control = target_control/2,
   shared_control = TRUE,
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE,
@@ -36,11 +41,24 @@ example data in the package installation; this should be changed.}
 \item{output_path}{Folder where data generated during execution
 will be stored; defaults to \verb{../biomkrAccrual_output_data/}.}
 
+\item{figs_path}{Folder where figures generated during execution
+will be stored; defaults to the \code{figures} subdirectory in
+\code{output_path}.}
+
 \item{accrual_period}{Maximum number of weeks to recruit
 (defaults to 80)}
 
 \item{target_arm_size}{Maximum size for all experimental arms
 (defaults to 308)}
+
+\item{target_interim}{Recruitment target for experimental arms
+at interim analysis; defaults to \code{target_arm_size / 2}.}
+
+\item{target_control}{Maximum size for all control arms
+(defaults to 308)}
+
+\item{target_interim_control}{Recruitment target for control arms
+at interim analysis; defaults to \code{target_control / 2}.}
 
 \item{shared_control}{= TRUE,}
 

@@ -2,12 +2,16 @@
 % Please edit documentation in R/recruit.R
 \name{treat_sums}
 \alias{treat_sums}
-\title{Sum accrual array by experimental arm (including control).}
+\alias{treat_sums.biomkrAccrual::accrual}
+\title{Sum accrual array element of accrual object, by experimental
+arm (including control).}
 \usage{
-treat_sums(obj, ...)
+treat_sums(x, ...)
+
+\method{treat_sums}{`biomkrAccrual::accrual`}(x, control_total = FALSE, na.rm = TRUE)
 }
 \arguments{
-\item{accrual_obj}{Object of class \code{accrual}.}
+\item{x}{Object of class \code{accrual}.}
 
 \item{control_total}{Logical; if TRUE return single total for all
 control arms}
@@ -16,5 +20,6 @@ control arms}
 vector of total accrual by experimental arm
 }
 \description{
-Sum accrual array by experimental arm (including control).
+Sum accrual array element of accrual object, by experimental
+arm (including control).
 }

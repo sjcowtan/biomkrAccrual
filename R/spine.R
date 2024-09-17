@@ -47,6 +47,9 @@
 #' should be considered to be identical for all sites within a 
 #' region; FALSE if they should be drawn from a Dirichlet distribution
 #' with a mean of the specified prevalence.
+#' @param quietly Defaults to FALSE, which displays the output from
+#' each run. Set to TRUE to generate data and figures without displaying
+#' them.
 #' 
 #' @examples 
 #' biomkrAccrual()
@@ -76,7 +79,8 @@ biomkrAccrual <- function(
   figs_path = paste0(output_path, "figures/"),
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE,
-  fixed_region_prevalences = FALSE
+  fixed_region_prevalences = FALSE,
+  quietly = FALSE
 ) {
 
   checkmate::assert_logical(
@@ -240,8 +244,6 @@ biomkrAccrual <- function(
     centres_df = centres_df
   )
 
-  cat("Created accrual object\n")
-
   while (
     # Any arms are recruiting
     any(trial_structure_instance@treatment_arm_struct) &&
@@ -277,7 +279,9 @@ biomkrAccrual <- function(
 
   # Plot outcome
   p <- plot(accrual_instance)
-  print(p)
+  if (!quietly) {
+    print(p)
+  }
   ggplot2::ggsave(
     paste0(figs_path, "accrual-", run_time, ".png"),
     plot = p,
@@ -287,26 +291,29 @@ biomkrAccrual <- function(
   )
 
 
+  if (!quietly) {
+    # Print accrual object
+    print(accrual_instance)
 
-  # Print accrual object
-  print(accrual_instance)
+    # Print summary of accrual object
+    summary(accrual_instance)
 
-  # Print summary of accrual object
-  summary(accrual_instance)
+    # Print trial structure object
+    print(trial_structure_instance)
 
-  # Print trial structure object
-  print(trial_structure_instance)
+    cat("\n\nTreatment arm ids\n")
+    print(trial_structure_instance@treatment_arm_ids_start)
 
-  cat("\n\nTreatment arm ids\n")
-  print(trial_structure_instance@treatment_arm_ids_start)
-
-  # Print summary of trial structure object
-  cat("\n\nSite prevalences\n")
-  summary(trial_structure_instance)$site_prev
+    # Print summary of trial structure object
+    cat("\n\nSite prevalences\n")
+    summary(trial_structure_instance)$site_prev
+  }
 
   # Plot trial structure object
   p <- plot(trial_structure_instance)
-  print(p)
+  if (!quietly) {
+    print(p)
+  }
   ggplot2::ggsave(
     paste0(figs_path, "structure-", run_time, ".png"),
     plot = p,
@@ -315,6 +322,6 @@ biomkrAccrual <- function(
     dpi = 400
   )
 
-  # Return summary statistics
-  return(accrual_instance@accrual)
+  # Return accrual object
+  return(accrual_instance)
 }

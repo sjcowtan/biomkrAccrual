@@ -145,34 +145,83 @@ S7::method(site_sums, accrual) <- function(obj) {
 }
 
 
+# Sum accrual array by experimental arm (including control).
+#' 
+#' @param x Accrual array with dimensions Weeks, Arms and Centres.
+#' @export
+treat_sums <- function(x, ...) {
+  UseMethod("treat_sums", x)
+}
+
 #' Sum accrual array by experimental arm (including control).
 #' 
-#' @param accrual_obj Object of class `accrual`. 
+#' @param x Accrual array with dimensions Weeks, Arms and Centres.
+#' @param no_treat_arms Number of treatment arms (as opposed to control 
+#' arms).
+#' @param shared_control TRUE if all treatment arms share the
+#' same control arm; FALSE if each treatment arm has its own 
+#' control. Defaults to TRUE.
 #' @param control_total Logical; if TRUE return single total for all 
-#' control arms
-#' @return vector of total accrual by experimental arm
+#' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
+#' @return vector of total accrual by experimental arm.
+#' @export
 #' 
-treat_sums <- S7::new_generic("treat_sums", "obj")
-S7::method(treat_sums, accrual) <- function(obj, control_total = FALSE) {
+treat_sums.array <- function(
+  x, 
+  control_total = FALSE,
+  no_treat_arms,
+  shared_control = TRUE,
+  na.rm = TRUE
+) {
   # Permute the array so that the first dimension is the
   # dimension you want to get sums for (experimental arms)
   arm_sums <-
-    rowSums(aperm(obj@accrual, c(2, 1, 3)))
+    as.integer(rowSums(aperm(x, c(2, 1, 3))), na.rm = TRUE)
 
   # If want total for control arms rather than separate values
   if (control_total) {
     # Want individual values for treat arms, but sum of control arms
-    if (!obj@shared_control) {
-      no_treat_arms <- length(obj@phase_changes)
+    if (shared_control) {
       arm_sums <- c(
         # Treatment arms
-        arm_sums[seq_len(length(obj@phase_changes))],
+        arm_sums[seq_along(no_treat_arms)],
         # Control
         sum(arm_sums[seq(no_treat_arms + 1, length.out = 2 * no_treat_arms)])
       )
     }
   }
+
   return(arm_sums)
+}
+
+
+#' Sum accrual array element of accrual object, by experimental 
+#' arm (including control).
+#' 
+#' @name treat_sums
+#' 
+#' @param x Object of class `accrual`. 
+#' @param control_total Logical; if TRUE return single total for all 
+#' control arms
+#' 
+#' @return vector of total accrual by experimental arm
+#' 
+#' @export
+#' 
+`treat_sums.biomkrAccrual::accrual` <- function(
+  x,
+  control_total = FALSE,
+  na.rm = TRUE
+) {
+
+  # Call treat_sums.array() on accrual array element
+  treat_sums(
+    x@accrual,
+    control_total, 
+    length(x@phase_changes), 
+    x@shared_control,
+    na.rm 
+  )
 }
 
 

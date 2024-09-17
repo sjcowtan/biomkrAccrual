@@ -64,10 +64,10 @@ S7::method(summary, accrual) <- function(x) {
 #' @param accrual_obj Object of class `accrual`.
 #' @param plot_prefix Prefix for file name to identify plot type.
 #' Defaults to `accrual_plot`.
-#' @param run_time Specify a particular instance of `spine()`
+#' @param run_time Specify a particular instance of `biomkrAccrual()`
 #' execution using a date-time format `yyyy-mm-dd-hh-mm-ss`.
 #' @param output_path = Directory where the output files from the 
-#' `spine()` instance are located.
+#' `biomkrAccrual()` instance are located.
 #' @param figs_path Folder where figures generated during execution
 #' will be stored; defaults to the `figures` subdirectory in
 #' `output_path`.
@@ -142,6 +142,7 @@ S7::method(print, trial_structure) <- function(x) {
 #' @param x An object of class `trial_structure`.
 #' 
 #' @importFrom S7 new_generic method
+#' @importFrom stats reshape
 #' @importFrom grDevices palette.colors
 #' 
 #' @export
@@ -155,8 +156,6 @@ S7::method(plot, trial_structure) <- function(x) {
 
   colnames(orig_struct_df) <- names(x@treatment_arm_ids_start)
   orig_struct_df$Recruitment <- x@recruit_arm_names
-
-  print(orig_struct_df)
 
   orig_struct_df <- stats::reshape(
     orig_struct_df,

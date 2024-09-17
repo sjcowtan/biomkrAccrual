@@ -20,12 +20,12 @@ arm closure data. Defaults to \code{accrual}.}
 \item{plot_prefix}{Prefix for file name to identify plot type.
 Defaults to \code{accrual_plot}.}
 
-\item{run_time}{Specify a particular instance of \code{spine()}
+\item{run_time}{Specify a particular instance of \code{biomkrAccrual()}
 execution using a date-time format \code{yyyy-mm-dd-hh-mm-ss}.
 Used to select which files will be summarised.}
 
 \item{output_path}{Directory where the output files from the
-\code{spine()} instance are located.}
+\code{biomkrAccrual()} instance are located.}
 
 \item{figs_path}{Folder where figures generated during execution
 will be stored; defaults to the \code{figures} subdirectory in

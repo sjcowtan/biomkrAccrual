@@ -14,7 +14,7 @@ get_arm_closures(
 \item{file_prefix}{Consistent beginning of filenames holding
 arm closure data. Defaults to \code{closures}.}
 
-\item{run_time}{Specify a particular instance of \code{spine()}
+\item{run_time}{Specify a particular instance of \code{biomkrAccrual()}
 execution using a date-time format \code{yyyy-mm-dd-hh-mm-ss}.
 Used to select which files will be summarised.}
 

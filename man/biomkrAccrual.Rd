@@ -21,7 +21,8 @@ biomkrAccrual(
   figs_path = paste0(output_path, "figures/"),
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE,
-  fixed_region_prevalences = FALSE
+  fixed_region_prevalences = FALSE,
+  quietly = FALSE
 )
 }
 \arguments{
@@ -84,6 +85,10 @@ distribution with a mean of the specified rate.}
 should be considered to be identical for all sites within a
 region; FALSE if they should be drawn from a Dirichlet distribution
 with a mean of the specified prevalence.}
+
+\item{quietly}{Defaults to FALSE, which displays the output from
+each run. Set to TRUE to generate data and figures without displaying
+them.}
 }
 \description{
 Command line

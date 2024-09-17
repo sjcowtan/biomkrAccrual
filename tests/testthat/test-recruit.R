@@ -36,3 +36,25 @@ test_that(paste(
     "S7_object"
   ))
 })
+
+
+### Testing treat_sums()
+arr <- array(1:24, 2:4)
+
+test_that("Can sum by treatment a 3-D accrual array", {
+  checkmate::expect_integer(
+    treat_sums(arr),
+    min.len = 1,
+    max.len = ncol(arr),
+    lower = 0,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+})
+
+test_that("Output correct from treat_sums for valid input", {
+  expect_identical(
+    treat_sums(arr),
+    as.integer(c(84, 100, 116))
+  )
+})

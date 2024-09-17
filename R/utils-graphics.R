@@ -76,7 +76,7 @@ get_base_family <- function() {
 #' 
 #' @param file_prefix Consistent beginning of filenames holding 
 #' arm closure data. Defaults to `closures`.
-#' @param run_time Specify a particular instance of `spine()`
+#' @param run_time Specify a particular instance of `biomkrAccrual()`
 #' execution using a date-time format `yyyy-mm-dd-hh-mm-ss`. 
 #' Used to select which files will be summarised.
 #' @param output_path Directory where the input files are located
@@ -102,8 +102,6 @@ get_arm_closures <- function(
   # Read files
   closures_ls <- lapply(filenames, read.csv)
 
-  print(filenames)
-
   # Summarise files
   summ <- lapply(closures_ls, function(d) summary(d[, -1]))
   name_types <- c("1", "2", "mixed", "unbalanced", "multirate", "multimix")
@@ -111,8 +109,6 @@ get_arm_closures <- function(
     paste0("gamma_rate_closures_", name_types),
     paste0("fixed_rate_closures_", name_types)
   )
-
-  print(summ)
 
   write.csv(
     summ, 
@@ -143,8 +139,6 @@ get_arm_closures <- function(
     paste0(output_path, "arm_closures_sd", run_time, ".csv")
   )
 
-  print(sd_mx)
-
   return(list(summ, sd_mx))
 }
 
@@ -156,11 +150,11 @@ get_arm_closures <- function(
 #' arm closure data. Defaults to `accrual`.
 #' @param plot_prefix Prefix for file name to identify plot type. 
 #' Defaults to `accrual_plot`.
-#' @param run_time Specify a particular instance of `spine()`
+#' @param run_time Specify a particular instance of `biomkrAccrual()`
 #' execution using a date-time format `yyyy-mm-dd-hh-mm-ss`. 
 #' Used to select which files will be summarised.
 #' @param output_path Directory where the output files from the 
-#' `spine()` instance are located.
+#' `biomkrAccrual()` instance are located.
 #' @param figs_path Folder where figures generated during execution
 #' will be stored; defaults to the `figures` subdirectory in
 #' `output_path`.
@@ -272,10 +266,10 @@ accrual_to_long <- function(accrual_df) {
 #' "Arm" and "Recruitment".
 #' @param plot_prefix Prefix for file name to identify plot type.
 #' Defaults to `accrual_plot`.
-#' @param run_time Specify a particular instance of `spine()`
+#' @param run_time Specify a particular instance of `biomkrAccrual()`
 #' execution using a date-time format `yyyy-mm-dd-hh-mm-ss`.
 #' @param output_path = Directory where the output files from the 
-#' `spine()` instance are located.
+#' `biomkrAccrual()` instance are located.
 #' @param figs_path Folder where figures generated during execution
 #' will be stored; defaults to the `figures` subdirectory in
 #' `output_path`.
@@ -342,6 +336,131 @@ plot.accrualplotdata <- function(
       title = "Accrual plot"
     ) +
     theme_bma(base_size = 16)
+
+  return(p)
+}
+
+
+#' Plot distributions of recruitment to arms at given time.
+#' 
+#' @param data Matrix with columns for each recruitment arm, 
+#' including control.
+#' @param target Vector of targets for recruitment.
+#' @param target_names Vector of target names, for labelling.
+#' 
+#' @importFrom stats reshape
+#' @import ggplot2
+#' @importFrom grDevices palette.colors
+#' 
+#' @export
+#' 
+plot.armtotals <- function(
+  data,
+  target,
+  target_names
+) {
+
+  data_df <- as.data.frame(data)
+
+  # Find first slowest recruiting arms for treatment and control
+
+  treat_cols <- startsWith(colnames(data_df), "T")
+  
+  min_treat_col <- ifelse(
+    sum(treat_cols) > 1,
+    which.min(colMeans(data_df[, treat_cols])),
+    which(treat_cols)
+  )
+
+  min_ctrl_col <- ifelse(
+    sum(!treat_cols) > 1,
+    which.min(colMeans(data_df[, !treat_cols])),
+    which(!treat_cols)
+  )
+  
+  data_df <- stats::reshape(
+    data_df,
+    direction = "long",
+    varying = names(data_df),
+    timevar = "Arm",
+    times = names(data_df),
+    v.names = "Recruitment",
+    idvar = "Run"
+  )
+
+  print(which(target[3:4] <= max(data_df$Recruitment)))
+  print(target[3:4])
+  print(max(data_df$Recruitment))
+
+  # Which of the accrual targets are within the dataset
+
+  target_indices <- c(1:2, 2 + which(target[3:4] <= max(data_df$Recruitment)))
+  target <- target[target_indices]
+  target_names <- target_names[target_indices]
+
+  p <- ggplot2::ggplot(
+    data = data_df
+  ) +
+    ggplot2::geom_density(
+      ggplot2::aes(
+        x = Recruitment, group = Arm, fill = Arm, col = Arm
+      ),
+      alpha = 0.4, adjust = 0.5
+    ) +
+    ggplot2::scale_fill_manual(
+      values = grDevices::palette.colors(length(unique(data_df$Arm))),
+      aesthetics = c("color", "fill")
+    ) +
+    ggplot2::geom_vline(
+      xintercept = target, 
+      linetype = target_indices + 1,
+      linewidth = 1,
+      colour = "grey65"
+    ) +
+    ggplot2::labs(
+      y = "Probability density",
+      title = target_names[1],
+    ) +
+    theme_bma(base_size = 16)
+
+  p <- label_vlines(p, target, target_names)
+
+  return(p)
+}
+
+
+#' Adds labels for vlines to accrual plots
+#' 
+#' @param p Ggplot object.
+#' @param target Vector of x axis positions of vlines.
+#' @param target_names Vector of target names (excluding the
+#' word `target`).
+#' @param size Font size (in ggplot measure) for labels; 
+#' defaults to 6.
+#' 
+label_vlines <- function(
+  p,
+  target,
+  target_names,
+  size = 6
+) {
+  # Get height of y axis for this particular plot
+  label_y <- round(ggplot2::layer_scales(p)$y$range$range[2], 2)
+
+  # Add labels for vlines
+  abline_df <- data.frame(
+    x = target, 
+    y = label_y - 0.005, 
+    label = paste(target_names, "\ntarget")
+  )
+
+  p <- p +
+    ggplot2::geom_text(
+      data = abline_df,
+      ggplot2::aes(x = x, y = y, label = label),
+      size = size,
+      family = get_base_family()
+    )
 
   return(p)
 }
