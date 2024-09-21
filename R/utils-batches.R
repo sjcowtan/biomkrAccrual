@@ -34,7 +34,10 @@
 #' should be considered to be identical for all sites within a 
 #' region; FALSE if they should be drawn from a Dirichlet distribution
 #' with a mean of the specified prevalence.
-#' 
+#' @param quietly If TRUE, do not display information and plots from
+#' individual runs within the batch. Defaults to TRUE.
+#' @param keep_files If FALSE, do not save data or plots from individual
+#' runs within the batch.  Defaults to FALSE.
 #' @return Dataframe of site closing times
 #' @return Dataframe of experimental arm totals
 #' @export
@@ -51,6 +54,9 @@ batch <- function(
   figs_path = paste0(output_path, "figures/"),
   accrual_period = 6,
   interim_period = 3,
+  precision = 10,
+  # active : control ratio (all active the same)
+  ctrl_ratio = c(1, 1),
   target_arm_size = 60,
   target_interim = target_arm_size / 2,
   target_control = 180,
@@ -58,7 +64,9 @@ batch <- function(
   shared_control = TRUE,
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE,
-  fixed_region_prevalences = FALSE
+  fixed_region_prevalences = FALSE,
+  quietly = TRUE,
+  keep_files = FALSE
 ) {
   # Timestamp for batch files (but not individual run files)
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
@@ -108,6 +116,8 @@ batch <- function(
       data_path = data_path,
       accrual_period = accrual_period,
       interim_period = interim_period,
+      precision = precision,
+      ctrl_ratio = ctrl_ratio,
       target_arm_size = target_arm_size,
       target_interim = target_interim,
       target_control = target_control,
@@ -115,7 +125,8 @@ batch <- function(
       fixed_centre_starts = fixed_centre_starts,
       fixed_site_rates = fixed_site_rates,
       fixed_region_prevalences = fixed_region_prevalences,
-      quietly = TRUE
+      quietly = TRUE,
+      keep_files = FALSE
     )
 
     arm_closures_mx[irun, ] <- accrual_instance@phase_changes
@@ -129,7 +140,7 @@ batch <- function(
     )
     arm_interim_mx[irun, ] <- treat_sums(
       accrual_instance@accrual[
-        seq_len(accrual_instance@interim_period), , 
+        seq(accrual_instance@interim_period), , 
       ]
     )
   }
@@ -159,6 +170,8 @@ batch <- function(
   print(summary(as.data.frame(arm_totals_mx)))
   print(summary(as.data.frame(arm_interim_mx)))
 
+  # Interim plot
+
   p <- plot(
     arm_interim_mx, 
     target = c(
@@ -166,9 +179,10 @@ batch <- function(
       target_arm_size, target_control
     ), 
     target_names = c(
-      "Interim", "Interim control", 
-      "Accrual", "Accrual control"
-    )
+      "Interim", "Interim\ncontrol", 
+      "Accrual", "Accrual\ncontrol"
+    ),
+    target_week = interim_period
   )
 
   ggplot2::ggsave(
@@ -180,4 +194,89 @@ batch <- function(
   )
 
   print(p)
+
+  # Total accrual plot
+
+  p <- plot(
+    arm_totals_mx, 
+    target = c(
+      target_arm_size, target_control
+    ), 
+    target_names = c(
+      "Accrual", "Accrual\ncontrol"
+    ),
+    target_week = accrual_period
+  ) 
+  ggplot2::ggsave(
+    paste0(figs_path, "arm-totals-accrual-", run_time, ".png"),
+    plot = p,
+    width = 12,
+    height = 8,
+    dpi = 400
+  )
+
+  print(p)
+
+
+  # Individual accrual plots
+  arm_names <- dimnames(arm_totals_mx)[[2]]
+
+  ## Mark arms as treatment or control
+  treatment_arms <- startsWith(arm_names, "T")
+
+  ## Same colours as in interim plot
+  col_order <- c(seq_len(length(treatment_arms))[-1], 1)
+  arm_colours <- grDevices::palette.colors(length(treatment_arms))[col_order]
+  
+  data_df <- as.data.frame(arm_totals_mx)
+
+  # Loop across all arms
+  for (i in seq(treatment_arms)) {
+    p <- accrual_arm_plot(
+      data_df,
+      arm_colours,
+      treatment_arms,
+      target_arm_size,
+      target_control,
+      i
+    )
+
+    ggplot2::ggsave(
+      paste0(
+        figs_path, 
+        "arm-totals-accrual-",
+        arm_names[treatment_arms][i], "-", 
+        run_time, 
+        ".png"
+      ),
+      plot = p,
+      width = 12,
+      height = 8,
+      dpi = 400
+    )
+
+    print(p)
+  }
+}
+
+
+#' Format batch accrual data in long format for plotting.
+#' 
+#' @param data Matrix of accrual data.
+#' 
+matrix_to_long <- function(data) {
+
+  arm_names <- dimnames(data)[[2]]
+
+  data_df <- stats::reshape(
+    as.data.frame(data),
+    direction = "long",
+    varying = arm_names,
+    timevar = "Arm",
+    times = arm_names,
+    v.names = "Recruitment",
+    idvar = "Run"
+  )
+
+  return(data_df)
 }

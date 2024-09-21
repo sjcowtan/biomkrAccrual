@@ -4,13 +4,14 @@
 \alias{plot.armtotals}
 \title{Plot distributions of recruitment to arms at given time.}
 \usage{
-\method{plot}{armtotals}(data, target, target_names)
+\method{plot}{armtotals}(data, target, target_names, target_week, adjust = 1)
 }
 \arguments{
 \item{data}{Matrix with columns for each recruitment arm,
 including control.}
 
-\item{target}{Vector of targets for recruitment.}
+\item{target}{The adjust parameter from \code{ggplot2::geom_density};
+higher values mean more smoothing. Defaults to 1.}
 
 \item{target_names}{Vector of target names, for labelling.}
 }

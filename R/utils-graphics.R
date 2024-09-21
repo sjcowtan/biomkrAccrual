@@ -81,16 +81,20 @@ get_base_family <- function() {
 #' Used to select which files will be summarised.
 #' @param output_path Directory where the input files are located
 #' and the output files will be written.
+#' @param keep_files Save data files and plots generated during the run. 
+#' Defaults to TRUE.
 #' 
 #' @export
 #' 
 #' @importFrom stats sd
 #' @importFrom utils read.csv write.csv
 #' 
+##### Nothing is calling this?
 get_arm_closures <- function(
   file_prefix = "closures",
   run_time = "2024-08-07-18-35-09",
-  output_path = "../biomkrAccrual_output_data/"
+  output_path = "../biomkrAccrual_output_data/",
+  keep_files = TRUE
 ) {
   # What output files do we have?
   filenames <- list.files(
@@ -345,8 +349,11 @@ plot.accrualplotdata <- function(
 #' 
 #' @param data Matrix with columns for each recruitment arm, 
 #' including control.
-#' @param target Vector of targets for recruitment.
+#' @param target Vector of targets for recruitment. First two
+#' should be those directly relevant to the subject of the graph.
 #' @param target_names Vector of target names, for labelling.
+#' @param target The adjust parameter from `ggplot2::geom_density`;
+#' higher values mean more smoothing. Defaults to 1.
 #' 
 #' @importFrom stats reshape
 #' @import ggplot2
@@ -357,44 +364,19 @@ plot.accrualplotdata <- function(
 plot.armtotals <- function(
   data,
   target,
-  target_names
+  target_names,
+  target_week,
+  adjust = 1
 ) {
-
-  data_df <- as.data.frame(data)
-
-  # Find first slowest recruiting arms for treatment and control
-
-  treat_cols <- startsWith(colnames(data_df), "T")
-  
-  min_treat_col <- ifelse(
-    sum(treat_cols) > 1,
-    which.min(colMeans(data_df[, treat_cols])),
-    which(treat_cols)
-  )
-
-  min_ctrl_col <- ifelse(
-    sum(!treat_cols) > 1,
-    which.min(colMeans(data_df[, !treat_cols])),
-    which(!treat_cols)
-  )
-  
-  data_df <- stats::reshape(
-    data_df,
-    direction = "long",
-    varying = names(data_df),
-    timevar = "Arm",
-    times = names(data_df),
-    v.names = "Recruitment",
-    idvar = "Run"
-  )
-
-  print(which(target[3:4] <= max(data_df$Recruitment)))
-  print(target[3:4])
-  print(max(data_df$Recruitment))
+  data_df <- matrix_to_long(data)
 
   # Which of the accrual targets are within the dataset
-
-  target_indices <- c(1:2, 2 + which(target[3:4] <= max(data_df$Recruitment)))
+  if (length(target) > 2) {
+    target_indices <- 
+      c(1:2, 2 + which(target[-c(1, 2)] <= max(data_df$Recruitment)))
+  } else {
+    target_indices <- seq_len(length(target))
+  }
   target <- target[target_indices]
   target_names <- target_names[target_indices]
 
@@ -405,7 +387,7 @@ plot.armtotals <- function(
       ggplot2::aes(
         x = Recruitment, group = Arm, fill = Arm, col = Arm
       ),
-      alpha = 0.4, adjust = 0.5
+      alpha = 0.4, adjust = 1
     ) +
     ggplot2::scale_fill_manual(
       values = grDevices::palette.colors(length(unique(data_df$Arm))),
@@ -413,7 +395,7 @@ plot.armtotals <- function(
     ) +
     ggplot2::geom_vline(
       xintercept = target, 
-      linetype = target_indices + 1,
+      linetype = "dashed",
       linewidth = 1,
       colour = "grey65"
     ) +
@@ -447,10 +429,18 @@ label_vlines <- function(
   # Get height of y axis for this particular plot
   label_y <- round(ggplot2::layer_scales(p)$y$range$range[2], 2)
 
+  # Get x range of plot
+  xrange <- round(ggplot2::layer_scales(p)$x$range$range, 2)
+
+  whisker <- diff(xrange) * .2
+  print(whisker)
+  print(target)
+  # There's more than one target.  Move labels for the one at the range end
+
   # Add labels for vlines
   abline_df <- data.frame(
     x = target, 
-    y = label_y - 0.005, 
+    y = label_y * 0.9, 
     label = paste(target_names, "\ntarget")
   )
 
@@ -461,6 +451,73 @@ label_vlines <- function(
       size = size,
       family = get_base_family()
     )
+
+  return(p)
+}
+
+
+#' Plot single arm accrual plot
+#' 
+#' 
+accrual_arm_plot <- function(
+  data_df,
+  arm_colours,
+  treatment_arms,
+  target_arm_size,
+  target_control,
+  i
+) {
+  arm_names <- colnames(data_df)
+
+  p <- ggplot2::ggplot(
+    data = data_df
+  ) +
+    ggplot2::geom_density(
+      ggplot2::aes(x = .data[[arm_names[i]]]),
+      col = arm_colours[i], fill = arm_colours[i],
+      alpha = 0.4, adjust = 1
+    ) 
+  
+  if (length(unique(data_df[, i])) == 1) {
+    p <- p +
+      ggplot2::geom_vline(
+        xintercept = unique(data_df[, i]),
+        linewidth = 2,
+        colour = arm_colours[i],
+        alpha = 0.4
+      )
+  }
+
+  p <- p + 
+    ggplot2::geom_vline(
+      xintercept = ifelse(
+        treatment_arms[i], 
+        target_arm_size, 
+        target_control
+      ), 
+      linetype = "dashed",
+      linewidth = 1,
+      colour = "grey75"
+    ) +
+    ggplot2::labs(
+      y = "Probability density",
+      title = paste("Accrual for", arm_names[i]),
+    ) +
+    theme_bma(base_size = 16)
+
+  p <- label_vlines(
+    p, 
+    target = ifelse(
+      treatment_arms[i],
+      target_arm_size, 
+      target_control
+    ),
+    target_names = ifelse(
+      treatment_arms[i],
+      "Accrual", 
+      "Accrual\ncontrol"
+    )
+  )
 
   return(p)
 }

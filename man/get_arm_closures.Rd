@@ -7,7 +7,8 @@
 get_arm_closures(
   file_prefix = "closures",
   run_time = "2024-08-07-18-35-09",
-  output_path = "../biomkrAccrual_output_data/"
+  output_path = "../biomkrAccrual_output_data/",
+  keep_files = TRUE
 )
 }
 \arguments{
@@ -20,6 +21,9 @@ Used to select which files will be summarised.}
 
 \item{output_path}{Directory where the input files are located
 and the output files will be written.}
+
+\item{keep_files}{Save data files and plots generated during the run.
+Defaults to TRUE.}
 }
 \description{
 Generate arm closure summaries for batches

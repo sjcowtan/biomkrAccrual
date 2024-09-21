@@ -50,6 +50,8 @@
 #' @param quietly Defaults to FALSE, which displays the output from
 #' each run. Set to TRUE to generate data and figures without displaying
 #' them.
+#' @param keep_files Save data files and plots generated during the run. 
+#' Defaults to TRUE.
 #' 
 #' @examples 
 #' biomkrAccrual()
@@ -80,7 +82,8 @@ biomkrAccrual <- function(
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
-  quietly = FALSE
+  quietly = FALSE,
+  keep_files = TRUE
 ) {
 
   checkmate::assert_logical(
@@ -241,6 +244,7 @@ biomkrAccrual <- function(
     target_interim = target_interim,
     accrual_period = get_weeks(accrual_period),
     interim_period = get_weeks(interim_period),
+    control_ratio = ctrl_ratio,
     centres_df = centres_df
   )
 
@@ -271,25 +275,31 @@ biomkrAccrual <- function(
   accrual_instance@accrual <- 
     accrual_instance@accrual[seq(accrual_instance@week - 1), , ]
 
-  write.csv(
-    accrual_instance@accrual, 
-    paste0(output_path, "accrual-", run_time, ".csv"),
-    row.names = FALSE
-  )
+  if (keep_files) {
+    write.csv(
+      accrual_instance@accrual, 
+      paste0(output_path, "accrual-", run_time, ".csv"),
+      row.names = FALSE
+    )
+  }
 
   # Plot outcome
-  p <- plot(accrual_instance)
-  if (!quietly) {
-    print(p)
-  }
-  ggplot2::ggsave(
-    paste0(figs_path, "accrual-", run_time, ".png"),
-    plot = p,
-    width = 12,
-    height = 8,
-    dpi = 400
-  )
+  if (!quietly || keep_files) {
+    p <- plot(accrual_instance)
 
+    if (!quietly) {
+      print(p)
+    }
+    if (keep_files) {
+      ggplot2::ggsave(
+        paste0(figs_path, "accrual-", run_time, ".png"),
+        plot = p,
+        width = 12,
+        height = 8,
+        dpi = 400
+      )
+    }
+  }
 
   if (!quietly) {
     # Print accrual object
@@ -310,17 +320,23 @@ biomkrAccrual <- function(
   }
 
   # Plot trial structure object
-  p <- plot(trial_structure_instance)
-  if (!quietly) {
-    print(p)
+  if (!quietly || keep_files) {
+    p <- plot(trial_structure_instance)
+
+    if (!quietly) {
+      print(p)
+    }
+
+    if (keep_files) {
+      ggplot2::ggsave(
+        paste0(figs_path, "structure-", run_time, ".png"),
+        plot = p,
+        width = 12,
+        height = 8,
+        dpi = 400
+      )
+    }
   }
-  ggplot2::ggsave(
-    paste0(figs_path, "structure-", run_time, ".png"),
-    plot = p,
-    width = 12,
-    height = 8,
-    dpi = 400
-  )
 
   # Return accrual object
   return(accrual_instance)

@@ -15,6 +15,8 @@ batch(
   figs_path = paste0(output_path, "figures/"),
   accrual_period = 6,
   interim_period = 3,
+  precision = 10,
+  ctrl_ratio = c(1, 1),
   target_arm_size = 60,
   target_interim = target_arm_size/2,
   target_control = 180,
@@ -22,7 +24,9 @@ batch(
   shared_control = TRUE,
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE,
-  fixed_region_prevalences = FALSE
+  fixed_region_prevalences = FALSE,
+  quietly = TRUE,
+  keep_files = FALSE
 )
 }
 \arguments{
@@ -73,6 +77,12 @@ distribution with a mean of the specified rate.}
 should be considered to be identical for all sites within a
 region; FALSE if they should be drawn from a Dirichlet distribution
 with a mean of the specified prevalence.}
+
+\item{quietly}{If TRUE, do not display information and plots from
+individual runs within the batch. Defaults to TRUE.}
+
+\item{keep_files}{If FALSE, do not save data or plots from individual
+runs within the batch.  Defaults to FALSE.}
 }
 \value{
 Dataframe of site closing times
