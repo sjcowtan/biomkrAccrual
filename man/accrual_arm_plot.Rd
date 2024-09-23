@@ -7,5 +7,5 @@
 accrual_arm_plot(data_df, arm_colours, treatment_arms, targets, plot_id, i)
 }
 \description{
-Plot single arm accrual plot
+Bodge, fix later
 }

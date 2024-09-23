@@ -433,14 +433,13 @@ label_vlines <- function(
   xrange <- round(ggplot2::layer_scales(p)$x$range$range, 2)
 
   whisker <- diff(xrange) * .2
-  print(whisker)
-  print(target)
+
   # There's more than one target.  Move labels for the one at the range end
 
   # Add labels for vlines
   abline_df <- data.frame(
     x = target, 
-    y = label_y * 0.9, 
+    y = label_y * 0.85, 
     label = paste(target_names, "\ntarget")
   )
 
@@ -458,6 +457,8 @@ label_vlines <- function(
 
 #' Plot single arm accrual plot
 #' 
+#' Bodge, fix later
+#' 
 #' 
 accrual_arm_plot <- function(
   data_df,
@@ -469,13 +470,23 @@ accrual_arm_plot <- function(
 ) {
   arm_names <- colnames(data_df)
 
+  if (length(unique(data_df[, i])) == 1) {
+    # BODGE - don't want to see this but need it to produce graph
+    arm_col <- "white"
+    alpha <- 0.0001
+  } else {
+    arm_col <- arm_colours[i]
+    alpha <- 0.4
+  }
+
+
   p <- ggplot2::ggplot(
     data = data_df
   ) +
     ggplot2::geom_density(
       ggplot2::aes(x = .data[[arm_names[i]]]),
-      col = arm_colours[i], fill = arm_colours[i],
-      alpha = 0.4, adjust = 1
+      col = arm_col, fill = arm_col,
+      alpha = alpha, adjust = 1
     ) 
   
   if (length(unique(data_df[, i])) == 1) {
@@ -500,9 +511,15 @@ accrual_arm_plot <- function(
       colour = "grey75"
     ) +
     ggplot2::labs(
+      x = paste(
+        "No. virtual patients recruited at", 
+        "target week for",
+        tolower(plot_id)
+      ),
       y = "Probability density",
       title = paste(plot_id, "for", arm_names[i]),
     ) +
+    ggplot2::scale_x_continuous(expand = expansion(mult = 0.07)) +
     theme_bma(base_size = 16)
 
   p <- label_vlines(
