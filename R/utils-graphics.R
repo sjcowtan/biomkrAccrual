@@ -439,7 +439,7 @@ label_vlines <- function(
   # Add labels for vlines
   abline_df <- data.frame(
     x = target, 
-    y = label_y * 0.85, 
+    y = label_y * 0.9, 
     label = paste(target_names, "\ntarget")
   )
 
