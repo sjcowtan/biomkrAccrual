@@ -4,14 +4,7 @@
 \alias{accrual_arm_plot}
 \title{Plot single arm accrual plot}
 \usage{
-accrual_arm_plot(
-  data_df,
-  arm_colours,
-  treatment_arms,
-  target_arm_size,
-  target_control,
-  i
-)
+accrual_arm_plot(data_df, arm_colours, treatment_arms, targets, plot_id, i)
 }
 \description{
 Plot single arm accrual plot

@@ -195,27 +195,7 @@ batch <- function(
 
   print(p)
 
-  # Total accrual plot
-
-  p <- plot(
-    arm_totals_mx, 
-    target = c(
-      target_arm_size, target_control
-    ), 
-    target_names = c(
-      "Accrual", "Accrual\ncontrol"
-    ),
-    target_week = accrual_period
-  ) 
-  ggplot2::ggsave(
-    paste0(figs_path, "arm-totals-accrual-", run_time, ".png"),
-    plot = p,
-    width = 12,
-    height = 8,
-    dpi = 400
-  )
-
-  print(p)
+  #
 
 
   # Individual accrual plots
@@ -228,34 +208,50 @@ batch <- function(
   col_order <- c(seq_len(length(treatment_arms))[-1], 1)
   arm_colours <- grDevices::palette.colors(length(treatment_arms))[col_order]
   
-  data_df <- as.data.frame(arm_totals_mx)
+  
 
-  # Loop across all arms
-  for (i in seq(treatment_arms)) {
-    p <- accrual_arm_plot(
-      data_df,
-      arm_colours,
-      treatment_arms,
-      target_arm_size,
-      target_control,
-      i
-    )
+  # Total accrual plots
 
-    ggplot2::ggsave(
-      paste0(
-        figs_path, 
-        "arm-totals-accrual-",
-        arm_names[treatment_arms][i], "-", 
-        run_time, 
-        ".png"
-      ),
-      plot = p,
-      width = 12,
-      height = 8,
-      dpi = 400
-    )
+  data_ls <- list(
+    Interim = as.data.frame(arm_interim_mx),
+    Accrual = as.data.frame(arm_totals_mx)
+  )
+  target_ls <- list(
+    Interim = c(target_interim, target_interim_control),
+    Accrual = c(target_arm_size, target_control)
+  )
 
-    print(p)
+  ## Loop across interim and total
+  for (j in seq_len(length(data_ls))) {
+    # Loop across all arms
+    for (i in seq(treatment_arms)) {
+      p <- accrual_arm_plot(
+        data_ls[[j]],
+        arm_colours,
+        treatment_arms,
+        target_ls[[j]],
+        plot_id = names(data_ls)[j],
+        i
+      )
+
+      ggplot2::ggsave(
+        paste0(
+          figs_path, 
+          "arm-totals-",
+          tolower(names(data_ls)[j]),
+          "-",
+          arm_names[treatment_arms][i], "-", 
+          run_time, 
+          ".png"
+        ),
+        plot = p,
+        width = 12,
+        height = 8,
+        dpi = 400
+      )
+
+      print(p)
+    }
   }
 }
 

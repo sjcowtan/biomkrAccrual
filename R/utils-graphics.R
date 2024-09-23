@@ -463,8 +463,8 @@ accrual_arm_plot <- function(
   data_df,
   arm_colours,
   treatment_arms,
-  target_arm_size,
-  target_control,
+  targets,
+  plot_id,
   i
 ) {
   arm_names <- colnames(data_df)
@@ -492,8 +492,8 @@ accrual_arm_plot <- function(
     ggplot2::geom_vline(
       xintercept = ifelse(
         treatment_arms[i], 
-        target_arm_size, 
-        target_control
+        targets[1], 
+        targets[2]
       ), 
       linetype = "dashed",
       linewidth = 1,
@@ -501,7 +501,7 @@ accrual_arm_plot <- function(
     ) +
     ggplot2::labs(
       y = "Probability density",
-      title = paste("Accrual for", arm_names[i]),
+      title = paste(plot_id, "for", arm_names[i]),
     ) +
     theme_bma(base_size = 16)
 
@@ -509,13 +509,13 @@ accrual_arm_plot <- function(
     p, 
     target = ifelse(
       treatment_arms[i],
-      target_arm_size, 
-      target_control
+      targets[1], 
+      targets[2]
     ),
     target_names = ifelse(
       treatment_arms[i],
-      "Accrual", 
-      "Accrual\ncontrol"
+      plot_id, 
+      paste0(plot_id, "\ncontrol")
     )
   )
 
