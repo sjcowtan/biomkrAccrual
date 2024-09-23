@@ -52,8 +52,8 @@ batch <- function(
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
-  accrual_period = 6,
-  interim_period = 3,
+  accrual_period = 50 / 4,
+  interim_period = 25 / 4,
   precision = 10,
   # active : control ratio (all active the same)
   ctrl_ratio = c(1, 1),
