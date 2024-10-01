@@ -9,7 +9,7 @@ biomkrAccrual(
   target_interim = target_arm_size/2,
   target_control = 180,
   shared_control = TRUE,
-  accrual_period = 36,
+  accrual_period = 50/4,
   interim_period = accrual_period/2,
   precision = 10,
   ctrl_ratio = c(1, 1),

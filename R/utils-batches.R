@@ -45,7 +45,7 @@
 #' @importFrom jsonlite read_json
 #' @importFrom utils write.csv
 #' 
-batch <- function(
+biomkrAccrualSim <- function(
   n = 100,
   centres_file = "centres.csv",
   arms_file = "arms.json",

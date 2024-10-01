@@ -17,6 +17,8 @@ Imports:
     ggplot2 (>= 3.5.0),
     S7 (>= 0.1.1)
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
@@ -33,3 +35,4 @@ Collate:
     'utils-batches.R'
     'utils-graphics.R'
     'zzz.R'
+VignetteBuilder: knitr

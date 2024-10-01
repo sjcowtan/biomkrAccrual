@@ -321,18 +321,20 @@ plot.accrualplotdata <- function(
       color = .data$Arm
     )
   ) +
-    ggplot2::geom_line() +
+    ggplot2::geom_line(linewidth = 1) +
     # Use colourblind friendly Okabe-Ito palette
     ggplot2::scale_colour_manual(
       values = grDevices::palette.colors(length(arm_names))
     ) +
     ggplot2::geom_vline(
       xintercept = vline_x,
+      linewidth = 1,
       linetype = 2:3,
       color = "grey75"
     ) +
     ggplot2::geom_hline(
       yintercept = hline_y,
+      linewidth = 1,
       linetype = 4:6,
       color = "grey65"
     ) +
