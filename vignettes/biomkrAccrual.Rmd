@@ -3,7 +3,9 @@ title: "biomkrAccrual"
 author: "SJ Cowtan"
 date: 2024-10-01
 date-format: YYYY
-output: rmarkdown::html_vignette
+output: 
+  - rmarkdown::html_vignette
+  - 
 vignette: >
   %\VignetteIndexEntry{biomkrAccrual}
   %\VignetteEngine{knitr::rmarkdown}
