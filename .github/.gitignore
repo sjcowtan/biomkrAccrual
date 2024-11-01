@@ -1,3 +1,4 @@
 *.html
 .vscode/settings.json
 .vscode/
+rprof.out
