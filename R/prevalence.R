@@ -423,8 +423,6 @@ get_array_prevalence <- function(
 #' @param structure_obj An object of class `trial_structure`.
 #' @param arms Vector or scalar of integer arm ID numbers to remove
 #' 
-#' @export
-#' 
 remove_treat_arms <- S7::new_generic("remove_treat_arms", "structure_obj")
 S7::method(remove_treat_arms, trial_structure) <- function(
   structure_obj,

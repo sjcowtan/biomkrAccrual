@@ -45,8 +45,6 @@
 #'
 #' @export
 #' 
-#' @importFrom rlang check_dots_empty 
-#' 
 accrual <- S7::new_class("accrual",
   package = "biomkrAccrual",
   properties = list(
@@ -140,6 +138,8 @@ accrual <- S7::new_class("accrual",
 #' @param obj Object of class "accrual"
 #' @return vector of total accrual by recruitment site
 #' 
+#' @export 
+#' 
 site_sums <- S7::new_generic("site_sums", "obj")
 S7::method(site_sums, accrual) <- function(obj) {
   # Permute the array so that the first dimension is the
@@ -166,7 +166,9 @@ treat_sums <- function(x, ...) {
 #' control. Defaults to TRUE.
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
+#' 
 #' @return vector of total accrual by experimental arm.
+#' 
 #' @export
 #' 
 treat_sums.array <- function(
@@ -302,6 +304,7 @@ S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
 #' Implement site cap on a week's accrual. 
 #' @param obj Accrual object
 #' @param site_cap Maximum number of patients per site
+#' 
 #' @return Modified accrual object with capped week's accrual and 
 #' with any capped sites removed from active_sites
 #' 
@@ -346,6 +349,7 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 #' Implement arm cap on week's accrual to experimental arms
 #' @param accrual_obj Object of class `accrual`
 #' @param struct_obj Object of class `trial_structure`
+#' 
 #' @return Modified accrual object with capped week's accrual
 #' 
 #' @importFrom rlang abort
@@ -432,6 +436,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 #' @param fixed_site_rates TRUE if centre recruitment rates should 
 #' be treated as exact; FALSE if they should be drawn from a gamma
 #' distribution with a mean of the specified rate.
+#' 
 #' @return Matrix of week's accrual by site and recruitment arm.
 #' 
 week_accrue <- S7::new_generic("week_accrue", c("accrual_obj", "struct_obj"))
@@ -531,6 +536,7 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
 #' @return TRUE or FALSE
 #' 
 #' @importFrom S7 new_generic method class_any
+#' 
 #' @export
 #' 
 is.accrual <- S7::new_generic("is.accrual", "x")
