@@ -5,9 +5,10 @@
 \title{Close off treatment arms.
 In the list of treatment arm IDs, replaces the vector of recruitment
 arm IDs with NA.
-If any recruitment arms are closed, sets their prevalence to zero and
-recalculates prevalence vector, on the assumption that no patients with
-those characteristics will be recruited from that point.
+If any recruitment arms are closed, sets their prevalence to zero but
+does not recalculate prevalence vector, on the assumption that recruitment
+from aites will fall because no patients with those characteristics will
+be recruited from that point.
 Class object will automatically generate new trial structure and
 prevalence matrices.}
 \usage{
@@ -22,9 +23,10 @@ remove_treat_arms(structure_obj, ...)
 Close off treatment arms.
 In the list of treatment arm IDs, replaces the vector of recruitment
 arm IDs with NA.
-If any recruitment arms are closed, sets their prevalence to zero and
-recalculates prevalence vector, on the assumption that no patients with
-those characteristics will be recruited from that point.
+If any recruitment arms are closed, sets their prevalence to zero but
+does not recalculate prevalence vector, on the assumption that recruitment
+from aites will fall because no patients with those characteristics will
+be recruited from that point.
 Class object will automatically generate new trial structure and
 prevalence matrices.
 }

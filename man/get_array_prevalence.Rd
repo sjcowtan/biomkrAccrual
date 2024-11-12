@@ -5,7 +5,12 @@
 \title{Make array with the prevalences by treatment arm, recruitment arm and
 prevalence set}
 \usage{
-get_array_prevalence(arm_structure_mx, recruit_arm_prevalence, shared_control)
+get_array_prevalence(
+  arm_structure_mx,
+  recruit_arm_prevalence,
+  shared_control,
+  ctrl_ratio
+)
 }
 \arguments{
 \item{arm_structure_mx}{Logical matrix of recruitment arms by treatment arm}
@@ -16,6 +21,8 @@ columns, for each arm (rows)}
 \item{shared_control}{TRUE if all treatment arms share the
 same control arm; FALSE if each treatment arm has its own
 control. Defaults to TRUE.}
+
+\item{ctrl_ratio}{Ratio of patients assigned to treatment versus control}
 }
 \value{
 arm_prevalence_ar Array of prevalences, recruitment arms *

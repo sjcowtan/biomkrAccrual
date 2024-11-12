@@ -9,6 +9,7 @@
 #' arms.
 #' @slot shared_control TRUE if using a shared control arm for all 
 #' experimental arms.
+#' @slot ctrl_ratio Proportion of patients assigned to control
 #' @slot treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
 #' @slot treatment_arm_ids_start Named list of lists of the initial 
@@ -40,6 +41,7 @@
 #' variability decreases as precision increases. Defaults to 10.
 #' @param shared_control TRUE if all experimental arms share one 
 #' control arm; FALSE if they each have separate control arms.
+#' @param ctrl_ratio Proportion of patients assigned to control
 #' @param fixed_region_prevalences TRUE if biomarker prevalences 
 #' should be considered to be identical for all sites within a 
 #' region; FALSE if they should be drawn from a Dirichlet distribution
@@ -57,6 +59,7 @@ trial_structure <- S7::new_class("trial_structure",
     recruit_arm_prevalence_start = S7::class_double,
     recruit_arm_names = S7::class_character,
     shared_control = S7::class_logical,
+    ctrl_ratio = S7::class_vector,
     treatment_arm_ids = S7::class_list,
     treatment_arm_ids_start = S7::class_list,
     # These are generated from existing properties at the time they execute
@@ -86,7 +89,8 @@ trial_structure <- S7::new_class("trial_structure",
           get_array_prevalence(
             self@treatment_arm_struct, 
             self@recruit_arm_prevalence,
-            self@shared_control
+            self@shared_control,
+            self@ctrl_ratio
           )
         }
     )
@@ -98,6 +102,7 @@ trial_structure <- S7::new_class("trial_structure",
     centres_df = S7::class_missing,
     precision = S7::class_missing,
     shared_control = S7::class_missing,
+    ctrl_ratio = S7::class_missing,
     fixed_region_prevalences = S7::class_missing
   ) {
     # Create the object and populate it
@@ -114,6 +119,7 @@ trial_structure <- S7::new_class("trial_structure",
           props_df, centres_df, precision, fixed_region_prevalences
         ),
       shared_control = shared_control,
+      ctrl_ratio = ctrl_ratio,
       treatment_arm_ids = arms_ls,
       treatment_arm_ids_start = arms_ls
     )
@@ -363,50 +369,55 @@ get_matrix_struct <- function(arms_ls, recruit_arm_prevalence) {
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
+#' @param ctrl_ratio Ratio of patients assigned to treatment versus control
 #' 
 #' @return arm_prevalence_ar Array of prevalences, recruitment arms * 
 #' (treatment arms + control arms) * prevalence sets
 #' 
 get_array_prevalence <- function(
-  arm_structure_mx, recruit_arm_prevalence, shared_control
+  arm_structure_mx, recruit_arm_prevalence, shared_control, ctrl_ratio
 ) {
   no_treatments <- ncol(arm_structure_mx)
   no_recruit_arms <- nrow(arm_structure_mx)
-  
-  arm_prevalence_ar <- 
-    array(0, c( 
-      nrow(arm_structure_mx), 
-      ifelse(
-        shared_control, 
-        no_treatments + 1,
-        no_treatments * 2
+  no_regions <- ncol(recruit_arm_prevalence)
+
+  scale_factor <- 
+    ifelse(
+      sapply(
+        rowSums(arm_structure_mx), 
+        function(x) isTRUE(all.equal(x, 0, tolerance = 1e-6))
       ),
-      ncol(recruit_arm_prevalence)
-    ))
+      1, 
+      rowSums(arm_structure_mx)
+    )
 
-  # Now loop, replacing 0 with prevalence
-  for (iset in seq_len(ncol(recruit_arm_prevalence))) {
-    for (irow in seq_len(no_recruit_arms)) {
-      # ASSUMING 1:1, half the recruitment goes to the experimental arm
-      if (any(arm_structure_mx[irow, ])) {
-        # treatment arms
-        arm_prevalence_ar[irow, which(arm_structure_mx[irow, ]), iset] <- 
-          recruit_arm_prevalence[irow, iset] / 
-          (2 * sum(arm_structure_mx[irow, ]))
-        # control arms
-        if (shared_control) {
-          arm_prevalence_ar[irow, no_treatments + 1, iset] <-
-            sum(arm_prevalence_ar[irow, seq(no_treatments), iset])
-        } else {
-          arm_prevalence_ar[
-            irow, seq.int(no_treatments + 1, length.out = no_treatments), iset
-          ] <- 
-            arm_prevalence_ar[irow, seq_len(no_treatments), iset]
-        }
-      }
-    }
-  } 
+  # List of matrices by centre 
+  ## Total proportion recruited for centre on each open arm 
+  ## - more efficient to fix later
+  prev_ls <- lapply(
+    seq(no_regions),
+    function(i) recruit_arm_prevalence[, i] * arm_structure_mx / scale_factor
+  )
 
+  # Apply control configuration
+  if (shared_control) {
+    prev_ls <- lapply(
+      prev_ls,
+      function(mx) cbind(mx * ctrl_ratio[1], rowSums(mx) * ctrl_ratio[2])
+    )
+  } else {
+    prev_ls <- lapply(
+      prev_ls,
+      function(mx) cbind(mx * ctrl_ratio[1], mx * ctrl_ratio[2])
+    )
+  }
+
+  # Make into array
+  arm_prevalence_ar <- array(
+    data = do.call(cbind, prev_ls),
+    dim = c(dim(prev_ls[[1]]), length(prev_ls))
+  )
+  
   return(arm_prevalence_ar)
 }
 
@@ -414,9 +425,10 @@ get_array_prevalence <- function(
 #' Close off treatment arms.
 #' In the list of treatment arm IDs, replaces the vector of recruitment
 #' arm IDs with NA.
-#' If any recruitment arms are closed, sets their prevalence to zero and 
-#' recalculates prevalence vector, on the assumption that no patients with
-#' those characteristics will be recruited from that point.
+#' If any recruitment arms are closed, sets their prevalence to zero but 
+#' does not recalculate prevalence vector, on the assumption that recruitment
+#' from aites will fall because no patients with those characteristics will 
+#' be recruited from that point.
 #' Class object will automatically generate new trial structure and 
 #' prevalence matrices.
 #' 
@@ -435,9 +447,8 @@ S7::method(remove_treat_arms, trial_structure) <- function(
 
   # Set prevalence to 0 for any recruitment arms which now have no
   # experimental arms to recruit to
-  structure_obj@recruit_arm_prevalence[which(colSums(
-    structure_obj@treatment_arm_struct
-  ) < 1), ] <- 0
+  no_exp_arms <- rowSums(structure_obj@treatment_arm_struct) < 1
+  structure_obj@recruit_arm_prevalence[no_exp_arms, ] <- 0
 
   return(structure_obj)
 }

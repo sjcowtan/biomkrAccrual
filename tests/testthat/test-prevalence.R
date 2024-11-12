@@ -3,7 +3,8 @@ sites_in_region <- c(1, 2, 3, 2, 1)
 region_prevalence <- matrix(c(0.2, 0.6, 0.7, 0.9, 0.4, 0.1), ncol = 3)
 precision <- 10
 
-dirichlet_draws_out <- do_dirichlet_draws(region_prevalence, sites_in_region, precision)
+dirichlet_draws_out <- 
+  do_dirichlet_draws(region_prevalence, sites_in_region, precision)
 
 test_that("do_dirichlet_draws returns a matrix", {
   checkmate::expect_matrix(
@@ -180,4 +181,105 @@ test_that(paste(
 
 test_that("is.trial_structure correctly identifies class", {
   expect_true(is.trial_structure(ts_obj))
+})
+
+## Testing arm IDs
+
+test_that("treatment_arm_ids has 2 ids, 1 and 2", {
+  expect_equal(
+    ts_obj@treatment_arm_ids, 
+    list(T1 = as.integer(c(1)), T2 = as.integer(c(2)))
+  )
+})
+
+### Testing arm removal
+
+ts_minusarm_obj <- remove_treat_arms(ts_obj, as.integer(2))
+
+test_that("remove_treat_arms correctly removes arm 2", {
+  expect_equal(
+    ts_minusarm_obj@treatment_arm_ids, 
+    list(T1 = as.integer(c(1)), T2 = c(NA_integer_))
+  )
+})
+
+test_that("remove_treat_arms changes treatment_arm_struct", {
+  expect_false(isTRUE(all.equal(
+    ts_minusarm_obj@treatment_arm_struct,
+    ts_obj@treatment_arm_struct
+  )))
+})
+
+test_that("treatment_arm_struct column 2 is now FALSE", {
+  expect_false(all(ts_minusarm_obj@treatment_arm_struct[, 2]))
+})
+
+test_that("recruit_arm_prevalence has not changed for arm 1", {
+  expect_equal(
+    ts_minusarm_obj@recruit_arm_prevalence[1, ],
+    ts_obj@recruit_arm_prevalence[1, ]
+  )
+})
+
+test_that("recruit_arm_prevalence has changed for arm 2", {
+  expect_equal(
+    ts_minusarm_obj@recruit_arm_prevalence[2, ],
+    rep(0, ncol(ts_obj@recruit_arm_prevalence)),
+    tolerance = 1e-6
+  )
+})
+
+### Testing get_array_prevalence
+
+arm_struct_mx <- matrix(
+  c(F, T, T, F, T, F, T, F, T, F, T, F),
+  nrow = 3
+)
+
+rec_arm_prev <- matrix(
+  c(
+    0.1, 0.2, 0.7,
+    0.3, 0.1, 0.6
+  ),
+  nrow = 3
+)
+
+ctrl_ratio <- c(0.75, 0.25)
+
+arm_prev_ar <- get_array_prevalence(
+  arm_struct_mx, 
+  rec_arm_prev, 
+  shared_control = FALSE,
+  ctrl_ratio
+)
+
+test_that("Dimensions of prevalence array are correct", {
+  expect_equal(
+    dim(arm_prev_ar), 
+    c(
+      nrow(arm_struct_mx), 
+      ncol(arm_struct_mx) * 2, 
+      ncol(rec_arm_prev)
+    )
+  )
+})
+
+test_that("Total recruitment percentages are correct for centre 2", {
+  expect_equal(
+    rowSums(arm_prev_ar[, , 2]),
+    rec_arm_prev[, 2], 
+    tolerance = 1e-6
+  )
+})
+
+test_that("Control ratio is correct for centre 2", {
+  expect_equal(
+    arm_prev_ar[, seq_len(ncol(arm_struct_mx)), 2] / ctrl_ratio[1],
+    arm_prev_ar[
+      , 
+      seq(ncol(arm_struct_mx) + 1, length.out = ncol(arm_struct_mx)),
+      2
+    ] / ctrl_ratio[2],
+    tolerance = 1e-6
+  )
 })
