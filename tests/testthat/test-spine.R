@@ -1,4 +1,4 @@
-bma_out <- biomkrAccrual()
+bma_out <- biomkrAccrual(quietly = TRUE)
 
 test_that("Output of biomkrAccrual() should be an S7 object", {
   checkmate::expect_class(bma_out, "S7_object")

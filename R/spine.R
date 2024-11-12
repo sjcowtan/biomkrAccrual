@@ -68,7 +68,7 @@ biomkrAccrual <- function(
   target_interim = target_arm_size / 2,
   target_control = 180,
   shared_control = TRUE,
-  accrual_period = 50/4,
+  accrual_period = 50 / 4,
   interim_period = accrual_period / 2,
   precision = 10,
   # active : control ratio (all active the same)
@@ -191,23 +191,22 @@ biomkrAccrual <- function(
   centres_df <- do_clean_centres(centres_df)
   centres_df$start_week <- get_weeks(centres_df$start_month - 1) + 1
 
-  # Make control ratio 1:x if used
-  if (!is.null(ctrl_ratio) && !identical(ctrl_ratio[1], 1)) {
-    ctrl_ratio <- ctrl_ratio / ctrl_ratio[1]
-  } else if (is.null(ctrl_ratio) && !is.null(target_control)) {
-    ctrl_ratio <- c(1, target_control / target_arm_size)
-  }
-
-  # Generate target_control if needed
-  if (is.null(target_control) && shared_control) {
-    if (is.null(ctrl_ratio)) {
+  # Make control ratio sum to 1
+  if (is.null(ctrl_ratio)) {
+    if (!is.null(target_control)) {
+      ctrl_ratio <- c(1, target_control / target_arm_size)
+    } else {
       rlang::abort(paste(
         "For shared control, either ctrl_ratio or", 
         "target_control must be specified."
       ))
-    } else {
-      target_control <- target_arm_size * ctrl_ratio[2]
     }
+  }
+  ctrl_ratio <- ctrl_ratio / sum(ctrl_ratio)
+
+  # Generate target_control if needed
+  if (is.null(target_control) && shared_control) {
+    target_control <- target_arm_size * ctrl_ratio[2]
   } 
 
   # Total target recruitment
@@ -227,12 +226,13 @@ biomkrAccrual <- function(
   # Create structure object
   trial_structure_instance <- 
     trial_structure(
-      prop_params_df, 
-      arms_ls, 
-      centres_df, 
-      precision, 
-      shared_control,
-      fixed_region_prevalences
+      props_df = prop_params_df, 
+      arms_ls = arms_ls, 
+      centres_df = centres_df, 
+      precision = precision, 
+      shared_control = shared_control,
+      ctrl_ratio = ctrl_ratio,
+      fixed_region_prevalences = fixed_region_prevalences
     )
 
   # Create accrual object
