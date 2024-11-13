@@ -142,9 +142,8 @@ accrual <- S7::new_class("accrual",
 #' 
 site_sums <- S7::new_generic("site_sums", "obj")
 S7::method(site_sums, accrual) <- function(obj) {
-  # Permute the array so that the first dimension is the
-  # dimension you want to get sums for (centre)
-  rowSums(aperm(obj@accrual), c(3, 2, 1))
+  # Sum across dimensions 1:dims
+  colSums(obj@accrual, dims = 2)
 }
 
 
@@ -181,7 +180,7 @@ treat_sums.array <- function(
   # Permute the array so that the first dimension is the
   # dimension you want to get sums for (experimental arms)
   arm_sums <-
-    as.integer(rowSums(aperm(x, c(2, 1, 3))), na.rm = TRUE)
+    as.integer(colSums(rowSums(x)), na.rm = TRUE)
 
   # If want total for control arms rather than separate values
   if (control_total) {
