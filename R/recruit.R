@@ -180,19 +180,16 @@ treat_sums.array <- function(
   # Permute the array so that the first dimension is the
   # dimension you want to get sums for (experimental arms)
   arm_sums <-
-    as.integer(colSums(rowSums(x)), na.rm = TRUE)
+    as.integer(colSums(rowSums(x, dims = 2, na.rm = na.rm)))
 
   # If want total for control arms rather than separate values
-  if (control_total) {
-    # Want individual values for treat arms, but sum of control arms
-    if (shared_control) {
-      arm_sums <- c(
-        # Treatment arms
-        arm_sums[seq_along(no_treat_arms)],
-        # Control
-        sum(arm_sums[seq(no_treat_arms + 1, length.out = 2 * no_treat_arms)])
-      )
-    }
+  if (!shared_control && control_total) {
+    arm_sums <- c(
+      # Treatment arms
+      arm_sums[seq_along(no_treat_arms)],
+      # Control
+      sum(arm_sums[seq(no_treat_arms + 1, length.out = no_treat_arms)])
+    )
   }
 
   return(arm_sums)
