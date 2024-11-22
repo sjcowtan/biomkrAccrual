@@ -180,13 +180,13 @@ S7::method(plot, trial_structure) <- function(x) {
     ) +
     ggplot2::coord_fixed() +
     ggplot2::scale_fill_manual(
-      values = c("white", grDevices::palette.colors(4)[4]),
+      values = c("grey85", grDevices::palette.colors(4)[4]),
       labels = c("No", "Yes")
     ) +
     ggplot2::scale_y_discrete(limits = rev) +
     ggplot2::labs(
       x = "Treatment arm",
-      y = "Recruitment arm",
+      y = "Biomarker",
       title = "Trial structure",
       subtitle = paste0(
         ifelse(x@shared_control, "Shared", "Individual"), 
