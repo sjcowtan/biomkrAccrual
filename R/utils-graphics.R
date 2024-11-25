@@ -311,6 +311,7 @@ plot.accrualplotdata <- function(
 
   hline_y <- c(target_interim, target_arm_size, target_control)
   vline_x <- c(interim_period, accrual_period)
+  print(vline_x)
 
   p <- ggplot2::ggplot(
     accrual_df, 

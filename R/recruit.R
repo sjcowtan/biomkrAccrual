@@ -466,6 +466,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
         , , accrual_obj@site_in_region[isite]
       ])
 
+      print(probs)
 
       # Sample experimental arms according to probabilities
       assigns <- sample(
@@ -474,6 +475,8 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
         size = week_acc[isite],
         replace = TRUE
       )
+
+      print(assigns)
 
       # Increment week's assignment matrix
       for (i in assigns) {
