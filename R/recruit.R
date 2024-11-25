@@ -469,14 +469,14 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 
       # Sample experimental arms according to probabilities
       assigns <- sample(
-        seq_len(length(probs)),
-        prob = probs,
+        seq_len(length(probs) + 1),
+        prob = c(probs, 1 - sum(probs)),
         size = week_acc[isite],
         replace = TRUE
       )
 
       # Increment week's assignment matrix
-      for (i in assigns) {
+      for (i in assigns[-(length(probs) + 1)]) {
         week_mx[i, isite] <- as.integer(week_mx[i, isite] + 1)
       }
     }
@@ -508,7 +508,7 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
 
       # Assign the week's accrual to the object
       accrual_obj@accrual[accrual_obj@week, , ] <-
-        week_acc#rue(accrual_obj, struct_obj)
+        week_accrue(accrual_obj, struct_obj)
 
       # Apply site cap
       accrual_obj <- apply_site_cap(accrual_obj)
