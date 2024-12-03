@@ -469,30 +469,19 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
       print(probs)
 
       # Sample experimental arms according to probabilities
-      # Adding a dummy arm to take unassigned allocations due 
-      # to arm closure, representing reduced site recruitment
       assigns <- sample(
-        seq_len(length(probs) + 1),
-        prob = c(probs, 1 - sum(probs)),
+        seq_len(length(probs)),
+        prob = probs,
         size = week_acc[isite],
         replace = TRUE
       )
-      
-      # Total assignments to each open arm plus dummy arm
-      assign_table <- table(assigns)
-      indices <- as.numeric(names(assign_table))
-    
-      # Drop the dummy arm if anything was assigned to it
-      if (max(indices) > length(probs)) {
-        assign_table <- assign_table[-length(assign_table)]
-        indices <- indices[-length(indices)]
-      }
 
       print(assigns)
 
       # Increment week's assignment matrix
-      week_mx[indices, isite] <- 
-        week_mx[indices, isite] + as.vector(assign_table)
+      for (i in assigns) {
+        week_mx[i, isite] <- as.integer(week_mx[i, isite] + 1)
+      }
     }
 
     return(list(accrual_obj, week_mx))
@@ -522,7 +511,7 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
 
       # Assign the week's accrual to the object
       accrual_obj@accrual[accrual_obj@week, , ] <-
-        week_acc
+        week_acc#rue(accrual_obj, struct_obj)
 
       # Apply site cap
       accrual_obj <- apply_site_cap(accrual_obj)

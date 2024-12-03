@@ -305,9 +305,9 @@ plot.accrualplotdata <- function(
   arm_names <- levels(accrual_df$Arm)
 
   linetypes <- c(
-    "Interim arm" = 2, "Experimental arm" = 3, "Control arm" = 4,
-    "Interim accrual" = 5, "Total accrual" = 6
-  )
+        "Interim arm" = 2, "Experimental arm" = 3, "Control arm" = 4,
+        "Interim accrual" = 5, "Total accrual" = 6
+      )
 
   hline_y <- c(target_interim, target_arm_size, target_control)
   vline_x <- c(interim_period, accrual_period)
