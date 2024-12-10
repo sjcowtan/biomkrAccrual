@@ -466,13 +466,12 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
         , , accrual_obj@site_in_region[isite]
       ])
 
-
       # Sample experimental arms according to probabilities
       # Adding a dummy arm to take unassigned allocations due 
       # to arm closure, representing reduced site recruitment
       assigns <- sample(
         seq_len(length(probs) + 1),
-        prob = c(probs, 1 - sum(probs)),
+        prob = c(probs, ifelse(1 - sum(probs) < 10^-5, 0, 1 - sum(probs))),
         size = week_acc[isite],
         replace = TRUE
       )
