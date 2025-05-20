@@ -17,6 +17,8 @@
 #' @param interim_period Recruitment period to interim (months).
 #' @param precision For the Dirichlet model of biomarker prevalences, 
 #' variability decreases as precision increases. Defaults to 10.
+#' @param var_lambda Variance estimate for site recruitment rates.  
+#' Defaults to 0.25.
 #' @param ctrl_ratio Ratio of patient allocation to treatment arm
 #' versus control for all active arms; defaults to c(1, 1).
 #' @param centres_file Name of CSV file with information about 
@@ -71,6 +73,7 @@ biomkrAccrual <- function(
   accrual_period = 50 / 4,
   interim_period = accrual_period / 2,
   precision = 10,
+  var_lambda = 0.25,
   # active : control ratio (all active the same)
   ctrl_ratio = c(1, 1),
   centres_file = "centres.csv",
@@ -88,6 +91,12 @@ biomkrAccrual <- function(
 
   checkmate::assert_logical(
     fixed_region_prevalences,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_logical(
+    fixed_site_rates,
     any.missing = FALSE,
     null.ok = FALSE
   )
@@ -119,6 +128,37 @@ biomkrAccrual <- function(
     rlang::abort(paste("Either fixed_region_prevalences", 
       "must be TRUE, or a value must be given for the",
       "precision of the Dirichlet distribution."
+    ))
+  }
+  
+
+  if (fixed_site_rates && 
+    checkmate::test_numeric(
+      var_lambda, 
+      any.missing = FALSE, 
+      null.ok = FALSE
+    )
+  )  {
+    rlang::warn(paste("Value given for var_lambda when", 
+      "fixed_site_rates is TRUE: fixed_site_rates",
+      "will take precendence."
+    ))
+    var_lambda <- NULL
+  }
+
+  checkmate::assert_numeric(
+    var_lambda,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 1,
+    null.ok = TRUE
+  )
+
+  if (!fixed_site_rates && is.null(var_lambda)) {
+    rlang::abort(paste("Either fixed_site_rates", 
+      "must be TRUE, or a value must be given for the",
+      "variance of the site rates."
     ))
   }
 
