@@ -129,6 +129,7 @@ biomkrAccrual <- function(
   output_path <- gsub("(\\w+)$", "\\1/", output_path)
   figs_path <- gsub("(\\w+)$", "\\1/", figs_path)
 
+
   # Make into full path so only one set of syntax needed
   if (!grepl("^/", output_path)) {
     output_path <- paste0(getwd(), "/", output_path)
