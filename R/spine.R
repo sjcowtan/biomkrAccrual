@@ -130,7 +130,7 @@ biomkrAccrual <- function(
       "precision of the Dirichlet distribution."
     ))
   }
-  
+
 
   if (fixed_site_rates && 
     checkmate::test_numeric(
@@ -286,6 +286,7 @@ biomkrAccrual <- function(
     accrual_period = get_weeks(accrual_period),
     interim_period = get_weeks(interim_period),
     control_ratio = ctrl_ratio,
+    var_lambda = var_lambda,
     centres_df = centres_df
   )
 

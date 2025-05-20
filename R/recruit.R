@@ -25,6 +25,7 @@
 #' @slot site_index Vector of index numbers for each site
 #' @slot treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
+#' @slot var_lambda Variance of site recruitment rates.
 #' 
 #' @param treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
@@ -36,11 +37,13 @@
 #' interim analysis.
 #' @param accrual_period Number of weeks in recruitment period.
 #' @param interim_period Number of weeks to recruit for interim analysis.
+#' @param var_lambda Variance of site recruitment rates.
 #' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
 #' "region" and "site_cap"
 #' 
 #' @usage accrual(treatment_arm_ids, shared_control, target_arm_size, 
-#' target_control, target_interim, accrual_period, interim_period, centres_df)
+#' target_control, target_interim, accrual_period, interim_period, 
+#' var_lambda, centres_df)
 #' @name accrual
 #'
 #' @export
@@ -67,7 +70,8 @@ accrual <- S7::new_class("accrual",
     site_rate = S7::class_double,
     site_start_week = S7::class_integer,
     site_index = S7::class_integer,
-    treatment_arm_ids = S7::class_list
+    treatment_arm_ids = S7::class_list,
+    var_lambda = S7::class_double
   ),
   constructor = function(
     treatment_arm_ids = S7::class_missing,
@@ -78,6 +82,7 @@ accrual <- S7::new_class("accrual",
     accrual_period = S7::class_missing,
     interim_period = S7::class_missing,
     control_ratio = S7::class_missing,
+    var_lambda = S7::class_missing,
     centres_df = S7::class_missing
   ) {
     # Create the object and populate it
@@ -128,7 +133,8 @@ accrual <- S7::new_class("accrual",
       site_rate = NA_real_,
       site_start_week = as.integer(centres_df$start_week),
       site_index = as.integer(centres_df$site),
-      treatment_arm_ids = treatment_arm_ids
+      treatment_arm_ids = treatment_arm_ids,
+      var_lambda = var_lambda
     )
   }
 )
