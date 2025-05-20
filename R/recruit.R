@@ -283,12 +283,11 @@ S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
     if (fixed_site_rates) {
       rates <- obj@site_mean_rate(indices) / 4
     } else {
-      var_lambda <- 0.25
       rates <- 0.25 * stats::rgamma(
         n = length(indices),
-        shape = obj@site_mean_rate[indices]^2 / var_lambda,
+        shape = obj@site_mean_rate[indices]^2 / obj@var_lambda,
         # Per week not per month
-        rate = obj@site_mean_rate[indices] / var_lambda
+        rate = obj@site_mean_rate[indices] / obj@var_lambda
       )
     }
 
