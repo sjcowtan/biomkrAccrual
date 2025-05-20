@@ -6,6 +6,7 @@ acc_obj <- accrual(
   accrual_period = as.integer(12),
   interim_period = as.integer(6),
   control_ratio = c(1, 1),
+  var_lambda = 0.25,
   centres_df = data.frame(
     site = 1:2,
     start_month = c(1, 5),
