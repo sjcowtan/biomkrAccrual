@@ -25,6 +25,7 @@
 #' @slot site_index Vector of index numbers for each site
 #' @slot treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
+#' @slot var_lambda Variance of site recruitment rates.
 #' 
 #' @param treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
@@ -36,11 +37,13 @@
 #' interim analysis.
 #' @param accrual_period Number of weeks in recruitment period.
 #' @param interim_period Number of weeks to recruit for interim analysis.
+#' @param var_lambda Variance of site recruitment rates.
 #' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
 #' "region" and "site_cap"
 #' 
 #' @usage accrual(treatment_arm_ids, shared_control, target_arm_size, 
-#' target_control, target_interim, accrual_period, interim_period, centres_df)
+#' target_control, target_interim, accrual_period, interim_period, 
+#' var_lambda, centres_df)
 #' @name accrual
 #'
 #' @export
@@ -67,7 +70,8 @@ accrual <- S7::new_class("accrual",
     site_rate = S7::class_double,
     site_start_week = S7::class_integer,
     site_index = S7::class_integer,
-    treatment_arm_ids = S7::class_list
+    treatment_arm_ids = S7::class_list,
+    var_lambda = S7::class_double
   ),
   constructor = function(
     treatment_arm_ids = S7::class_missing,
@@ -78,6 +82,7 @@ accrual <- S7::new_class("accrual",
     accrual_period = S7::class_missing,
     interim_period = S7::class_missing,
     control_ratio = S7::class_missing,
+    var_lambda = S7::class_missing,
     centres_df = S7::class_missing
   ) {
     # Create the object and populate it
@@ -128,7 +133,8 @@ accrual <- S7::new_class("accrual",
       site_rate = NA_real_,
       site_start_week = as.integer(centres_df$start_week),
       site_index = as.integer(centres_df$site),
-      treatment_arm_ids = treatment_arm_ids
+      treatment_arm_ids = treatment_arm_ids,
+      var_lambda = var_lambda
     )
   }
 )
@@ -277,12 +283,11 @@ S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
     if (fixed_site_rates) {
       rates <- obj@site_mean_rate(indices) / 4
     } else {
-      var_lambda <- 0.25
       rates <- 0.25 * stats::rgamma(
         n = length(indices),
-        shape = obj@site_mean_rate[indices]^2 / var_lambda,
+        shape = obj@site_mean_rate[indices]^2 / obj@var_lambda,
         # Per week not per month
-        rate = obj@site_mean_rate[indices] / var_lambda
+        rate = obj@site_mean_rate[indices] / obj@var_lambda
       )
     }
 
@@ -466,13 +471,12 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
         , , accrual_obj@site_in_region[isite]
       ])
 
-
       # Sample experimental arms according to probabilities
       # Adding a dummy arm to take unassigned allocations due 
       # to arm closure, representing reduced site recruitment
       assigns <- sample(
         seq_len(length(probs) + 1),
-        prob = c(probs, 1 - sum(probs)),
+        prob = c(probs, ifelse(1 - sum(probs) < 10^-5, 0, 1 - sum(probs))),
         size = week_acc[isite],
         replace = TRUE
       )

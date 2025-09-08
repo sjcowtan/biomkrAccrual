@@ -1,6 +1,6 @@
 Package: biomkrAccrual
 Title: What the Package Does (One Line, Title Case)
-Version: 0.0.2.9000
+Version: 0.0.2.9001
 Authors@R: 
     person("S J", "Cowtan", , "cowtansj@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-7668-4109"))

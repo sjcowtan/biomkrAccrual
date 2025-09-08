@@ -227,7 +227,7 @@ biomkrAccrualSim <- function(
     for (i in seq(treatment_arms)) {
       p <- accrual_arm_plot(
         data_ls[[j]],
-        arm_colours,
+        arm_colours, 
         treatment_arms,
         target_ls[[j]],
         plot_id = names(data_ls)[j],
@@ -240,7 +240,7 @@ biomkrAccrualSim <- function(
           "arm-totals-",
           tolower(names(data_ls)[j]),
           "-",
-          arm_names[treatment_arms][i], "-", 
+          arm_names[i], "-", 
           run_time, 
           ".png"
         ),
