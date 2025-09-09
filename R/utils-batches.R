@@ -56,7 +56,7 @@ biomkrAccrualSim <- function(
   interim_period = 25 / 4,
   precision = 10,
   # active : control ratio (all active the same)
-  ctrl_ratio = c(1, 1),
+  control_ratio = c(1, 1),
   target_arm_size = 60,
   target_interim = target_arm_size / 2,
   target_control = 180,
@@ -117,7 +117,7 @@ biomkrAccrualSim <- function(
       accrual_period = accrual_period,
       interim_period = interim_period,
       precision = precision,
-      ctrl_ratio = ctrl_ratio,
+      control_ratio = control_ratio,
       target_arm_size = target_arm_size,
       target_interim = target_interim,
       target_control = target_control,

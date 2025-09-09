@@ -9,7 +9,7 @@
 #' arms.
 #' @slot shared_control TRUE if using a shared control arm for all 
 #' experimental arms.
-#' @slot ctrl_ratio Proportion of patients assigned to control
+#' @slot control_ratio Proportion of patients assigned to control
 #' @slot treatment_arm_ids Named list of lists of recruitment arms by 
 #' treatment arm.
 #' @slot treatment_arm_ids_start Named list of lists of the initial 
@@ -41,7 +41,7 @@
 #' variability decreases as precision increases. Defaults to 10.
 #' @param shared_control TRUE if all experimental arms share one 
 #' control arm; FALSE if they each have separate control arms.
-#' @param ctrl_ratio Proportion of patients assigned to control
+#' @param control_ratio Proportion of patients assigned to control
 #' @param fixed_region_prevalences TRUE if biomarker prevalences 
 #' should be considered to be identical for all sites within a 
 #' region; FALSE if they should be drawn from a Dirichlet distribution
@@ -59,7 +59,7 @@ trial_structure <- S7::new_class("trial_structure",
     recruit_arm_prevalence_start = S7::class_double,
     recruit_arm_names = S7::class_character,
     shared_control = S7::class_logical,
-    ctrl_ratio = S7::class_vector,
+    control_ratio = S7::class_vector,
     treatment_arm_ids = S7::class_list,
     treatment_arm_ids_start = S7::class_list,
     # These are generated from existing properties at the time they execute
@@ -90,7 +90,7 @@ trial_structure <- S7::new_class("trial_structure",
             self@treatment_arm_struct, 
             self@recruit_arm_prevalence,
             self@shared_control,
-            self@ctrl_ratio
+            self@control_ratio
           )
         }
     )
@@ -102,7 +102,7 @@ trial_structure <- S7::new_class("trial_structure",
     centres_df = S7::class_missing,
     precision = S7::class_missing,
     shared_control = S7::class_missing,
-    ctrl_ratio = S7::class_missing,
+    control_ratio = S7::class_missing,
     fixed_region_prevalences = S7::class_missing
   ) {
     # Create the object and populate it
@@ -119,7 +119,7 @@ trial_structure <- S7::new_class("trial_structure",
           props_df, centres_df, precision, fixed_region_prevalences
         ),
       shared_control = shared_control,
-      ctrl_ratio = ctrl_ratio,
+      control_ratio = control_ratio,
       treatment_arm_ids = arms_ls,
       treatment_arm_ids_start = arms_ls
     )
@@ -369,13 +369,13 @@ get_matrix_struct <- function(arms_ls, recruit_arm_prevalence) {
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
-#' @param ctrl_ratio Ratio of patients assigned to treatment versus control
+#' @param control_ratio Ratio of patients assigned to treatment versus control
 #' 
 #' @return arm_prevalence_ar Array of prevalences, recruitment arms * 
 #' (treatment arms + control arms) * prevalence sets
 #' 
 get_array_prevalence <- function(
-  arm_structure_mx, recruit_arm_prevalence, shared_control, ctrl_ratio
+  arm_structure_mx, recruit_arm_prevalence, shared_control, control_ratio
 ) {
   no_treatments <- ncol(arm_structure_mx)
   no_recruit_arms <- nrow(arm_structure_mx)
@@ -403,12 +403,12 @@ get_array_prevalence <- function(
   if (shared_control) {
     prev_ls <- lapply(
       prev_ls,
-      function(mx) cbind(mx * ctrl_ratio[1], rowSums(mx) * ctrl_ratio[2])
+      function(mx) cbind(mx * control_ratio[1], rowSums(mx) * control_ratio[2])
     )
   } else {
     prev_ls <- lapply(
       prev_ls,
-      function(mx) cbind(mx * ctrl_ratio[1], mx * ctrl_ratio[2])
+      function(mx) cbind(mx * control_ratio[1], mx * control_ratio[2])
     )
   }
 

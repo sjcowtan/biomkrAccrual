@@ -95,7 +95,34 @@ test_that("do_choose_caps does not produce extra repeats", {
   )
 })
 
-# Testing get_weeks()
+# Testing week_accrue()
+## Need a structure object
+ts_obj <- trial_structure(
+  props_df =  data.frame(
+    category = c("B1", "B2", "B3"),
+    region_1 = 0.031, 0.454, 0.515
+  ),
+  arms_ls = list(
+    T1 = 1:2,
+    T2 = 2:3
+  ),
+  centres_df = data.frame(
+    site = 1:2,
+    start_month = c(1, 5),
+    mean_rate = c(10, 18),
+    region = c(1, 1),
+    site_cap = c(40, 20),
+    start_week = c(1, 20)
+  ),
+  precision = 10,
+  shared_control = TRUE,
+  fixed_region_prevalences = FALSE
+)
+
 
 # Testing set_site_rates()
+set.seed(123)
 
+wa_out_ls <- week_accrue(acc_obj, ts_obj, fixed_site_rates = FALSE)
+
+#print(wa_out[[2]])

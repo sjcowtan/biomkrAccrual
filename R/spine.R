@@ -19,7 +19,7 @@
 #' variability decreases as precision increases. Defaults to 10.
 #' @param var_lambda Variance estimate for site recruitment rates.  
 #' Defaults to 0.25.
-#' @param ctrl_ratio Ratio of patient allocation to treatment arm
+#' @param control_ratio Ratio of patient allocation to treatment arm
 #' versus control for all active arms; defaults to c(1, 1).
 #' @param centres_file Name of CSV file with information about 
 #' each recruitment centre; this should have columns "site", 
@@ -75,7 +75,7 @@ biomkrAccrual <- function(
   precision = 10,
   var_lambda = 0.25,
   # active : control ratio (all active the same)
-  ctrl_ratio = c(1, 1),
+  control_ratio = c(1, 1),
   centres_file = "centres.csv",
   prop_file = "proportions.csv",
   arms_file = "arms.json",
@@ -233,28 +233,28 @@ biomkrAccrual <- function(
   centres_df$start_week <- get_weeks(centres_df$start_month - 1) + 1
 
   # Make control ratio sum to 1
-  if (is.null(ctrl_ratio)) {
+  if (is.null(control_ratio)) {
     if (!is.null(target_control)) {
-      ctrl_ratio <- c(1, target_control / target_arm_size)
+      control_ratio <- c(1, target_control / target_arm_size)
     } else {
       rlang::abort(paste(
-        "For shared control, either ctrl_ratio or", 
+        "For shared control, either control_ratio or", 
         "target_control must be specified."
       ))
     }
   }
-  ctrl_ratio <- ctrl_ratio / sum(ctrl_ratio)
+  control_ratio <- control_ratio / sum(control_ratio)
 
   # Generate target_control if needed
   if (is.null(target_control) && shared_control) {
-    target_control <- target_arm_size * ctrl_ratio[2]
+    target_control <- target_arm_size * control_ratio[2]
   } 
 
   # Total target recruitment
   target_recruit <- ifelse(
     shared_control, 
     target_arm_size * length(arms_ls) + target_control,
-    target_arm_size * length(arms_ls) * (2 * ctrl_ratio[2])
+    target_arm_size * length(arms_ls) * (2 * control_ratio[2])
   )
 
   # Complete site cap if incomplete, using recruitment target
@@ -272,7 +272,7 @@ biomkrAccrual <- function(
       centres_df = centres_df, 
       precision = precision, 
       shared_control = shared_control,
-      ctrl_ratio = ctrl_ratio,
+      control_ratio = control_ratio,
       fixed_region_prevalences = fixed_region_prevalences
     )
 
@@ -285,7 +285,7 @@ biomkrAccrual <- function(
     target_interim = target_interim,
     accrual_period = get_weeks(accrual_period),
     interim_period = get_weeks(interim_period),
-    control_ratio = ctrl_ratio,
+    control_ratio = control_ratio,
     var_lambda = var_lambda,
     centres_df = centres_df
   )
