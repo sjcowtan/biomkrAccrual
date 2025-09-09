@@ -1,6 +1,6 @@
 ---
 title: "biomkrAccrual"
-author: "SJ Cowtan"
+author: "Silvan J Cowtan"
 date: 2024-10-01
 date-format: YYYY
 output: 

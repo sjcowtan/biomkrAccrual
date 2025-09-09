@@ -31,13 +31,12 @@ test_that(paste(
 ### Testing is.accrual()
 
 test_that(paste(
-  "Constructor for accrual produces an object of classes",
-  "S7_object and biomkrAccrual::accrual"
+  "is.accrual() recognises an object of class",
+  "biomkrAccrual::accrual"
 ), {
-  checkmate::expect_class(acc_obj, c(
-    "biomkrAccrual::accrual",
-    "S7_object"
-  ))
+  expect_true(
+    is.accrual(acc_obj)
+  )
 })
 
 
@@ -95,3 +94,8 @@ test_that("do_choose_caps does not produce extra repeats", {
     )
   )
 })
+
+# Testing get_weeks()
+
+# Testing set_site_rates()
+

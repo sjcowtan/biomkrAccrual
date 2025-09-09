@@ -421,14 +421,11 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     accrual_obj@site_closures[accrual_obj@active_sites[capped_sites]] <-
       accrual_obj@week
 
-    # Update active sites
+    # Update active sites(accrual_obj, fixed_site_rates)
     accrual_obj@active_sites <- which(site_captotal < 0)
 
     return(list(accrual_obj, struct_obj)) 
   }
-
-
-
 
 #' Randomise a week's expected accrual amongst the sites, according to 
 #' prevalence.
