@@ -18,7 +18,7 @@ acc_obj <- accrual(
 )
 
 test_that(paste(
-  "Constructor for accrual produces an object of classes",
+  "accrual constructor: produces an object of classes",
   "S7_object and biomkrAccrual::accrual"
 ), {
   checkmate::expect_class(acc_obj, c(
@@ -31,7 +31,7 @@ test_that(paste(
 ### Testing is.accrual()
 
 test_that(paste(
-  "is.accrual() recognises an object of class",
+  "is.accrual: recognises an object of class",
   "biomkrAccrual::accrual"
 ), {
   expect_true(
@@ -43,7 +43,7 @@ test_that(paste(
 ### Testing treat_sums()
 arr <- array(1:24, 2:4)
 
-test_that("Can sum by treatment a 3-D accrual array", {
+test_that("treat_sums: sum by treatment a 3-D accrual array", {
   checkmate::expect_integer(
     treat_sums(arr),
     min.len = 1,
@@ -54,7 +54,7 @@ test_that("Can sum by treatment a 3-D accrual array", {
   )
 })
 
-test_that("Output correct from treat_sums for valid array", {
+test_that("treat_sums: output correct for valid array", {
   expect_identical(
     treat_sums(arr),
     as.integer(c(84, 100, 116))
@@ -63,7 +63,7 @@ test_that("Output correct from treat_sums for valid array", {
 
 ## Testing treat_sums on an accrual object
 
-test_that("Output correct from treat_sums for valid accrual object", {
+test_that("treat_sums: output correct  for valid accrual object", {
   expect_identical(
     treat_sums(acc_obj),
     as.integer(c(0, 0, 0))
@@ -74,7 +74,7 @@ test_that("Output correct from treat_sums for valid accrual object", {
 uncapped <- c(1, 1, 2, 5, 8)
 capped <- do_choose_cap(uncapped, 3)
 
-test_that("do_choose_cap caps population correctly", {
+test_that("do_choose_cap: caps population correctly", {
   expect_identical(
     length(capped),
     as.integer(3)
@@ -85,7 +85,7 @@ test_that("do_choose_cap caps population correctly", {
 table_uncapped <- as.data.frame(table(uncapped))
 table_capped <- as.data.frame(table(capped))
 
-test_that("do_choose_caps does not produce extra repeats", {
+test_that("do_choose_cap: does not produce extra repeats", {
   expect_true(
     all(
       table_uncapped[
@@ -95,7 +95,29 @@ test_that("do_choose_caps does not produce extra repeats", {
   )
 })
 
+
+
+# Testing set_site_rates()
+
+set.seed(123)
+
+rates <- set_site_rates(acc_obj, fixed_site_rates = TRUE)
+
+test_that("set_site_rates: fixed site rate is correct", {
+  expect_equal(rates@site_rate, c(2.5, 0), tolerance = 1e-6)
+})
+
+set.seed(123)
+
+rates <- set_site_rates(acc_obj, fixed_site_rates = FALSE)
+
+test_that("set_site_rates: variable site rate is correct", {
+  expect_equal(rates@site_rate, c(2.427350, 0.0), tolerance = 1e-6)
+})
+
+
 # Testing week_accrue()
+
 ## Need a structure object
 ts_obj <- trial_structure(
   props_df =  data.frame(
@@ -116,13 +138,92 @@ ts_obj <- trial_structure(
   ),
   precision = 10,
   shared_control = TRUE,
+  control_ratio = c(1, 1),
   fixed_region_prevalences = FALSE
 )
 
-
-# Testing set_site_rates()
 set.seed(123)
 
 wa_out_ls <- week_accrue(acc_obj, ts_obj, fixed_site_rates = FALSE)
 
-#print(wa_out[[2]])
+test_that("week_accrue: first output is an accrual object", {
+  expect_equal(
+    class(wa_out_ls[[1]]),
+    c("biomkrAccrual::accrual", "S7_object")
+  )
+})
+
+test_that("week_accrue: second output is a valid accrual matrix", {
+  checkmate::expect_matrix(
+    wa_out_ls[[2]],
+    any.missing = FALSE,
+    nrows = 3,
+    ncols = 2,
+    null.ok = FALSE,
+    mode = "integer"
+  )
+})
+
+test_that("week_accrue: accrual values as expected", {
+  expect_equal(
+    as.vector(wa_out_ls[[2]]),
+    c(1, 2, 1, 0, 0, 0)
+  )
+})
+
+test_that("week_accrue: variable site rate is correct", {
+  expect_equal(wa_out_ls[[1]]@site_rate, c(2.427350, 0.0), tolerance = 1e-6)
+})
+
+
+# Testing accrue_week
+
+set.seed(123)
+
+aw_out_ls <- accrue_week(acc_obj, ts_obj, fixed_site_rates = FALSE)
+
+test_that("accrue_week: first output is an accrual object", {
+  expect_equal(
+    class(aw_out_ls[[1]]),
+    c("biomkrAccrual::accrual", "S7_object")
+  )
+})
+
+test_that("accrue_week: first output is a structure object", {
+  expect_equal(
+    class(aw_out_ls[[2]]),
+    c("biomkrAccrual::trial_structure", "S7_object")
+  )
+})
+
+test_that("accrue_week: recruitment totals are a 3D integer array", {
+  checkmate::expect_array(
+    aw_out_ls[[1]]@accrual,
+    mode = "integer",
+    any.missing = FALSE,
+    d = 3,
+    null.ok = FALSE
+  )
+})
+
+test_that("accrue_week: recruitment totals are correct", {
+  expect_equal(
+    as.vector(aw_out_ls[[1]]@accrual), 
+    c(1, rep(0, 11), 2, rep(0, 11), 1, rep(0, 47))
+  )
+})
+
+test_that("accrue_week: variable site rate is correct", {
+  expect_equal(
+    aw_out_ls[[1]]@site_rate, 
+    c(2.427350, 0.0), 
+    tolerance = 1e-6
+  )
+})
+
+test_that("accrue_week: trial structure correct (no capping)", {
+  expect_equal(
+    aw_out_ls[[2]]@treatment_arm_struct,
+    matrix(c(rep(c(TRUE, FALSE, TRUE), each = 2)), ncol = 2)
+  )
+})

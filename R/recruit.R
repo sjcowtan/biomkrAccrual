@@ -281,7 +281,7 @@ S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
 
     # mean_rates are in recruitment per month, convert to weeks
     if (fixed_site_rates) {
-      rates <- obj@site_mean_rate(indices) / 4
+      rates <- obj@site_mean_rate[indices] / get_weeks(1)
     } else {
       rates <- 0.25 * stats::rgamma(
         n = length(indices),
