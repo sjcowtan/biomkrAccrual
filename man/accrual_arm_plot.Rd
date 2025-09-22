@@ -6,6 +6,20 @@
 \usage{
 accrual_arm_plot(data_df, arm_colours, treatment_arms, targets, plot_id, i)
 }
+\arguments{
+\item{data_df}{Dataframe of biomkrAccrual output.}
+
+\item{arm_colours}{Vector of hexadecimal colours, one for each arm.}
+
+\item{treatment_arms}{Vector of names of the treatment arms.}
+
+\item{targets}{Vector of target names (excluding the
+word \code{target}).}
+
+\item{plot_id}{Vector of plot type names (typically "Interim" and "Accrual").}
+
+\item{i}{Index of treatment arm to plot.}
+}
 \description{
 Bodge, fix later
 }

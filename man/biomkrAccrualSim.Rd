@@ -16,7 +16,7 @@ biomkrAccrualSim(
   accrual_period = 50/4,
   interim_period = 25/4,
   precision = 10,
-  ctrl_ratio = c(1, 1),
+  control_ratio = c(1, 1),
   target_arm_size = 60,
   target_interim = target_arm_size/2,
   target_control = 180,

@@ -11,7 +11,7 @@ trial_structure(
   centres_df = S7::class_missing,
   precision = S7::class_missing,
   shared_control = S7::class_missing,
-  ctrl_ratio = S7::class_missing,
+  control_ratio = S7::class_missing,
   fixed_region_prevalences = S7::class_missing
 )
 }
@@ -37,7 +37,7 @@ variability decreases as precision increases. Defaults to 10.}
 \item{shared_control}{TRUE if all experimental arms share one
 control arm; FALSE if they each have separate control arms.}
 
-\item{ctrl_ratio}{Proportion of patients assigned to control}
+\item{control_ratio}{Proportion of patients assigned to control}
 
 \item{fixed_region_prevalences}{TRUE if biomarker prevalences
 should be considered to be identical for all sites within a
@@ -63,7 +63,7 @@ arms.}
 \item{\code{shared_control}}{TRUE if using a shared control arm for all
 experimental arms.}
 
-\item{\code{ctrl_ratio}}{Proportion of patients assigned to control}
+\item{\code{control_ratio}}{Proportion of patients assigned to control}
 
 \item{\code{treatment_arm_ids}}{Named list of lists of recruitment arms by
 treatment arm.}

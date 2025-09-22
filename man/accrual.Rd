@@ -6,7 +6,8 @@
 by site, treatment/control arm and week}
 \usage{
 accrual(treatment_arm_ids, shared_control, target_arm_size, 
-target_control, target_interim, accrual_period, interim_period, centres_df)
+target_control, target_interim, accrual_period, interim_period, 
+var_lambda, centres_df)
 }
 \arguments{
 \item{treatment_arm_ids}{Named list of lists of recruitment arms by
@@ -25,6 +26,8 @@ interim analysis.}
 \item{accrual_period}{Number of weeks in recruitment period.}
 
 \item{interim_period}{Number of weeks to recruit for interim analysis.}
+
+\item{var_lambda}{Variance of site recruitment rates.}
 
 \item{centres_df}{Dataframe with columns "site", "start_month", "mean_rate",
 "region" and "site_cap"}
@@ -78,5 +81,7 @@ gamma distribution}
 
 \item{\code{treatment_arm_ids}}{Named list of lists of recruitment arms by
 treatment arm.}
+
+\item{\code{var_lambda}}{Variance of site recruitment rates.}
 }}
 
