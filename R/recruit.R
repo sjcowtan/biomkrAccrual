@@ -15,6 +15,8 @@
 #' @slot active_arms Vector of indices of open arms
 #' @slot active_sites Vector of indices of open sites
 #' @slot shared_control TRUE if a shared control arm is being used, else FALSE
+#' @slot fixed_site_rates TRUE if expected site rate to be used; FALSE 
+#' draws the site rate from a gamma distribution
 #' @slot site_in_region Vector of indices for which set of expected 
 #' prevalences each site should use 
 #' @slot site_cap Vector of maximum number of patients for each site
@@ -31,6 +33,8 @@
 #' treatment arm.
 #' @param shared_control TRUE if all experimental arms share one control arm;
 #' FALSE if each has their own
+#' @param fixed_site_rates TRUE if expected site rate to be used; FALSE 
+#' draws the site rate from a gamma distribution
 #' @param target_arm_size Number of subjects required for each treatment arm.
 #' @param target_control Number of subjects required for control arm(s).
 #' @param target_interim Number of subjects required for treatment arm at 
@@ -64,6 +68,7 @@ accrual <- S7::new_class("accrual",
     active_arms = S7::class_integer,
     active_sites = S7::class_integer,
     shared_control = S7::class_logical,
+    fixed_site_rates = S7::class_logical,
     site_in_region = S7::class_integer,
     site_cap = S7::class_integer,
     site_mean_rate = S7::class_double,
@@ -76,6 +81,7 @@ accrual <- S7::new_class("accrual",
   constructor = function(
     treatment_arm_ids = S7::class_missing,
     shared_control = S7::class_missing,
+    fixed_site_rates = S7::class_missing,
     target_arm_size = S7::class_missing,
     target_control = S7::class_missing,
     target_interim = S7::class_missing,
@@ -127,6 +133,7 @@ accrual <- S7::new_class("accrual",
       active_arms = seq_len(length(treatment_arm_ids)),
       active_sites = seq_len(length(unique(centres_df$site))),
       shared_control = shared_control,
+      fixed_site_rates = fixed_site_rates,
       site_in_region = as.integer(centres_df$region),
       site_cap = as.integer(centres_df$site_cap),
       site_mean_rate = as.numeric(centres_df$mean_rate),
@@ -268,7 +275,7 @@ get_weeks <- function(months) {
 #' @importFrom stats rgamma
 #' 
 set_site_rates <- S7::new_generic("site_start_rates", "obj")
-S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
+S7::method(set_site_rates, accrual) <- function(obj) {
 
   # If this is the first time calling this, initialise with rate 0
   if (any(is.na(obj@site_rate))) {
@@ -280,7 +287,7 @@ S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
   if (length(indices) > 0) {
 
     # mean_rates are in recruitment per month, convert to weeks
-    if (fixed_site_rates) {
+    if (obj@fixed_site_rates) {
       rates <- obj@site_mean_rate[indices] / get_weeks(1)
     } else {
       rates <- 0.25 * stats::rgamma(
@@ -421,7 +428,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     accrual_obj@site_closures[accrual_obj@active_sites[capped_sites]] <-
       accrual_obj@week
 
-    # Update active sites(accrual_obj, fixed_site_rates)
+    # Update active sites(accrual_obj)
     accrual_obj@active_sites <- which(site_captotal < 0)
 
     return(list(accrual_obj, struct_obj)) 
@@ -431,7 +438,6 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 #' prevalence.
 #' @param accrual_obj An object of class `accrual`.
 #' @param struct_obj An object of class `trial_structure`.
-#' @param fixed_site_rates TRUE if centre recruitment rates should 
 #' be treated as exact; FALSE if they should be drawn from a gamma
 #' distribution with a mean of the specified rate.
 #' 
@@ -439,10 +445,10 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 #' 
 week_accrue <- S7::new_generic("week_accrue", c("accrual_obj", "struct_obj"))
 S7::method(week_accrue, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj, fixed_site_rates) {
+  function(accrual_obj, struct_obj) {
 
     # Update the site rates
-    accrual_obj <- set_site_rates(accrual_obj, fixed_site_rates)
+    accrual_obj <- set_site_rates(accrual_obj)
 
     # Initialising (sites * experimental arms)
     week_mx <- matrix(
@@ -502,19 +508,17 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #' which holds the next week number to accrue.
 #' @param accrual_obj An object of class "accrual"
 #' @param struct_obj An object of class "trial_structure"
-#' @param fixed_site_rates TRUE if expected site rate to be used; FALSE 
-#' draws the site rate from a gamma distribution
 #' 
 #' @return An object of class "accrual"
 #'
 accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))
 S7::method(accrue_week, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj, fixed_site_rates) {
+  function(accrual_obj, struct_obj) {
 
     # Should not get here if there aren't any but
     if (length(accrual_obj@active_sites) > 0) {
 
-      week_acc_ls <- week_accrue(accrual_obj, struct_obj, fixed_site_rates)
+      week_acc_ls <- week_accrue(accrual_obj, struct_obj)
       accrual_obj <- week_acc_ls[[1]]
       week_acc <- week_acc_ls[[2]]
 
