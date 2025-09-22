@@ -16,6 +16,9 @@ treatment arm.}
 \item{shared_control}{TRUE if all experimental arms share one control arm;
 FALSE if each has their own}
 
+\item{fixed_site_rates}{TRUE if expected site rate to be used; FALSE
+draws the site rate from a gamma distribution}
+
 \item{target_arm_size}{Number of subjects required for each treatment arm.}
 
 \item{target_control}{Number of subjects required for control arm(s).}
@@ -64,6 +67,9 @@ interim analysis.}
 \item{\code{active_sites}}{Vector of indices of open sites}
 
 \item{\code{shared_control}}{TRUE if a shared control arm is being used, else FALSE}
+
+\item{\code{fixed_site_rates}}{TRUE if expected site rate to be used; FALSE
+draws the site rate from a gamma distribution}
 
 \item{\code{site_in_region}}{Vector of indices for which set of expected
 prevalences each site should use}

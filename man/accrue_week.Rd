@@ -12,9 +12,6 @@ accrue_week(accrual_obj, struct_obj, ...)
 \item{accrual_obj}{An object of class "accrual"}
 
 \item{struct_obj}{An object of class "trial_structure"}
-
-\item{fixed_site_rates}{TRUE if expected site rate to be used; FALSE
-draws the site rate from a gamma distribution}
 }
 \value{
 An object of class "accrual"

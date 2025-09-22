@@ -10,9 +10,7 @@ week_accrue(accrual_obj, struct_obj, ...)
 \arguments{
 \item{accrual_obj}{An object of class \code{accrual}.}
 
-\item{struct_obj}{An object of class \code{trial_structure}.}
-
-\item{fixed_site_rates}{TRUE if centre recruitment rates should
+\item{struct_obj}{An object of class \code{trial_structure}.
 be treated as exact; FALSE if they should be drawn from a gamma
 distribution with a mean of the specified rate.}
 }
