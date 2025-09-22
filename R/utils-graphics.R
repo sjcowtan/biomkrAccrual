@@ -462,6 +462,14 @@ label_vlines <- function(
 #' 
 #' Bodge, fix later
 #' 
+#' @param data_df Dataframe of biomkrAccrual output.
+#' @param arm_colours Vector of hexadecimal colours, one for each arm.
+#' @param treatment_arms Vector of names of the treatment arms.
+#' @param targets Vector of target names (excluding the
+#' word `target`).
+#' @param plot_id Vector of plot type names (typically "Interim" and "Accrual").
+#' @param i Index of treatment arm to plot.
+#' 
 #' 
 accrual_arm_plot <- function(
   data_df,
