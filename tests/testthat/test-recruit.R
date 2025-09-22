@@ -1,11 +1,12 @@
 ### Testing accrual() constructor
 
-acc_obj <- accrual(
+fixed_acc_obj <- accrual(
   treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
   shared_control = TRUE,
   accrual_period = as.integer(12),
   interim_period = as.integer(6),
   control_ratio = c(1, 1),
+  fixed_site_rates = TRUE,
   var_lambda = 0.25,
   centres_df = data.frame(
     site = 1:2,
@@ -21,7 +22,7 @@ test_that(paste(
   "accrual constructor: produces an object of classes",
   "S7_object and biomkrAccrual::accrual"
 ), {
-  checkmate::expect_class(acc_obj, c(
+  checkmate::expect_class(fixed_acc_obj, c(
     "biomkrAccrual::accrual",
     "S7_object"
   ))
@@ -35,7 +36,7 @@ test_that(paste(
   "biomkrAccrual::accrual"
 ), {
   expect_true(
-    is.accrual(acc_obj)
+    is.accrual(fixed_acc_obj)
   )
 })
 
@@ -65,7 +66,7 @@ test_that("treat_sums: output correct for valid array", {
 
 test_that("treat_sums: output correct  for valid accrual object", {
   expect_identical(
-    treat_sums(acc_obj),
+    treat_sums(fixed_acc_obj),
     as.integer(c(0, 0, 0))
   )
 })
@@ -101,15 +102,34 @@ test_that("do_choose_cap: does not produce extra repeats", {
 
 set.seed(123)
 
-rates <- set_site_rates(acc_obj, fixed_site_rates = TRUE)
+rates <- set_site_rates(fixed_acc_obj)
 
 test_that("set_site_rates: fixed site rate is correct", {
   expect_equal(rates@site_rate, c(2.5, 0), tolerance = 1e-6)
 })
 
+
+variable_acc_obj <- accrual(
+  treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
+  shared_control = TRUE,
+  accrual_period = as.integer(12),
+  interim_period = as.integer(6),
+  control_ratio = c(1, 1),
+  fixed_site_rates = FALSE,
+  var_lambda = 0.25,
+  centres_df = data.frame(
+    site = 1:2,
+    start_month = c(1, 5),
+    mean_rate = c(10, 18),
+    region = c(1, 1),
+    site_cap = c(40, 20),
+    start_week = c(1, 20)
+  )
+)
+
 set.seed(123)
 
-rates <- set_site_rates(acc_obj, fixed_site_rates = FALSE)
+rates <- set_site_rates(variable_acc_obj)
 
 test_that("set_site_rates: variable site rate is correct", {
   expect_equal(rates@site_rate, c(2.427350, 0.0), tolerance = 1e-6)
@@ -144,7 +164,7 @@ ts_obj <- trial_structure(
 
 set.seed(123)
 
-wa_out_ls <- week_accrue(acc_obj, ts_obj, fixed_site_rates = FALSE)
+wa_out_ls <- week_accrue(variable_acc_obj, ts_obj)
 
 test_that("week_accrue: first output is an accrual object", {
   expect_equal(
@@ -180,7 +200,7 @@ test_that("week_accrue: variable site rate is correct", {
 
 set.seed(123)
 
-aw_out_ls <- accrue_week(acc_obj, ts_obj, fixed_site_rates = FALSE)
+aw_out_ls <- accrue_week(variable_acc_obj, ts_obj)
 
 test_that("accrue_week: first output is an accrual object", {
   expect_equal(

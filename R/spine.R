@@ -286,6 +286,7 @@ biomkrAccrual <- function(
     accrual_period = get_weeks(accrual_period),
     interim_period = get_weeks(interim_period),
     control_ratio = control_ratio,
+    fixed_site_rates = FALSE,
     var_lambda = var_lambda,
     centres_df = centres_df
   )
@@ -302,8 +303,7 @@ biomkrAccrual <- function(
     # Add a week's accrual
     obj_list <- accrue_week(
       accrual_instance, 
-      trial_structure_instance,
-      fixed_site_rates
+      trial_structure_instance
     )
 
     accrual_instance <- obj_list[[1]]
