@@ -45,7 +45,7 @@
 #' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
 #' "region" and "site_cap"
 #' 
-#' @usage accrual(treatment_arm_ids, shared_control, target_arm_size, 
+#' @usage accrual(treatment_arm_ids, shared_control, fixed_site_rates, target_arm_size, 
 #' target_control, target_interim, accrual_period, interim_period, 
 #' var_lambda, centres_df)
 #' @name accrual
