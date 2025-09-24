@@ -8,35 +8,70 @@ recruitment totals for all experimental and control arms}
 \usage{
 biomkrAccrualSim(
   n = 100,
+  target_arm_size = 60,
+  target_interim = target_arm_size/2,
+  target_control = 180,
+  shared_control = TRUE,
+  accrual_period = 50/4,
+  interim_period = accrual_period/2,
+  precision = 10,
+  var_lambda = 0.25,
+  control_ratio = c(1, 1),
   centres_file = "centres.csv",
+  prop_file = "proportions.csv",
   arms_file = "arms.json",
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
-  accrual_period = 50/4,
-  interim_period = 25/4,
-  precision = 10,
-  control_ratio = c(1, 1),
-  target_arm_size = 60,
-  target_interim = target_arm_size/2,
-  target_control = 180,
-  target_interim_control = target_control/2,
-  shared_control = TRUE,
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
-  quietly = TRUE,
-  keep_files = FALSE
+  quietly = FALSE,
+  keep_files = TRUE
 )
 }
 \arguments{
 \item{n}{Number of instances to run (defaults to 100)}
 
-\item{centres_file}{File containing recruitment centre data
-(defaults to "centres.csv")}
+\item{target_arm_size}{Number of patients required per
+treatment arm}
 
-\item{arms_file}{File containing list of which recruitment
-arms recruit to which experimental arm}
+\item{target_interim}{Number of patients required per
+arm for interim analysis; defaults to \verb{target_arm_size \\ 2}}
+
+\item{target_control}{Number of patients required for the
+control arm(s)}
+
+\item{shared_control}{TRUE if all treatment arms share the
+same control arm; FALSE if each treatment arm has its own
+control. Defaults to TRUE.}
+
+\item{accrual_period}{Recruitment period (months).}
+
+\item{interim_period}{Recruitment period to interim (months).}
+
+\item{precision}{For the Dirichlet model of biomarker prevalences,
+variability decreases as precision increases. Defaults to 10.}
+
+\item{var_lambda}{Variance estimate for site recruitment rates.
+Defaults to 0.25.}
+
+\item{control_ratio}{Ratio of patient allocation to treatment arm
+versus control for all active arms; defaults to c(1, 1).}
+
+\item{centres_file}{Name of CSV file with information about
+each recruitment centre; this should have columns "site",
+"start_month", "mean_rate", "region" and optionally "site_cap"
+if recruitment is capped per site. Defaults to \code{centres.csv}.}
+
+\item{prop_file}{Name of CSV file with expected biomarker prevalences
+for each region; this should have one column "category", naming
+the biomarkers or biomarker combinations, and one column per
+region. Defaults to \code{proportions.csv}.}
+
+\item{arms_file}{Name of JSON file describing which recruitment
+arms (defined by biomarkers) recruit to which treatment arms.
+Defaults to \code{arms_json}.}
 
 \item{data_path}{Folder where \code{centres_file}, \code{prop_file} and
 \code{arms_file} are located. Defaults to the location of the package
@@ -48,23 +83,6 @@ will be stored; defaults to \verb{../biomkrAccrual_output_data/}.}
 \item{figs_path}{Folder where figures generated during execution
 will be stored; defaults to the \code{figures} subdirectory in
 \code{output_path}.}
-
-\item{accrual_period}{Maximum number of weeks to recruit
-(defaults to 80)}
-
-\item{target_arm_size}{Maximum size for all experimental arms
-(defaults to 308)}
-
-\item{target_interim}{Recruitment target for experimental arms
-at interim analysis; defaults to \code{target_arm_size / 2}.}
-
-\item{target_control}{Maximum size for all control arms
-(defaults to 308)}
-
-\item{target_interim_control}{Recruitment target for control arms
-at interim analysis; defaults to \code{target_control / 2}.}
-
-\item{shared_control}{= TRUE,}
 
 \item{fixed_centre_starts}{TRUE if centres are assumed to start
 exactly when planned; FALSE if some randomisation should be added.}
@@ -78,11 +96,12 @@ should be considered to be identical for all sites within a
 region; FALSE if they should be drawn from a Dirichlet distribution
 with a mean of the specified prevalence.}
 
-\item{quietly}{If TRUE, do not display information and plots from
-individual runs within the batch. Defaults to TRUE.}
+\item{quietly}{Defaults to FALSE, which displays the output from
+each run. Set to TRUE to generate data and figures without displaying
+them.}
 
-\item{keep_files}{If FALSE, do not save data or plots from individual
-runs within the batch.  Defaults to FALSE.}
+\item{keep_files}{Save data files and plots generated during the run.
+Defaults to TRUE.}
 }
 \value{
 Dataframe of site closing times
