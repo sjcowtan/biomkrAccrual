@@ -41,6 +41,8 @@
 #' interim analysis.
 #' @param accrual_period Number of weeks in recruitment period.
 #' @param interim_period Number of weeks to recruit for interim analysis.
+#' @param control_ratio Ratio of patient allocation to treatment arm
+#' versus control for all active arms; defaults to c(1, 1).
 #' @param var_lambda Variance of site recruitment rates.
 #' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
 #' "region" and "site_cap"
@@ -178,6 +180,7 @@ treat_sums <- function(x, ...) {
 #' control. Defaults to TRUE.
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
+#' @param na.rm Logical; keep set to the default value of TRUE
 #' 
 #' @return vector of total accrual by experimental arm.
 #' 
@@ -217,6 +220,7 @@ treat_sums.array <- function(
 #' @param x Object of class `accrual`. 
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms
+#' @param na.rm Logical; keep set to the default value of TRUE
 #' 
 #' @return vector of total accrual by experimental arm
 #' 

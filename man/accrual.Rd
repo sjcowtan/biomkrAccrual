@@ -30,6 +30,9 @@ interim analysis.}
 
 \item{interim_period}{Number of weeks to recruit for interim analysis.}
 
+\item{control_ratio}{Ratio of patient allocation to treatment arm
+versus control for all active arms; defaults to c(1, 1).}
+
 \item{var_lambda}{Variance of site recruitment rates.}
 
 \item{centres_df}{Dataframe with columns "site", "start_month", "mean_rate",

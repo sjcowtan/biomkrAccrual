@@ -24,6 +24,8 @@ arms).}
 \item{shared_control}{TRUE if all treatment arms share the
 same control arm; FALSE if each treatment arm has its own
 control. Defaults to TRUE.}
+
+\item{na.rm}{Logical; keep set to the default value of TRUE}
 }
 \value{
 vector of total accrual by experimental arm.

@@ -15,6 +15,8 @@ treat_sums(x, ...)
 
 \item{control_total}{Logical; if TRUE return single total for all
 control arms}
+
+\item{na.rm}{Logical; keep set to the default value of TRUE}
 }
 \value{
 vector of total accrual by experimental arm

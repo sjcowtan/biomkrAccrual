@@ -12,7 +12,7 @@ be recruited from that point.
 Class object will automatically generate new trial structure and
 prevalence matrices.}
 \usage{
-remove_treat_arms(structure_obj, ...)
+remove_treat_arms(structure_obj, arms)
 }
 \arguments{
 \item{structure_obj}{An object of class \code{trial_structure}.}
