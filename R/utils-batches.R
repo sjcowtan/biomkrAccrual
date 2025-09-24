@@ -2,10 +2,34 @@
 #' collect summary statistics on arm closures, and final
 #' recruitment totals for all experimental and control arms
 #' @param n Number of instances to run (defaults to 100)
-#' @param centres_file File containing recruitment centre data
-#' (defaults to "centres.csv")
-#' @param arms_file File containing list of which recruitment
-#' arms recruit to which experimental arm
+#' @param target_arm_size Number of patients required per 
+#' treatment arm
+#' @param target_interim Number of patients required per 
+#' arm for interim analysis; defaults to `target_arm_size \ 2`
+#' @param target_control Number of patients required for the
+#' control arm(s)
+#' @param shared_control TRUE if all treatment arms share the
+#' same control arm; FALSE if each treatment arm has its own 
+#' control. Defaults to TRUE.
+#' @param accrual_period Recruitment period (months).
+#' @param interim_period Recruitment period to interim (months).
+#' @param precision For the Dirichlet model of biomarker prevalences, 
+#' variability decreases as precision increases. Defaults to 10.
+#' @param var_lambda Variance estimate for site recruitment rates.  
+#' Defaults to 0.25.
+#' @param control_ratio Ratio of patient allocation to treatment arm
+#' versus control for all active arms; defaults to c(1, 1).
+#' @param centres_file Name of CSV file with information about 
+#' each recruitment centre; this should have columns "site", 
+#' "start_month", "mean_rate", "region" and optionally "site_cap"
+#' if recruitment is capped per site. Defaults to `centres.csv`.
+#' @param prop_file Name of CSV file with expected biomarker prevalences
+#' for each region; this should have one column "category", naming
+#' the biomarkers or biomarker combinations, and one column per
+#' region. Defaults to `proportions.csv`.
+#' @param arms_file Name of JSON file describing which recruitment
+#' arms (defined by biomarkers) recruit to which treatment arms. 
+#' Defaults to `arms_json`.
 #' @param data_path Folder where `centres_file`, `prop_file` and
 #' `arms_file` are located. Defaults to the location of the package
 #' example data in the package installation; this should be changed. 
@@ -14,17 +38,6 @@
 #' @param figs_path Folder where figures generated during execution
 #' will be stored; defaults to the `figures` subdirectory in
 #' `output_path`.
-#' @param accrual_period Maximum number of weeks to recruit 
-#' (defaults to 80)
-#' @param target_arm_size Maximum size for all experimental arms
-#' (defaults to 308)
-#' @param target_interim Recruitment target for experimental arms 
-#' at interim analysis; defaults to `target_arm_size / 2`.
-#' @param target_control Maximum size for all control arms
-#' (defaults to 308)
-#' @param target_interim_control Recruitment target for control arms 
-#' at interim analysis; defaults to `target_control / 2`.
-#' @param shared_control = TRUE,
 #' @param fixed_centre_starts TRUE if centres are assumed to start
 #' exactly when planned; FALSE if some randomisation should be added.
 #' @param fixed_site_rates TRUE if centre recruitment rates should 
@@ -34,10 +47,11 @@
 #' should be considered to be identical for all sites within a 
 #' region; FALSE if they should be drawn from a Dirichlet distribution
 #' with a mean of the specified prevalence.
-#' @param quietly If TRUE, do not display information and plots from
-#' individual runs within the batch. Defaults to TRUE.
-#' @param keep_files If FALSE, do not save data or plots from individual
-#' runs within the batch.  Defaults to FALSE.
+#' @param quietly Defaults to FALSE, which displays the output from
+#' each run. Set to TRUE to generate data and figures without displaying
+#' them.
+#' @param keep_files Save data files and plots generated during the run. 
+#' Defaults to TRUE.
 #' @return Dataframe of site closing times
 #' @return Dataframe of experimental arm totals
 #' @export
@@ -47,26 +61,27 @@
 #' 
 biomkrAccrualSim <- function(
   n = 100,
+  target_arm_size = 60,
+  target_interim = target_arm_size / 2,
+  target_control = 180,
+  shared_control = TRUE,
+  accrual_period = 50 / 4,
+  interim_period = accrual_period / 2,
+  precision = 10,
+  var_lambda = 0.25,
+  # active : control ratio (all active the same)
+  control_ratio = c(1, 1),
   centres_file = "centres.csv",
+  prop_file = "proportions.csv",
   arms_file = "arms.json",
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
-  accrual_period = 50 / 4,
-  interim_period = 25 / 4,
-  precision = 10,
-  # active : control ratio (all active the same)
-  control_ratio = c(1, 1),
-  target_arm_size = 60,
-  target_interim = target_arm_size / 2,
-  target_control = 180,
-  target_interim_control = target_control / 2,
-  shared_control = TRUE,
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
-  quietly = TRUE,
-  keep_files = FALSE
+  quietly = FALSE,
+  keep_files = TRUE
 ) {
   # Timestamp for batch files (but not individual run files)
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
@@ -111,17 +126,18 @@ biomkrAccrualSim <- function(
   # Run batches
   for (irun in seq(n)) {
     accrual_instance <- biomkrAccrual(
-      centres_file = centres_file,
-      arms_file = arms_file,
-      data_path = data_path,
-      accrual_period = accrual_period,
-      interim_period = interim_period,
-      precision = precision,
-      control_ratio = control_ratio,
       target_arm_size = target_arm_size,
       target_interim = target_interim,
       target_control = target_control,
       shared_control = shared_control,
+      accrual_period = accrual_period,
+      interim_period = interim_period,
+      precision = precision,
+      var_lambda = var_lambda,
+      control_ratio = control_ratio,
+      centres_file = centres_file,
+      arms_file = arms_file,
+      data_path = data_path,
       fixed_centre_starts = fixed_centre_starts,
       fixed_site_rates = fixed_site_rates,
       fixed_region_prevalences = fixed_region_prevalences,

@@ -315,7 +315,6 @@ S7::method(set_site_rates, accrual) <- function(obj) {
 
 #' Implement site cap on a week's accrual. 
 #' @param obj Accrual object
-#' @param site_cap Maximum number of patients per site
 #' 
 #' @return Modified accrual object with capped week's accrual and 
 #' with any capped sites removed from active_sites
