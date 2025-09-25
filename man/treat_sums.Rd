@@ -13,6 +13,9 @@ treat_sums(x, ...)
 \arguments{
 \item{x}{Object of class \code{accrual}.}
 
+\item{...}{Additional arguments depend on whether you are calling
+treat_sums.array() or treat_sums.biomkrAccrual::accrual.}
+
 \item{control_total}{Logical; if TRUE return single total for all
 control arms}
 

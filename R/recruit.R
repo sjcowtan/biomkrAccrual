@@ -165,6 +165,8 @@ S7::method(site_sums, accrual) <- function(obj) {
 # Sum accrual array by experimental arm (including control).
 #' 
 #' @param x Accrual array with dimensions Weeks, Arms and Centres.
+#' @param ... Additional arguments depend on whether you are calling 
+#' treat_sums.array() or treat_sums.biomkrAccrual::accrual.
 #' @export
 treat_sums <- function(x, ...) {
   UseMethod("treat_sums", x)
