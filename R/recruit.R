@@ -186,8 +186,6 @@ treat_sums <- function(x, ...) {
 #' 
 #' @export
 #' 
-S3method(treat_sums, array, treat_sums.array)
-
 treat_sums.array <- function(
   x, 
   control_total = FALSE,
