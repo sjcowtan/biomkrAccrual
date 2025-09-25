@@ -186,7 +186,7 @@ treat_sums <- function(x, ...) {
 #' 
 #' @export
 #' 
-S3method(treat_sums, array, treat.sums.array)
+S3method(treat_sums, array, treat_sums.array)
 
 treat_sums.array <- function(
   x, 
