@@ -24,24 +24,25 @@ S7::method(print, accrual) <- function(x, ...) {
 #' @aliases summary.accrual
 #' 
 #' @param x An object of class `accrual`.
+#' @param ... Additional arguments passed to summary().
 #' 
 #' @importFrom S7 new_generic method
 #' 
 #' @export
 #' 
 S7::new_generic("summary", "accrual")
-S7::method(summary, accrual) <- function(x) {
+S7::method(summary, accrual) <- function(x, ...) {
   
   # Summary of accrual by arm
   cat("Recruitment by experimental arm\n")
-  print(summary(data.frame(rowSums(x@accrual, dims = 2))))
+  print(summary(data.frame(rowSums(x@accrual, dims = 2)), ...))
 
   # Summary of accrual by site
   cat("\nRecruitment by site\n")
   print(summary(data.frame(rowSums(
     aperm(x@accrual, c(1, 3, 2)),
     dims = 2
-  ))))
+  )), ...))
 
   # Summary of phase change weeks
   cat("\nExperimental arm closure weeks\n")
