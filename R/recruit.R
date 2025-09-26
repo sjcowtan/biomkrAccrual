@@ -181,6 +181,7 @@ treat_sums <- function(x, control_total, ...) {
 #' @param x Accrual array with dimensions Weeks, Arms and Centres.
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
+#' @param ... Additional arguments (none needed).
 #' @param no_treat_arms Number of treatment arms (as opposed to control 
 #' arms).
 #' @param shared_control TRUE if all treatment arms share the
@@ -225,6 +226,7 @@ treat_sums.array <- function(
 #' @param x Object of class `accrual`. 
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms
+#' @param ... Additional arguments (none needed).
 #' 
 #' @return vector of total accrual by experimental arm
 #' 
