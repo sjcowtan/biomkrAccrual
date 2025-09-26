@@ -6,20 +6,19 @@
 \title{Sum accrual array element of accrual object, by experimental
 arm (including control).}
 \usage{
-treat_sums(x, ...)
+treat_sums(x, control_total, ...)
 
-\method{treat_sums}{`biomkrAccrual::accrual`}(x, control_total = FALSE, na.rm = TRUE)
+\method{treat_sums}{`biomkrAccrual::accrual`}(x, control_total = FALSE)
 }
 \arguments{
 \item{x}{Object of class \code{accrual}.}
 
-\item{...}{Additional arguments depend on whether you are calling
-treat_sums.array() or treat_sums.biomkrAccrual::accrual.}
-
 \item{control_total}{Logical; if TRUE return single total for all
 control arms}
 
-\item{na.rm}{Logical; keep set to the default value of TRUE}
+\item{...}{When called on an array the arguments no_treat_arms and
+shared_control may be necessary. Additional arguments are
+unnecessary if calling treat_sums.biomkrAccrual::accrual().}
 }
 \value{
 vector of total accrual by experimental arm
