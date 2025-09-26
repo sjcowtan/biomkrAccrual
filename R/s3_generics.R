@@ -209,6 +209,14 @@ S7::method(plot, trial_structure) <- function(x) {
 #' @aliases summary.trial_structure
 #' 
 #' @param x An object of class `trial_structure`.
+#' @param ... Additional arguments passed to print().
+#' @param digits A non-null value for digits specifies 
+#' the minimum number of significant digits to be 
+#' printed in values. The default, NULL, uses 
+#' getOption("digits"). (For the interpretation for 
+#' complex numbers see signif.) Non-integer values 
+#' will be rounded down, and only values greater than 
+#' or equal to 1 and no greater than 22 are accepted.
 #' 
 #' @importFrom S7 new_generic method
 #' @importFrom withr with_options
@@ -218,9 +226,9 @@ S7::method(plot, trial_structure) <- function(x) {
 S7::new_generic("summary", "trial_structure")
 S7::method(summary, trial_structure) <- 
   function(
-    x, 
-    maxsum = 7L, 
-    digits = max(3L, getOption("digits") - 3L), ...
+    x,
+    ..., 
+    digits = max(3L, getOption("digits") - 3L) 
   ) {
 
     summary_ls <- vector(mode = "list", length = 1)
@@ -235,7 +243,7 @@ S7::method(summary, trial_structure) <-
 
     summary_ls$site_prev <- withr::with_options(
       list(scipen = 10),
-      print(round(orig_prev_df, digits = digits))
+      print(round(orig_prev_df, digits = digits), ...)
     )
 
     summary_ls

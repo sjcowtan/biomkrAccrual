@@ -7,6 +7,16 @@
 \title{Summary of predicted accrual.}
 \arguments{
 \item{x}{An object of class \code{trial_structure}.}
+
+\item{...}{Additional arguments passed to print().}
+
+\item{digits}{A non-null value for digits specifies
+the minimum number of significant digits to be
+printed in values. The default, NULL, uses
+getOption("digits"). (For the interpretation for
+complex numbers see signif.) Non-integer values
+will be rounded down, and only values greater than
+or equal to 1 and no greater than 22 are accepted.}
 }
 \description{
 Summary of predicted accrual.
