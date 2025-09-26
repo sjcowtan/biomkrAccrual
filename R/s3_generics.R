@@ -113,6 +113,7 @@ S7::method(plot, accrual) <- function(
 #' @aliases print.trial_strucutre
 #' 
 #' @param x An object of class `trial_structure`.
+#' @param ... Additional arguments passed to print().
 #' 
 #' @importFrom S7 new_generic method
 #' @importFrom withr with_options
@@ -120,7 +121,7 @@ S7::method(plot, accrual) <- function(
 #' @export
 #' 
 S7::new_generic("print", "trial_structure")
-S7::method(print, trial_structure) <- function(x) {
+S7::method(print, trial_structure) <- function(x, ...) {
   
   orig_struct_df <- data.frame(
     x@treatment_arm_struct_start
@@ -129,7 +130,7 @@ S7::method(print, trial_structure) <- function(x) {
   colnames(orig_struct_df) <- names(x@treatment_arm_ids_start)
   rownames(orig_struct_df) <- x@recruit_arm_names
 
-  print(orig_struct_df)
+  print(orig_struct_df, ...)
 
 }
 
