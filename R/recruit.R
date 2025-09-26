@@ -182,7 +182,8 @@ treat_sums <- function(x, control_total, ...) {
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
 #' @param no_treat_arms Number of treatment arms (as opposed to control 
-#' arms).#' @param shared_control TRUE if all treatment arms share the
+#' arms).
+#' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
 #' 
