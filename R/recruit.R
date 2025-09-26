@@ -183,10 +183,10 @@ treat_sums <- function(x, control_total, ...) {
 #' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
 #' @param ... Additional arguments (none needed).
 #' @param no_treat_arms Number of treatment arms (as opposed to control 
-#' arms).
+#' arms) - MUST use `no_treat_sums =` to set.
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
-#' control. Defaults to TRUE.
+#' control. Defaults to TRUE. MUST use `shared_control =` to set.
 #' 
 #' @return vector of total accrual by experimental arm.
 #' 

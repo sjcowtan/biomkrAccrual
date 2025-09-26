@@ -8,6 +8,8 @@
 one column for each treatment and control arm, and
 one row for each week.}
 \arguments{
+\item{...}{Additional arguments passed to print().}
+
 \item{x}{An object of class \code{trial_structure}.}
 }
 \description{

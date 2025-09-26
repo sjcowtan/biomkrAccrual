@@ -6,14 +6,15 @@
 #' @aliases print.accrual
 #' 
 #' @param x An object of class `accrual`.
+#' @param ... Additional arguments passed to print().
 #' 
 #' @importFrom S7 new_generic method
 #' 
 #' @export
 #' 
 S7::new_generic("print", "accrual")
-S7::method(print, accrual) <- function(x) {
-  print(data.frame(rowSums(x@accrual, dims = 2)))
+S7::method(print, accrual) <- function(x, ...) {
+  print(data.frame(rowSums(x@accrual, dims = 2)), ...)
 }
 
 

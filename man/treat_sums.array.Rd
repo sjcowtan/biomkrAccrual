@@ -15,11 +15,11 @@ control arms (not used if \code{shared_control} is TRUE); defaults to FALSE.}
 \item{...}{Additional arguments (none needed).}
 
 \item{no_treat_arms}{Number of treatment arms (as opposed to control
-arms).}
+arms) - MUST use \verb{no_treat_sums =} to set.}
 
 \item{shared_control}{TRUE if all treatment arms share the
 same control arm; FALSE if each treatment arm has its own
-control. Defaults to TRUE.}
+control. Defaults to TRUE. MUST use \verb{shared_control =} to set.}
 }
 \value{
 vector of total accrual by experimental arm.
