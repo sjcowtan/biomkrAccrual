@@ -209,7 +209,7 @@ S7::method(plot, trial_structure) <- function(x) {
 #' @aliases summary.trial_structure
 #' 
 #' @param x An object of class `trial_structure`.
-#' @param ... Additional arguments passed to print().
+#' @param ..., Additional arguments passed to print().
 #' @param digits A non-null value for digits specifies 
 #' the minimum number of significant digits to be 
 #' printed in values. The default, NULL, uses 
@@ -227,8 +227,8 @@ S7::new_generic("summary", "trial_structure")
 S7::method(summary, trial_structure) <- 
   function(
     x,
-    ..., 
-    digits = max(3L, getOption("digits") - 3L) 
+    ...,
+    digits = max(3L, getOption("digits") - 3L)
   ) {
 
     summary_ls <- vector(mode = "list", length = 1)
