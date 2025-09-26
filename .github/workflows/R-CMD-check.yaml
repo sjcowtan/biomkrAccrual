@@ -11,6 +11,23 @@ name: R-CMD-check
 permissions: read-all
 
 jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Install dependencies
+        run: |
+          install.packages("roxygen2")
+
+      - name: Generate Rd files
+        run: |
+          Rscript -e "roxygen2::roxygenise()"
+
   R-CMD-check:
     runs-on: ubuntu-latest
     env:
