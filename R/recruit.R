@@ -194,6 +194,7 @@ treat_sums <- function(x, control_total, ...) {
 treat_sums.array <- function(
   x, 
   control_total = FALSE,
+  ...,
   no_treat_arms,
   shared_control = TRUE
 ) {
@@ -231,7 +232,8 @@ treat_sums.array <- function(
 #' 
 `treat_sums.biomkrAccrual::accrual` <- function(
   x,
-  control_total = FALSE
+  control_total = FALSE,
+  ...
 ) {
 
   # Call treat_sums.array() on accrual array element
@@ -239,7 +241,7 @@ treat_sums.array <- function(
     x@accrual,
     control_total, 
     no_treat_arms = length(x@phase_changes), 
-    shared_control = x@shared_control
+    shared_control = x@shared_control,
   )
 }
 
