@@ -8,8 +8,6 @@
 a line plot of cumulative recruitment, grouped by trial arm,
 using ggplot2.}
 \arguments{
-\item{...}{Not used.}
-
 \item{plot_prefix}{Prefix for file name to identify plot type.
 Defaults to \code{accrual_plot}.}
 
@@ -24,6 +22,8 @@ will be stored; defaults to the \code{figures} subdirectory in
 \code{output_path}.}
 
 \item{x}{An object of class \code{trial_structure}.}
+
+\item{...}{Not used.}
 }
 \description{
 Plot method for an object of class \code{accrual}.  Creates

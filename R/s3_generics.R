@@ -154,7 +154,7 @@ S7::method(print, trial_structure) <- function(x, ...) {
 #' @export
 #' 
 S7::new_generic("plot", "trial_structure")
-S7::method(plot, trial_structure) <- function(x) {
+S7::method(plot, trial_structure) <- function(x, ...) {
   
   orig_struct_df <- data.frame(
     x@treatment_arm_struct_start
