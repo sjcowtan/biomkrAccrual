@@ -145,6 +145,7 @@ S7::method(print, trial_structure) <- function(x, ...) {
 #' @aliases plot.trial_structure
 #' 
 #' @param x An object of class `trial_structure`.
+#' @param ... Not used.
 #' 
 #' @importFrom S7 new_generic method
 #' @importFrom stats reshape
