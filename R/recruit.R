@@ -516,12 +516,13 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #' which holds the next week number to accrue.
 #' @param accrual_obj An object of class "accrual"
 #' @param struct_obj An object of class "trial_structure"
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return An object of class "accrual"
 #'
 accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))
-S7::method(accrue_week, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj) {
+S7::method(accrue_week, list(accrual, trial_structure), ...) <- 
+  function(accrual_obj, struct_obj, ...) {
 
     # Should not get here if there aren't any but
     if (length(accrual_obj@active_sites) > 0) {
