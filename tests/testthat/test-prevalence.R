@@ -194,7 +194,7 @@ test_that("treatment_arm_ids has 2 ids, 1 and 2", {
 
 ### Testing arm removal
 
-ts_minusarm_obj <- remove_treat_arms(ts_obj, as.integer(2))
+ts_minusarm_obj <- remove_treat_arms(ts_obj, arms = as.integer(2))
 
 test_that("remove_treat_arms correctly removes arm 2", {
   expect_equal(
