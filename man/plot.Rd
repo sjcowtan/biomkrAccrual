@@ -8,7 +8,7 @@
 a line plot of cumulative recruitment, grouped by trial arm,
 using ggplot2.}
 \arguments{
-\item{accrual_obj}{Object of class \code{accrual}.}
+\item{...}{Not used.}
 
 \item{plot_prefix}{Prefix for file name to identify plot type.
 Defaults to \code{accrual_plot}.}

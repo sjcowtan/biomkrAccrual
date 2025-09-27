@@ -6,9 +6,11 @@
 \alias{summary.trial_structure}
 \title{Summary of predicted accrual.}
 \arguments{
-\item{x}{An object of class \code{trial_structure}.}
+\item{...}{Additional arguments passed to summary().}
 
-\item{...}{Additional arguments passed to print().}
+\item{object}{An object of class \code{trial_structure}.}
+
+\item{..., }{Additional arguments passed to print().}
 
 \item{digits}{A non-null value for digits specifies
 the minimum number of significant digits to be

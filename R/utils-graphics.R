@@ -266,8 +266,9 @@ accrual_to_long <- function(accrual_df) {
 #' S3 method to plot predicted recruitment from a long format 
 #' dataframe of class "accrualplotdata".
 #' 
-#' @param data long format dataframe with columns "Week", 
+#' @param x long format dataframe with columns "Week", 
 #' "Arm" and "Recruitment".
+#' @param ... Not used.
 #' @param plot_prefix Prefix for file name to identify plot type.
 #' Defaults to `accrual_plot`.
 #' @param run_time Specify a particular instance of `biomkrAccrual()`
@@ -289,7 +290,8 @@ accrual_to_long <- function(accrual_df) {
 #' @importFrom rlang .data
 #' 
 plot.accrualplotdata <- function(
-  data,
+  x,
+  ...,
   plot_prefix = "accrual_plot",
   run_time = NULL,
   output_path = "../biomkrAccrual_output_data/",
@@ -301,7 +303,7 @@ plot.accrualplotdata <- function(
   interim_period = NA_integer_
 ) {
   
-  accrual_df <- data
+  accrual_df <- x
   arm_names <- levels(accrual_df$Arm)
 
   linetypes <- c(

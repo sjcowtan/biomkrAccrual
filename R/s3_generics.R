@@ -100,11 +100,11 @@ S7::method(plot, accrual) <- function(
     plot_prefix = plot_prefix,
     run_time = run_time,
     figs_path = figs_path,
-    target_arm_size = accrual_obj@target_arm_size,
-    target_control = accrual_obj@target_control,
-    target_interim = accrual_obj@target_interim,
-    accrual_period = accrual_obj@accrual_period,
-    interim_period = accrual_obj@interim_period
+    target_arm_size = x@target_arm_size,
+    target_control = x@target_control,
+    target_interim = x@target_interim,
+    accrual_period = x@accrual_period,
+    interim_period = x@interim_period
   )
 }
 
