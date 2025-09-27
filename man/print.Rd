@@ -9,6 +9,8 @@ one column for each treatment and control arm, and
 one row for each week.}
 \arguments{
 \item{x}{An object of class \code{trial_structure}.}
+
+\item{...}{Additional arguments passed to print().}
 }
 \description{
 Prints synthesised recruitment as a dataframe with

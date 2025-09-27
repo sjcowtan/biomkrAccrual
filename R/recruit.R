@@ -165,24 +165,28 @@ S7::method(site_sums, accrual) <- function(obj) {
 # Sum accrual array by experimental arm (including control).
 #' 
 #' @param x Accrual array with dimensions Weeks, Arms and Centres.
-#' @param ... Additional arguments depend on whether you are calling 
-#' treat_sums.array() or treat_sums.biomkrAccrual::accrual.
+#' @param control_total Logical; if TRUE return single total for all 
+#' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
+#' @param ... When called on an array the arguments no_treat_arms and 
+#' shared_control may be necessary. Additional arguments are 
+#' unnecessary if calling treat_sums.biomkrAccrual::accrual().
 #' @export
-treat_sums <- function(x, ...) {
+treat_sums <- function(x, control_total, ...) {
   UseMethod("treat_sums", x)
 }
+
 
 #' Sum accrual array by experimental arm (including control).
 #' 
 #' @param x Accrual array with dimensions Weeks, Arms and Centres.
-#' @param no_treat_arms Number of treatment arms (as opposed to control 
-#' arms).
-#' @param shared_control TRUE if all treatment arms share the
-#' same control arm; FALSE if each treatment arm has its own 
-#' control. Defaults to TRUE.
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
-#' @param na.rm Logical; keep set to the default value of TRUE
+#' @param ... Additional arguments (none needed).
+#' @param no_treat_arms Number of treatment arms (as opposed to control 
+#' arms) - MUST use `no_treat_sums =` to set.
+#' @param shared_control TRUE if all treatment arms share the
+#' same control arm; FALSE if each treatment arm has its own 
+#' control. Defaults to TRUE. MUST use `shared_control =` to set.
 #' 
 #' @return vector of total accrual by experimental arm.
 #' 
@@ -191,14 +195,14 @@ treat_sums <- function(x, ...) {
 treat_sums.array <- function(
   x, 
   control_total = FALSE,
+  ...,
   no_treat_arms,
-  shared_control = TRUE,
-  na.rm = TRUE
+  shared_control = TRUE
 ) {
   # Permute the array so that the first dimension is the
   # dimension you want to get sums for (experimental arms)
   arm_sums <-
-    as.integer(colSums(rowSums(x, dims = 2, na.rm = na.rm)))
+    as.integer(colSums(rowSums(x, dims = 2, na.rm = TRUE)))
 
   # If want total for control arms rather than separate values
   if (!shared_control && control_total) {
@@ -222,7 +226,7 @@ treat_sums.array <- function(
 #' @param x Object of class `accrual`. 
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms
-#' @param na.rm Logical; keep set to the default value of TRUE
+#' @param ... Additional arguments (none needed).
 #' 
 #' @return vector of total accrual by experimental arm
 #' 
@@ -231,16 +235,15 @@ treat_sums.array <- function(
 `treat_sums.biomkrAccrual::accrual` <- function(
   x,
   control_total = FALSE,
-  na.rm = TRUE
+  ...
 ) {
 
   # Call treat_sums.array() on accrual array element
   treat_sums(
     x@accrual,
     control_total, 
-    length(x@phase_changes), 
-    x@shared_control,
-    na.rm 
+    no_treat_arms = length(x@phase_changes), 
+    shared_control = x@shared_control,
   )
 }
 

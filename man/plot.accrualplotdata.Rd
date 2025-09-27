@@ -6,7 +6,8 @@
 dataframe of class "accrualplotdata".}
 \usage{
 \method{plot}{accrualplotdata}(
-  data,
+  x,
+  ...,
   plot_prefix = "accrual_plot",
   run_time = NULL,
   output_path = "../biomkrAccrual_output_data/",
@@ -19,8 +20,10 @@ dataframe of class "accrualplotdata".}
 )
 }
 \arguments{
-\item{data}{long format dataframe with columns "Week",
+\item{x}{long format dataframe with columns "Week",
 "Arm" and "Recruitment".}
+
+\item{...}{Not used.}
 
 \item{plot_prefix}{Prefix for file name to identify plot type.
 Defaults to \code{accrual_plot}.}
