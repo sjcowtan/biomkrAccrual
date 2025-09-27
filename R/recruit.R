@@ -426,7 +426,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     # Update active_arms
     accrual_obj@active_arms <- which(arm_captotal < 0)
     # Also on the trial structure object
-    struct_obj <- remove_treat_arms(struct_obj, which(arm_captotal >= 0))
+    struct_obj <- remove_treat_arms(struct_obj, arms = which(arm_captotal >= 0))
 
     # Recheck site caps
     site_captotal <- site_sums(accrual_obj) - accrual_obj@site_cap
