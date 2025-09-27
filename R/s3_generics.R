@@ -23,7 +23,7 @@ S7::method(print, accrual) <- function(x, ...) {
 #' @name summary
 #' @aliases summary.accrual
 #' 
-#' @param x An object of class `accrual`.
+#' @param object An object of class `accrual`.
 #' @param ... Additional arguments passed to summary().
 #' 
 #' @importFrom S7 new_generic method
@@ -31,28 +31,28 @@ S7::method(print, accrual) <- function(x, ...) {
 #' @export
 #' 
 S7::new_generic("summary", "accrual")
-S7::method(summary, accrual) <- function(x, ...) {
+S7::method(summary, accrual) <- function(object, ...) {
   
   # Summary of accrual by arm
   cat("Recruitment by experimental arm\n")
-  print(summary(data.frame(rowSums(x@accrual, dims = 2)), ...))
+  print(summary(data.frame(rowSums(object@accrual, dims = 2)), ...))
 
   # Summary of accrual by site
   cat("\nRecruitment by site\n")
   print(summary(data.frame(rowSums(
-    aperm(x@accrual, c(1, 3, 2)),
+    aperm(object@accrual, c(1, 3, 2)),
     dims = 2
   )), ...))
 
   # Summary of phase change weeks
   cat("\nExperimental arm closure weeks\n")
-  acw <- as.vector(x@phase_changes)
-  names(acw) <- dimnames(x@accrual)$Arms[seq_len(length(acw))]
+  acw <- as.vector(object@phase_changes)
+  names(acw) <- dimnames(object@accrual)$Arms[seq_len(length(acw))]
   print(acw)
 
   # Summary of accrual totals by arm
   cat("\nAccrual totals by experimental arm\n")
-  print(treat_sums(x))
+  print(treat_sums(object))
 }
 
 
@@ -208,7 +208,7 @@ S7::method(plot, trial_structure) <- function(x) {
 #' @name summary
 #' @aliases summary.trial_structure
 #' 
-#' @param x An object of class `trial_structure`.
+#' @param object An object of class `trial_structure`.
 #' @param ..., Additional arguments passed to print().
 #' @param digits A non-null value for digits specifies 
 #' the minimum number of significant digits to be 
@@ -226,7 +226,7 @@ S7::method(plot, trial_structure) <- function(x) {
 S7::new_generic("summary", "trial_structure")
 S7::method(summary, trial_structure) <- 
   function(
-    x,
+    object,
     ...,
     digits = max(3L, getOption("digits") - 3L)
   ) {
@@ -236,8 +236,8 @@ S7::method(summary, trial_structure) <-
     # Site prevalences by recruitment arm
 
     orig_prev_df <- data.frame(
-      x@recruit_arm_prevalence_start,
-      row.names = x@recruit_arm_names
+      object@recruit_arm_prevalence_start,
+      row.names = object@recruit_arm_names
     )
     colnames(orig_prev_df) <- paste("Site", seq_len(ncol(orig_prev_df)))
 
