@@ -521,7 +521,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #' @return An object of class "accrual"
 #'
 accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))
-S7::method(accrue_week, list(accrual, trial_structure), ...) <- 
+S7::method(accrue_week, list(accrual, trial_structure)) <- 
   function(accrual_obj, struct_obj, ...) {
 
     # Should not get here if there aren't any but
