@@ -289,6 +289,8 @@ accrual_to_long <- function(accrual_df) {
 #' @importFrom grDevices palette.colors
 #' @importFrom rlang .data
 #' 
+#' @export
+#' 
 plot.accrualplotdata <- function(
   x,
   ...,
@@ -352,8 +354,9 @@ plot.accrualplotdata <- function(
 
 #' Plot distributions of recruitment to arms at given time.
 #' 
-#' @param data Matrix with columns for each recruitment arm, 
+#' @param x Matrix with columns for each recruitment arm, 
 #' including control.
+#' @param ... Not used.
 #' @param target Vector of targets for recruitment. First two
 #' should be those directly relevant to the subject of the graph.
 #' @param target_names Vector of target names, for labelling.
@@ -367,13 +370,14 @@ plot.accrualplotdata <- function(
 #' @export
 #' 
 plot.armtotals <- function(
-  data,
+  x,
+  ...,
   target,
   target_names,
   target_week,
   adjust = 1
 ) {
-  data_df <- matrix_to_long(data)
+  data_df <- matrix_to_long(x)
 
   # Which of the accrual targets are within the dataset
   if (length(target) > 2) {
