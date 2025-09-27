@@ -320,12 +320,13 @@ S7::method(set_site_rates, accrual) <- function(obj) {
 
 #' Implement site cap on a week's accrual. 
 #' @param obj Accrual object
+#' @param ... For compliance with R CMD check.
 #' 
 #' @return Modified accrual object with capped week's accrual and 
 #' with any capped sites removed from active_sites
 #' 
 apply_site_cap <- S7::new_generic("apply_site_cap", "obj")
-S7::method(apply_site_cap, accrual) <- function(obj) {
+S7::method(apply_site_cap, accrual) <- function(obj, ...) {
   # If any sites exceed their cap, remove accrual from randomly
   # selected arms until sites are at cap 
   # Represents sites closing during the week
@@ -365,7 +366,7 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 #' Implement arm cap on week's accrual to experimental arms
 #' @param accrual_obj Object of class `accrual`
 #' @param struct_obj Object of class `trial_structure`
-#' 
+#' @param ... For compliance with R CMD check.
 #' @return Modified accrual object with capped week's accrual
 #' 
 #' @importFrom rlang abort
@@ -373,7 +374,7 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 apply_arm_cap <- 
   S7::new_generic("apply_arm_cap", c("accrual_obj", "struct_obj"))
 S7::method(apply_arm_cap, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj) {
+  function(accrual_obj, struct_obj, ...) {
     
     # Get totals for experimental arms (dropping control)
     arm_sums <- 
