@@ -149,9 +149,11 @@ accrual <- S7::new_class("accrual",
 )
 
 
-#' Sum accrual array by site, to enable checking against site caps
-#' @param obj Object of class "accrual"
-#' @return vector of total accrual by recruitment site
+#' Sum accrual array by site, to enable checking against site caps.
+#' @param obj Object of class "accrual".
+#' @param ... For R CMD check compatibility.
+#' 
+#' @return vector of total accrual by recruitment site.
 #' 
 #' @export 
 #' 
@@ -278,7 +280,9 @@ get_weeks <- function(months) {
 
 #' Method to increment site rates by gamma-distributed rates of sites
 #' opening an accrual pathway in the current week.
-#' @param obj An object of type "accrual"
+#' @param obj An object of type "accrual".
+#' @param ... For R CMD check compatibility.
+#' 
 #' @return Modified object with new site rates
 #' 
 #' @importFrom stats rgamma
@@ -320,12 +324,13 @@ S7::method(set_site_rates, accrual) <- function(obj) {
 
 #' Implement site cap on a week's accrual. 
 #' @param obj Accrual object
+#' @param ... For compliance with R CMD check.
 #' 
 #' @return Modified accrual object with capped week's accrual and 
 #' with any capped sites removed from active_sites
 #' 
 apply_site_cap <- S7::new_generic("apply_site_cap", "obj")
-S7::method(apply_site_cap, accrual) <- function(obj) {
+S7::method(apply_site_cap, accrual) <- function(obj, ...) {
   # If any sites exceed their cap, remove accrual from randomly
   # selected arms until sites are at cap 
   # Represents sites closing during the week
@@ -365,7 +370,7 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 #' Implement arm cap on week's accrual to experimental arms
 #' @param accrual_obj Object of class `accrual`
 #' @param struct_obj Object of class `trial_structure`
-#' 
+#' @param ... For compliance with R CMD check.
 #' @return Modified accrual object with capped week's accrual
 #' 
 #' @importFrom rlang abort
@@ -373,7 +378,7 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 apply_arm_cap <- 
   S7::new_generic("apply_arm_cap", c("accrual_obj", "struct_obj"))
 S7::method(apply_arm_cap, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj) {
+  function(accrual_obj, struct_obj, ...) {
     
     # Get totals for experimental arms (dropping control)
     arm_sums <- 
@@ -448,6 +453,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 #' @param struct_obj An object of class `trial_structure`.
 #' be treated as exact; FALSE if they should be drawn from a gamma
 #' distribution with a mean of the specified rate.
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return Matrix of week's accrual by site and recruitment arm.
 #' 
@@ -516,12 +522,13 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #' which holds the next week number to accrue.
 #' @param accrual_obj An object of class "accrual"
 #' @param struct_obj An object of class "trial_structure"
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return An object of class "accrual"
 #'
 accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))
 S7::method(accrue_week, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj) {
+  function(accrual_obj, struct_obj, ...) {
 
     # Should not get here if there aren't any but
     if (length(accrual_obj@active_sites) > 0) {
@@ -552,6 +559,7 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
 #' Check whether an object is of class "accrual".
 #' 
 #' @param x Object to test
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return TRUE or FALSE
 #' 

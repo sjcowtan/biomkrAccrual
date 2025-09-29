@@ -438,7 +438,14 @@ get_array_prevalence <- function(
 #' 
 #' @usage remove_treat_arms(structure_obj, ..., arms)
 #' 
-remove_treat_arms <- S7::new_generic("remove_treat_arms", "structure_obj")
+remove_treat_arms <- 
+  S7::new_generic(
+    "remove_treat_arms", 
+    "structure_obj", 
+    function(structure_obj, ..., arms) {
+      S7::S7_dispatch()
+    }
+  )
 S7::method(remove_treat_arms, trial_structure) <- function(
   structure_obj,
   ...,
@@ -461,6 +468,7 @@ S7::method(remove_treat_arms, trial_structure) <- function(
 #' Check whether an object is of class "trial_structure".
 #' 
 #' @param x Object to test
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return TRUE or FALSE
 #' 

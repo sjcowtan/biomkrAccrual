@@ -12,6 +12,8 @@ accrue_week(accrual_obj, struct_obj, ...)
 \item{accrual_obj}{An object of class "accrual"}
 
 \item{struct_obj}{An object of class "trial_structure"}
+
+\item{...}{For R CMD check compatibility.}
 }
 \value{
 An object of class "accrual"

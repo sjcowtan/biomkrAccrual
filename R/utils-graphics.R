@@ -360,7 +360,8 @@ plot.accrualplotdata <- function(
 #' @param target Vector of targets for recruitment. First two
 #' should be those directly relevant to the subject of the graph.
 #' @param target_names Vector of target names, for labelling.
-#' @param target The adjust parameter from `ggplot2::geom_density`;
+#' @param ... For compliance with plot.default().
+#' @param adjust The adjust parameter from `ggplot2::geom_density`;
 #' higher values mean more smoothing. Defaults to 1.
 #' 
 #' @importFrom stats reshape
@@ -374,7 +375,6 @@ plot.armtotals <- function(
   ...,
   target,
   target_names,
-  target_week,
   adjust = 1
 ) {
   data_df <- matrix_to_long(x)
