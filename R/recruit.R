@@ -149,9 +149,11 @@ accrual <- S7::new_class("accrual",
 )
 
 
-#' Sum accrual array by site, to enable checking against site caps
-#' @param obj Object of class "accrual"
-#' @return vector of total accrual by recruitment site
+#' Sum accrual array by site, to enable checking against site caps.
+#' @param obj Object of class "accrual".
+#' @param ... For R CMD check compatibility.
+#' 
+#' @return vector of total accrual by recruitment site.
 #' 
 #' @export 
 #' 
@@ -278,7 +280,9 @@ get_weeks <- function(months) {
 
 #' Method to increment site rates by gamma-distributed rates of sites
 #' opening an accrual pathway in the current week.
-#' @param obj An object of type "accrual"
+#' @param obj An object of type "accrual".
+#' @param ... For R CMD check compatibility.
+#' 
 #' @return Modified object with new site rates
 #' 
 #' @importFrom stats rgamma
@@ -449,6 +453,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 #' @param struct_obj An object of class `trial_structure`.
 #' be treated as exact; FALSE if they should be drawn from a gamma
 #' distribution with a mean of the specified rate.
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return Matrix of week's accrual by site and recruitment arm.
 #' 
@@ -554,6 +559,7 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
 #' Check whether an object is of class "accrual".
 #' 
 #' @param x Object to test
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return TRUE or FALSE
 #' 

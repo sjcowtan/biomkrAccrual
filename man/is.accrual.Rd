@@ -8,6 +8,8 @@ is.accrual(x, ...)
 }
 \arguments{
 \item{x}{Object to test}
+
+\item{...}{For R CMD check compatibility.}
 }
 \value{
 TRUE or FALSE

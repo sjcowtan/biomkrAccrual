@@ -461,6 +461,7 @@ S7::method(remove_treat_arms, trial_structure) <- function(
 #' Check whether an object is of class "trial_structure".
 #' 
 #' @param x Object to test
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return TRUE or FALSE
 #' 
