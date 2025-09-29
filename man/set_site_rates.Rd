@@ -8,7 +8,9 @@ opening an accrual pathway in the current week.}
 set_site_rates(obj, ...)
 }
 \arguments{
-\item{obj}{An object of type "accrual"}
+\item{obj}{An object of type "accrual".}
+
+\item{...}{For R CMD check compatibility.}
 }
 \value{
 Modified object with new site rates

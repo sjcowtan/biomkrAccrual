@@ -9,6 +9,9 @@ NAMESPACE does for S3 and S4.}
 \usage{
 .onLoad(...)
 }
+\arguments{
+\item{...}{Parameters passed to S7::methods_register()}
+}
 \description{
 Ensure methods are registered when methods for generics are implemented in
 other packages (S3, S4 & S7). This works like export directives in the

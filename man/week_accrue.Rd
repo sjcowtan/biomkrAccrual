@@ -13,6 +13,8 @@ week_accrue(accrual_obj, struct_obj, ...)
 \item{struct_obj}{An object of class \code{trial_structure}.
 be treated as exact; FALSE if they should be drawn from a gamma
 distribution with a mean of the specified rate.}
+
+\item{...}{For R CMD check compatibility.}
 }
 \value{
 Matrix of week's accrual by site and recruitment arm.
