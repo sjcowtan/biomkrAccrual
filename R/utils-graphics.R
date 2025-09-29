@@ -266,8 +266,9 @@ accrual_to_long <- function(accrual_df) {
 #' S3 method to plot predicted recruitment from a long format 
 #' dataframe of class "accrualplotdata".
 #' 
-#' @param data long format dataframe with columns "Week", 
+#' @param x long format dataframe with columns "Week", 
 #' "Arm" and "Recruitment".
+#' @param ... Not used.
 #' @param plot_prefix Prefix for file name to identify plot type.
 #' Defaults to `accrual_plot`.
 #' @param run_time Specify a particular instance of `biomkrAccrual()`
@@ -288,8 +289,11 @@ accrual_to_long <- function(accrual_df) {
 #' @importFrom grDevices palette.colors
 #' @importFrom rlang .data
 #' 
+#' @export
+#' 
 plot.accrualplotdata <- function(
-  data,
+  x,
+  ...,
   plot_prefix = "accrual_plot",
   run_time = NULL,
   output_path = "../biomkrAccrual_output_data/",
@@ -301,7 +305,7 @@ plot.accrualplotdata <- function(
   interim_period = NA_integer_
 ) {
   
-  accrual_df <- data
+  accrual_df <- x
   arm_names <- levels(accrual_df$Arm)
 
   linetypes <- c(
@@ -350,12 +354,14 @@ plot.accrualplotdata <- function(
 
 #' Plot distributions of recruitment to arms at given time.
 #' 
-#' @param data Matrix with columns for each recruitment arm, 
+#' @param x Matrix with columns for each recruitment arm, 
 #' including control.
+#' @param ... Not used.
 #' @param target Vector of targets for recruitment. First two
 #' should be those directly relevant to the subject of the graph.
 #' @param target_names Vector of target names, for labelling.
-#' @param target The adjust parameter from `ggplot2::geom_density`;
+#' @param ... For compliance with plot.default().
+#' @param adjust The adjust parameter from `ggplot2::geom_density`;
 #' higher values mean more smoothing. Defaults to 1.
 #' 
 #' @importFrom stats reshape
@@ -365,13 +371,13 @@ plot.accrualplotdata <- function(
 #' @export
 #' 
 plot.armtotals <- function(
-  data,
+  x,
+  ...,
   target,
   target_names,
-  target_week,
   adjust = 1
 ) {
-  data_df <- matrix_to_long(data)
+  data_df <- matrix_to_long(x)
 
   # Which of the accrual targets are within the dataset
   if (length(target) > 2) {
@@ -461,6 +467,14 @@ label_vlines <- function(
 #' Plot single arm accrual plot
 #' 
 #' Bodge, fix later
+#' 
+#' @param data_df Dataframe of biomkrAccrual output.
+#' @param arm_colours Vector of hexadecimal colours, one for each arm.
+#' @param treatment_arms Vector of names of the treatment arms.
+#' @param targets Vector of target names (excluding the
+#' word `target`).
+#' @param plot_id Vector of plot type names (typically "Interim" and "Accrual").
+#' @param i Index of treatment arm to plot.
 #' 
 #' 
 accrual_arm_plot <- function(

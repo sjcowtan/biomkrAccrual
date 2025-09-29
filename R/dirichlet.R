@@ -46,7 +46,7 @@ rdirichlet_alt <- function(
   n <- as.integer(n)
 
   # Shape parameter (alpha) from mu and phi; alpha_0 = phi
-  alpha <- phi * mu 
+  alpha <- phi * mu / mu[1]
   no_probs <- length(mu)
 
   # Dirichlet is a set of normalised independent gamma(alpha, 1)

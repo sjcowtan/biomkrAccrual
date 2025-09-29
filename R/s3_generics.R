@@ -6,14 +6,15 @@
 #' @aliases print.accrual
 #' 
 #' @param x An object of class `accrual`.
+#' @param ... Additional arguments passed to print().
 #' 
 #' @importFrom S7 new_generic method
 #' 
 #' @export
 #' 
 S7::new_generic("print", "accrual")
-S7::method(print, accrual) <- function(x) {
-  print(data.frame(rowSums(x@accrual, dims = 2)))
+S7::method(print, accrual) <- function(x, ...) {
+  print(data.frame(rowSums(x@accrual, dims = 2)), ...)
 }
 
 
@@ -22,35 +23,36 @@ S7::method(print, accrual) <- function(x) {
 #' @name summary
 #' @aliases summary.accrual
 #' 
-#' @param x An object of class `accrual`.
+#' @param object An object of class `accrual`.
+#' @param ... Additional arguments passed to summary().
 #' 
 #' @importFrom S7 new_generic method
 #' 
 #' @export
 #' 
 S7::new_generic("summary", "accrual")
-S7::method(summary, accrual) <- function(x) {
+S7::method(summary, accrual) <- function(object, ...) {
   
   # Summary of accrual by arm
   cat("Recruitment by experimental arm\n")
-  print(summary(data.frame(rowSums(x@accrual, dims = 2))))
+  print(summary(data.frame(rowSums(object@accrual, dims = 2)), ...))
 
   # Summary of accrual by site
   cat("\nRecruitment by site\n")
   print(summary(data.frame(rowSums(
-    aperm(x@accrual, c(1, 3, 2)),
+    aperm(object@accrual, c(1, 3, 2)),
     dims = 2
-  ))))
+  )), ...))
 
   # Summary of phase change weeks
   cat("\nExperimental arm closure weeks\n")
-  acw <- as.vector(x@phase_changes)
-  names(acw) <- dimnames(x@accrual)$Arms[seq_len(length(acw))]
+  acw <- as.vector(object@phase_changes)
+  names(acw) <- dimnames(object@accrual)$Arms[seq_len(length(acw))]
   print(acw)
 
   # Summary of accrual totals by arm
   cat("\nAccrual totals by experimental arm\n")
-  print(treat_sums(x))
+  print(treat_sums(object))
 }
 
 
@@ -61,7 +63,8 @@ S7::method(summary, accrual) <- function(x) {
 #' @name plot
 #' @aliases plot.accrual
 #' 
-#' @param accrual_obj Object of class `accrual`.
+#' @param x Object of class `accrual`.
+#' @param ... Not used.
 #' @param plot_prefix Prefix for file name to identify plot type.
 #' Defaults to `accrual_plot`.
 #' @param run_time Specify a particular instance of `biomkrAccrual()`
@@ -76,13 +79,14 @@ S7::method(summary, accrual) <- function(x) {
 #' 
 S7::new_generic("plot", "accrual")
 S7::method(plot, accrual) <- function(
-  accrual_obj,
+  x,
+  ...,
   plot_prefix = "accrual_plot",
   run_time = "2024-08-07-18-35-09",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/")
 ) {
-  accrual_ar <- accrual_obj@accrual
+  accrual_ar <- x@accrual
 
   # Sum across sites
   accrual_df <- data.frame(rowSums(accrual_ar, dims = 2))
@@ -96,11 +100,11 @@ S7::method(plot, accrual) <- function(
     plot_prefix = plot_prefix,
     run_time = run_time,
     figs_path = figs_path,
-    target_arm_size = accrual_obj@target_arm_size,
-    target_control = accrual_obj@target_control,
-    target_interim = accrual_obj@target_interim,
-    accrual_period = accrual_obj@accrual_period,
-    interim_period = accrual_obj@interim_period
+    target_arm_size = x@target_arm_size,
+    target_control = x@target_control,
+    target_interim = x@target_interim,
+    accrual_period = x@accrual_period,
+    interim_period = x@interim_period
   )
 }
 
@@ -112,6 +116,7 @@ S7::method(plot, accrual) <- function(
 #' @aliases print.trial_strucutre
 #' 
 #' @param x An object of class `trial_structure`.
+#' @param ... Additional arguments passed to print().
 #' 
 #' @importFrom S7 new_generic method
 #' @importFrom withr with_options
@@ -119,7 +124,7 @@ S7::method(plot, accrual) <- function(
 #' @export
 #' 
 S7::new_generic("print", "trial_structure")
-S7::method(print, trial_structure) <- function(x) {
+S7::method(print, trial_structure) <- function(x, ...) {
   
   orig_struct_df <- data.frame(
     x@treatment_arm_struct_start
@@ -128,7 +133,7 @@ S7::method(print, trial_structure) <- function(x) {
   colnames(orig_struct_df) <- names(x@treatment_arm_ids_start)
   rownames(orig_struct_df) <- x@recruit_arm_names
 
-  print(orig_struct_df)
+  print(orig_struct_df, ...)
 
 }
 
@@ -140,6 +145,7 @@ S7::method(print, trial_structure) <- function(x) {
 #' @aliases plot.trial_structure
 #' 
 #' @param x An object of class `trial_structure`.
+#' @param ... Not used.
 #' 
 #' @importFrom S7 new_generic method
 #' @importFrom stats reshape
@@ -148,7 +154,7 @@ S7::method(print, trial_structure) <- function(x) {
 #' @export
 #' 
 S7::new_generic("plot", "trial_structure")
-S7::method(plot, trial_structure) <- function(x) {
+S7::method(plot, trial_structure) <- function(x, ...) {
   
   orig_struct_df <- data.frame(
     x@treatment_arm_struct_start
@@ -205,7 +211,15 @@ S7::method(plot, trial_structure) <- function(x) {
 #' @name summary
 #' @aliases summary.trial_structure
 #' 
-#' @param x An object of class `trial_structure`.
+#' @param object An object of class `trial_structure`.
+#' @param ..., Additional arguments passed to print().
+#' @param digits A non-null value for digits specifies 
+#' the minimum number of significant digits to be 
+#' printed in values. The default, NULL, uses 
+#' getOption("digits"). (For the interpretation for 
+#' complex numbers see signif.) Non-integer values 
+#' will be rounded down, and only values greater than 
+#' or equal to 1 and no greater than 22 are accepted.
 #' 
 #' @importFrom S7 new_generic method
 #' @importFrom withr with_options
@@ -215,9 +229,9 @@ S7::method(plot, trial_structure) <- function(x) {
 S7::new_generic("summary", "trial_structure")
 S7::method(summary, trial_structure) <- 
   function(
-    x, 
-    maxsum = 7L, 
-    digits = max(3L, getOption("digits") - 3L), ...
+    object,
+    ...,
+    digits = max(3L, getOption("digits") - 3L)
   ) {
 
     summary_ls <- vector(mode = "list", length = 1)
@@ -225,14 +239,14 @@ S7::method(summary, trial_structure) <-
     # Site prevalences by recruitment arm
 
     orig_prev_df <- data.frame(
-      x@recruit_arm_prevalence_start,
-      row.names = x@recruit_arm_names
+      object@recruit_arm_prevalence_start,
+      row.names = object@recruit_arm_names
     )
     colnames(orig_prev_df) <- paste("Site", seq_len(ncol(orig_prev_df)))
 
     summary_ls$site_prev <- withr::with_options(
       list(scipen = 10),
-      print(round(orig_prev_df, digits = digits))
+      print(round(orig_prev_df, digits = digits), ...)
     )
 
     summary_ls

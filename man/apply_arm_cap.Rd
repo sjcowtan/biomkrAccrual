@@ -10,6 +10,8 @@ apply_arm_cap(accrual_obj, struct_obj, ...)
 \item{accrual_obj}{Object of class \code{accrual}}
 
 \item{struct_obj}{Object of class \code{trial_structure}}
+
+\item{...}{For compliance with R CMD check.}
 }
 \value{
 Modified accrual object with capped week's accrual

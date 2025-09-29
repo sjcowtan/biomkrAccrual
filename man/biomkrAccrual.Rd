@@ -12,7 +12,8 @@ biomkrAccrual(
   accrual_period = 50/4,
   interim_period = accrual_period/2,
   precision = 10,
-  ctrl_ratio = c(1, 1),
+  var_lambda = 0.25,
+  control_ratio = c(1, 1),
   centres_file = "centres.csv",
   prop_file = "proportions.csv",
   arms_file = "arms.json",
@@ -47,7 +48,10 @@ control. Defaults to TRUE.}
 \item{precision}{For the Dirichlet model of biomarker prevalences,
 variability decreases as precision increases. Defaults to 10.}
 
-\item{ctrl_ratio}{Ratio of patient allocation to treatment arm
+\item{var_lambda}{Variance estimate for site recruitment rates.
+Defaults to 0.25.}
+
+\item{control_ratio}{Ratio of patient allocation to treatment arm
 versus control for all active arms; defaults to c(1, 1).}
 
 \item{centres_file}{Name of CSV file with information about

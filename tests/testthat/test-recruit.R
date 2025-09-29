@@ -1,11 +1,12 @@
 ### Testing accrual() constructor
 
-acc_obj <- accrual(
+fixed_acc_obj <- accrual(
   treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
   shared_control = TRUE,
   accrual_period = as.integer(12),
   interim_period = as.integer(6),
   control_ratio = c(1, 1),
+  fixed_site_rates = TRUE,
   var_lambda = 0.25,
   centres_df = data.frame(
     site = 1:2,
@@ -18,10 +19,10 @@ acc_obj <- accrual(
 )
 
 test_that(paste(
-  "Constructor for accrual produces an object of classes",
+  "accrual constructor: produces an object of classes",
   "S7_object and biomkrAccrual::accrual"
 ), {
-  checkmate::expect_class(acc_obj, c(
+  checkmate::expect_class(fixed_acc_obj, c(
     "biomkrAccrual::accrual",
     "S7_object"
   ))
@@ -31,20 +32,19 @@ test_that(paste(
 ### Testing is.accrual()
 
 test_that(paste(
-  "Constructor for accrual produces an object of classes",
-  "S7_object and biomkrAccrual::accrual"
+  "is.accrual: recognises an object of class",
+  "biomkrAccrual::accrual"
 ), {
-  checkmate::expect_class(acc_obj, c(
-    "biomkrAccrual::accrual",
-    "S7_object"
-  ))
+  expect_true(
+    is.accrual(fixed_acc_obj)
+  )
 })
 
 
 ### Testing treat_sums()
 arr <- array(1:24, 2:4)
 
-test_that("Can sum by treatment a 3-D accrual array", {
+test_that("treat_sums: sum by treatment a 3-D accrual array", {
   checkmate::expect_integer(
     treat_sums(arr),
     min.len = 1,
@@ -55,7 +55,7 @@ test_that("Can sum by treatment a 3-D accrual array", {
   )
 })
 
-test_that("Output correct from treat_sums for valid array", {
+test_that("treat_sums: output correct for valid array", {
   expect_identical(
     treat_sums(arr),
     as.integer(c(84, 100, 116))
@@ -64,9 +64,9 @@ test_that("Output correct from treat_sums for valid array", {
 
 ## Testing treat_sums on an accrual object
 
-test_that("Output correct from treat_sums for valid accrual object", {
+test_that("treat_sums: output correct  for valid accrual object", {
   expect_identical(
-    treat_sums(acc_obj),
+    treat_sums(fixed_acc_obj),
     as.integer(c(0, 0, 0))
   )
 })
@@ -75,7 +75,7 @@ test_that("Output correct from treat_sums for valid accrual object", {
 uncapped <- c(1, 1, 2, 5, 8)
 capped <- do_choose_cap(uncapped, 3)
 
-test_that("do_choose_cap caps population correctly", {
+test_that("do_choose_cap: caps population correctly", {
   expect_identical(
     length(capped),
     as.integer(3)
@@ -86,12 +86,164 @@ test_that("do_choose_cap caps population correctly", {
 table_uncapped <- as.data.frame(table(uncapped))
 table_capped <- as.data.frame(table(capped))
 
-test_that("do_choose_caps does not produce extra repeats", {
+test_that("do_choose_cap: does not produce extra repeats", {
   expect_true(
     all(
       table_uncapped[
         which(table_uncapped$uncapped %in% table_capped$capped),
       ]$Freq >= table_capped$Freq
     )
+  )
+})
+
+
+
+# Testing set_site_rates()
+
+set.seed(123)
+
+rates <- set_site_rates(fixed_acc_obj)
+
+test_that("set_site_rates: fixed site rate is correct", {
+  expect_equal(rates@site_rate, c(2.5, 0), tolerance = 1e-6)
+})
+
+
+variable_acc_obj <- accrual(
+  treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
+  shared_control = TRUE,
+  accrual_period = as.integer(12),
+  interim_period = as.integer(6),
+  control_ratio = c(1, 1),
+  fixed_site_rates = FALSE,
+  var_lambda = 0.25,
+  centres_df = data.frame(
+    site = 1:2,
+    start_month = c(1, 5),
+    mean_rate = c(10, 18),
+    region = c(1, 1),
+    site_cap = c(40, 20),
+    start_week = c(1, 20)
+  )
+)
+
+set.seed(123)
+
+rates <- set_site_rates(variable_acc_obj)
+
+test_that("set_site_rates: variable site rate is correct", {
+  expect_equal(rates@site_rate, c(2.427350, 0.0), tolerance = 1e-6)
+})
+
+
+# Testing week_accrue()
+
+## Need a structure object
+ts_obj <- trial_structure(
+  props_df =  data.frame(
+    category = c("B1", "B2", "B3"),
+    region_1 = 0.031, 0.454, 0.515
+  ),
+  arms_ls = list(
+    T1 = 1:2,
+    T2 = 2:3
+  ),
+  centres_df = data.frame(
+    site = 1:2,
+    start_month = c(1, 5),
+    mean_rate = c(10, 18),
+    region = c(1, 1),
+    site_cap = c(40, 20),
+    start_week = c(1, 20)
+  ),
+  precision = 10,
+  shared_control = TRUE,
+  control_ratio = c(1, 1),
+  fixed_region_prevalences = FALSE
+)
+
+set.seed(123)
+
+wa_out_ls <- week_accrue(variable_acc_obj, ts_obj)
+
+test_that("week_accrue: first output is an accrual object", {
+  expect_equal(
+    class(wa_out_ls[[1]]),
+    c("biomkrAccrual::accrual", "S7_object")
+  )
+})
+
+test_that("week_accrue: second output is a valid accrual matrix", {
+  checkmate::expect_matrix(
+    wa_out_ls[[2]],
+    any.missing = FALSE,
+    nrows = 3,
+    ncols = 2,
+    null.ok = FALSE,
+    mode = "integer"
+  )
+})
+
+test_that("week_accrue: accrual values as expected", {
+  expect_equal(
+    as.vector(wa_out_ls[[2]]),
+    c(1, 2, 1, 0, 0, 0)
+  )
+})
+
+test_that("week_accrue: variable site rate is correct", {
+  expect_equal(wa_out_ls[[1]]@site_rate, c(2.427350, 0.0), tolerance = 1e-6)
+})
+
+
+# Testing accrue_week
+
+set.seed(123)
+
+aw_out_ls <- accrue_week(variable_acc_obj, ts_obj)
+
+test_that("accrue_week: first output is an accrual object", {
+  expect_equal(
+    class(aw_out_ls[[1]]),
+    c("biomkrAccrual::accrual", "S7_object")
+  )
+})
+
+test_that("accrue_week: first output is a structure object", {
+  expect_equal(
+    class(aw_out_ls[[2]]),
+    c("biomkrAccrual::trial_structure", "S7_object")
+  )
+})
+
+test_that("accrue_week: recruitment totals are a 3D integer array", {
+  checkmate::expect_array(
+    aw_out_ls[[1]]@accrual,
+    mode = "integer",
+    any.missing = FALSE,
+    d = 3,
+    null.ok = FALSE
+  )
+})
+
+test_that("accrue_week: recruitment totals are correct", {
+  expect_equal(
+    as.vector(aw_out_ls[[1]]@accrual), 
+    c(1, rep(0, 11), 2, rep(0, 11), 1, rep(0, 47))
+  )
+})
+
+test_that("accrue_week: variable site rate is correct", {
+  expect_equal(
+    aw_out_ls[[1]]@site_rate, 
+    c(2.427350, 0.0), 
+    tolerance = 1e-6
+  )
+})
+
+test_that("accrue_week: trial structure correct (no capping)", {
+  expect_equal(
+    aw_out_ls[[2]]@treatment_arm_struct,
+    matrix(c(rep(c(TRUE, FALSE, TRUE), each = 2)), ncol = 2)
   )
 })

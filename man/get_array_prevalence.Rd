@@ -9,7 +9,7 @@ get_array_prevalence(
   arm_structure_mx,
   recruit_arm_prevalence,
   shared_control,
-  ctrl_ratio
+  control_ratio
 )
 }
 \arguments{
@@ -22,7 +22,7 @@ columns, for each arm (rows)}
 same control arm; FALSE if each treatment arm has its own
 control. Defaults to TRUE.}
 
-\item{ctrl_ratio}{Ratio of patients assigned to treatment versus control}
+\item{control_ratio}{Ratio of patients assigned to treatment versus control}
 }
 \value{
 arm_prevalence_ar Array of prevalences, recruitment arms *

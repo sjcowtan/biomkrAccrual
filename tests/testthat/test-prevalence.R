@@ -194,7 +194,7 @@ test_that("treatment_arm_ids has 2 ids, 1 and 2", {
 
 ### Testing arm removal
 
-ts_minusarm_obj <- remove_treat_arms(ts_obj, as.integer(2))
+ts_minusarm_obj <- remove_treat_arms(ts_obj, arms = as.integer(2))
 
 test_that("remove_treat_arms correctly removes arm 2", {
   expect_equal(
@@ -244,13 +244,13 @@ rec_arm_prev <- matrix(
   nrow = 3
 )
 
-ctrl_ratio <- c(0.75, 0.25)
+control_ratio <- c(0.75, 0.25)
 
 arm_prev_ar <- get_array_prevalence(
   arm_struct_mx, 
   rec_arm_prev, 
   shared_control = FALSE,
-  ctrl_ratio
+  control_ratio
 )
 
 test_that("Dimensions of prevalence array are correct", {
@@ -274,12 +274,12 @@ test_that("Total recruitment percentages are correct for centre 2", {
 
 test_that("Control ratio is correct for centre 2", {
   expect_equal(
-    arm_prev_ar[, seq_len(ncol(arm_struct_mx)), 2] / ctrl_ratio[1],
+    arm_prev_ar[, seq_len(ncol(arm_struct_mx)), 2] / control_ratio[1],
     arm_prev_ar[
       , 
       seq(ncol(arm_struct_mx) + 1, length.out = ncol(arm_struct_mx)),
       2
-    ] / ctrl_ratio[2],
+    ] / control_ratio[2],
     tolerance = 1e-6
   )
 })

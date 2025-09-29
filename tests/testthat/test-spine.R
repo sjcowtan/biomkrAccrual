@@ -21,3 +21,23 @@ test_that("Figures directory exists or has been created", {
     access = "rwx"
   )
 })
+
+# Test that data and figure files exist with today's date in test data area
+date <- format(Sys.time(), "%y-%m-%d")
+print(getwd())
+
+## Can't put wildcard in test
+#files <- list.files(
+#  "../biomkrAccrual_output_data/",
+#  pattern = "accrual-", date, "_*\\.csv"
+#)
+#print(files)
+
+#test_that("spine: writes accrual CSV file", {
+#  checkmate::expect_file_exists(
+#    paste0("../biomkrAccrual_output_data/accrual-", date, "_*.csv")
+#  )
+#})
+
+
+# Clean up by deleting the data and figure files with today's date

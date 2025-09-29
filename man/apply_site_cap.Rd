@@ -9,7 +9,7 @@ apply_site_cap(obj, ...)
 \arguments{
 \item{obj}{Accrual object}
 
-\item{site_cap}{Maximum number of patients per site}
+\item{...}{For compliance with R CMD check.}
 }
 \value{
 Modified accrual object with capped week's accrual and

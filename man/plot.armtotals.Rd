@@ -4,16 +4,21 @@
 \alias{plot.armtotals}
 \title{Plot distributions of recruitment to arms at given time.}
 \usage{
-\method{plot}{armtotals}(data, target, target_names, target_week, adjust = 1)
+\method{plot}{armtotals}(x, ..., target, target_names, adjust = 1)
 }
 \arguments{
-\item{data}{Matrix with columns for each recruitment arm,
+\item{x}{Matrix with columns for each recruitment arm,
 including control.}
 
-\item{target}{The adjust parameter from \code{ggplot2::geom_density};
-higher values mean more smoothing. Defaults to 1.}
+\item{...}{For compliance with plot.default().}
+
+\item{target}{Vector of targets for recruitment. First two
+should be those directly relevant to the subject of the graph.}
 
 \item{target_names}{Vector of target names, for labelling.}
+
+\item{adjust}{The adjust parameter from \code{ggplot2::geom_density};
+higher values mean more smoothing. Defaults to 1.}
 }
 \description{
 Plot distributions of recruitment to arms at given time.

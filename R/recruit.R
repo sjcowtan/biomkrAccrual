@@ -15,6 +15,8 @@
 #' @slot active_arms Vector of indices of open arms
 #' @slot active_sites Vector of indices of open sites
 #' @slot shared_control TRUE if a shared control arm is being used, else FALSE
+#' @slot fixed_site_rates TRUE if expected site rate to be used; FALSE 
+#' draws the site rate from a gamma distribution
 #' @slot site_in_region Vector of indices for which set of expected 
 #' prevalences each site should use 
 #' @slot site_cap Vector of maximum number of patients for each site
@@ -31,19 +33,23 @@
 #' treatment arm.
 #' @param shared_control TRUE if all experimental arms share one control arm;
 #' FALSE if each has their own
+#' @param fixed_site_rates TRUE if expected site rate to be used; FALSE 
+#' draws the site rate from a gamma distribution
 #' @param target_arm_size Number of subjects required for each treatment arm.
 #' @param target_control Number of subjects required for control arm(s).
 #' @param target_interim Number of subjects required for treatment arm at 
 #' interim analysis.
 #' @param accrual_period Number of weeks in recruitment period.
 #' @param interim_period Number of weeks to recruit for interim analysis.
+#' @param control_ratio Ratio of patient allocation to treatment arm
+#' versus control for all active arms; defaults to c(1, 1).
 #' @param var_lambda Variance of site recruitment rates.
 #' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
 #' "region" and "site_cap"
 #' 
-#' @usage accrual(treatment_arm_ids, shared_control, target_arm_size, 
+#' @usage accrual(treatment_arm_ids, shared_control, fixed_site_rates, target_arm_size, 
 #' target_control, target_interim, accrual_period, interim_period, 
-#' var_lambda, centres_df)
+#' control_ratio, var_lambda, centres_df)
 #' @name accrual
 #'
 #' @export
@@ -64,6 +70,7 @@ accrual <- S7::new_class("accrual",
     active_arms = S7::class_integer,
     active_sites = S7::class_integer,
     shared_control = S7::class_logical,
+    fixed_site_rates = S7::class_logical,
     site_in_region = S7::class_integer,
     site_cap = S7::class_integer,
     site_mean_rate = S7::class_double,
@@ -76,6 +83,7 @@ accrual <- S7::new_class("accrual",
   constructor = function(
     treatment_arm_ids = S7::class_missing,
     shared_control = S7::class_missing,
+    fixed_site_rates = S7::class_missing,
     target_arm_size = S7::class_missing,
     target_control = S7::class_missing,
     target_interim = S7::class_missing,
@@ -127,6 +135,7 @@ accrual <- S7::new_class("accrual",
       active_arms = seq_len(length(treatment_arm_ids)),
       active_sites = seq_len(length(unique(centres_df$site))),
       shared_control = shared_control,
+      fixed_site_rates = fixed_site_rates,
       site_in_region = as.integer(centres_df$region),
       site_cap = as.integer(centres_df$site_cap),
       site_mean_rate = as.numeric(centres_df$mean_rate),
@@ -140,9 +149,11 @@ accrual <- S7::new_class("accrual",
 )
 
 
-#' Sum accrual array by site, to enable checking against site caps
-#' @param obj Object of class "accrual"
-#' @return vector of total accrual by recruitment site
+#' Sum accrual array by site, to enable checking against site caps.
+#' @param obj Object of class "accrual".
+#' @param ... For R CMD check compatibility.
+#' 
+#' @return vector of total accrual by recruitment site.
 #' 
 #' @export 
 #' 
@@ -156,21 +167,28 @@ S7::method(site_sums, accrual) <- function(obj) {
 # Sum accrual array by experimental arm (including control).
 #' 
 #' @param x Accrual array with dimensions Weeks, Arms and Centres.
+#' @param control_total Logical; if TRUE return single total for all 
+#' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
+#' @param ... When called on an array the arguments no_treat_arms and 
+#' shared_control may be necessary. Additional arguments are 
+#' unnecessary if calling treat_sums.biomkrAccrual::accrual().
 #' @export
-treat_sums <- function(x, ...) {
+treat_sums <- function(x, control_total, ...) {
   UseMethod("treat_sums", x)
 }
+
 
 #' Sum accrual array by experimental arm (including control).
 #' 
 #' @param x Accrual array with dimensions Weeks, Arms and Centres.
-#' @param no_treat_arms Number of treatment arms (as opposed to control 
-#' arms).
-#' @param shared_control TRUE if all treatment arms share the
-#' same control arm; FALSE if each treatment arm has its own 
-#' control. Defaults to TRUE.
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
+#' @param ... Additional arguments (none needed).
+#' @param no_treat_arms Number of treatment arms (as opposed to control 
+#' arms) - MUST use `no_treat_sums =` to set.
+#' @param shared_control TRUE if all treatment arms share the
+#' same control arm; FALSE if each treatment arm has its own 
+#' control. Defaults to TRUE. MUST use `shared_control =` to set.
 #' 
 #' @return vector of total accrual by experimental arm.
 #' 
@@ -179,14 +197,14 @@ treat_sums <- function(x, ...) {
 treat_sums.array <- function(
   x, 
   control_total = FALSE,
+  ...,
   no_treat_arms,
-  shared_control = TRUE,
-  na.rm = TRUE
+  shared_control = TRUE
 ) {
   # Permute the array so that the first dimension is the
   # dimension you want to get sums for (experimental arms)
   arm_sums <-
-    as.integer(colSums(rowSums(x, dims = 2, na.rm = na.rm)))
+    as.integer(colSums(rowSums(x, dims = 2, na.rm = TRUE)))
 
   # If want total for control arms rather than separate values
   if (!shared_control && control_total) {
@@ -210,6 +228,7 @@ treat_sums.array <- function(
 #' @param x Object of class `accrual`. 
 #' @param control_total Logical; if TRUE return single total for all 
 #' control arms
+#' @param ... Additional arguments (none needed).
 #' 
 #' @return vector of total accrual by experimental arm
 #' 
@@ -218,16 +237,15 @@ treat_sums.array <- function(
 `treat_sums.biomkrAccrual::accrual` <- function(
   x,
   control_total = FALSE,
-  na.rm = TRUE
+  ...
 ) {
 
   # Call treat_sums.array() on accrual array element
   treat_sums(
     x@accrual,
     control_total, 
-    length(x@phase_changes), 
-    x@shared_control,
-    na.rm 
+    no_treat_arms = length(x@phase_changes), 
+    shared_control = x@shared_control,
   )
 }
 
@@ -262,13 +280,15 @@ get_weeks <- function(months) {
 
 #' Method to increment site rates by gamma-distributed rates of sites
 #' opening an accrual pathway in the current week.
-#' @param obj An object of type "accrual"
+#' @param obj An object of type "accrual".
+#' @param ... For R CMD check compatibility.
+#' 
 #' @return Modified object with new site rates
 #' 
 #' @importFrom stats rgamma
 #' 
 set_site_rates <- S7::new_generic("site_start_rates", "obj")
-S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
+S7::method(set_site_rates, accrual) <- function(obj) {
 
   # If this is the first time calling this, initialise with rate 0
   if (any(is.na(obj@site_rate))) {
@@ -280,8 +300,8 @@ S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
   if (length(indices) > 0) {
 
     # mean_rates are in recruitment per month, convert to weeks
-    if (fixed_site_rates) {
-      rates <- obj@site_mean_rate(indices) / 4
+    if (obj@fixed_site_rates) {
+      rates <- obj@site_mean_rate[indices] / get_weeks(1)
     } else {
       rates <- 0.25 * stats::rgamma(
         n = length(indices),
@@ -304,13 +324,13 @@ S7::method(set_site_rates, accrual) <- function(obj, fixed_site_rates) {
 
 #' Implement site cap on a week's accrual. 
 #' @param obj Accrual object
-#' @param site_cap Maximum number of patients per site
+#' @param ... For compliance with R CMD check.
 #' 
 #' @return Modified accrual object with capped week's accrual and 
 #' with any capped sites removed from active_sites
 #' 
 apply_site_cap <- S7::new_generic("apply_site_cap", "obj")
-S7::method(apply_site_cap, accrual) <- function(obj) {
+S7::method(apply_site_cap, accrual) <- function(obj, ...) {
   # If any sites exceed their cap, remove accrual from randomly
   # selected arms until sites are at cap 
   # Represents sites closing during the week
@@ -350,7 +370,7 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 #' Implement arm cap on week's accrual to experimental arms
 #' @param accrual_obj Object of class `accrual`
 #' @param struct_obj Object of class `trial_structure`
-#' 
+#' @param ... For compliance with R CMD check.
 #' @return Modified accrual object with capped week's accrual
 #' 
 #' @importFrom rlang abort
@@ -358,7 +378,7 @@ S7::method(apply_site_cap, accrual) <- function(obj) {
 apply_arm_cap <- 
   S7::new_generic("apply_arm_cap", c("accrual_obj", "struct_obj"))
 S7::method(apply_arm_cap, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj) {
+  function(accrual_obj, struct_obj, ...) {
     
     # Get totals for experimental arms (dropping control)
     arm_sums <- 
@@ -411,7 +431,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     # Update active_arms
     accrual_obj@active_arms <- which(arm_captotal < 0)
     # Also on the trial structure object
-    struct_obj <- remove_treat_arms(struct_obj, which(arm_captotal >= 0))
+    struct_obj <- remove_treat_arms(struct_obj, arms = which(arm_captotal >= 0))
 
     # Recheck site caps
     site_captotal <- site_sums(accrual_obj) - accrual_obj@site_cap
@@ -421,31 +441,28 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     accrual_obj@site_closures[accrual_obj@active_sites[capped_sites]] <-
       accrual_obj@week
 
-    # Update active sites
+    # Update active sites(accrual_obj)
     accrual_obj@active_sites <- which(site_captotal < 0)
 
     return(list(accrual_obj, struct_obj)) 
   }
 
-
-
-
 #' Randomise a week's expected accrual amongst the sites, according to 
 #' prevalence.
 #' @param accrual_obj An object of class `accrual`.
 #' @param struct_obj An object of class `trial_structure`.
-#' @param fixed_site_rates TRUE if centre recruitment rates should 
 #' be treated as exact; FALSE if they should be drawn from a gamma
 #' distribution with a mean of the specified rate.
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return Matrix of week's accrual by site and recruitment arm.
 #' 
 week_accrue <- S7::new_generic("week_accrue", c("accrual_obj", "struct_obj"))
 S7::method(week_accrue, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj, fixed_site_rates) {
+  function(accrual_obj, struct_obj) {
 
     # Update the site rates
-    accrual_obj <- set_site_rates(accrual_obj, fixed_site_rates)
+    accrual_obj <- set_site_rates(accrual_obj)
 
     # Initialising (sites * experimental arms)
     week_mx <- matrix(
@@ -505,19 +522,18 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 #' which holds the next week number to accrue.
 #' @param accrual_obj An object of class "accrual"
 #' @param struct_obj An object of class "trial_structure"
-#' @param fixed_site_rates TRUE if expected site rate to be used; FALSE 
-#' draws the site rate from a gamma distribution
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return An object of class "accrual"
 #'
 accrue_week <- S7::new_generic("accrue_week", c("accrual_obj", "struct_obj"))
 S7::method(accrue_week, list(accrual, trial_structure)) <- 
-  function(accrual_obj, struct_obj, fixed_site_rates) {
+  function(accrual_obj, struct_obj, ...) {
 
     # Should not get here if there aren't any but
     if (length(accrual_obj@active_sites) > 0) {
 
-      week_acc_ls <- week_accrue(accrual_obj, struct_obj, fixed_site_rates)
+      week_acc_ls <- week_accrue(accrual_obj, struct_obj)
       accrual_obj <- week_acc_ls[[1]]
       week_acc <- week_acc_ls[[2]]
 
@@ -543,6 +559,7 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
 #' Check whether an object is of class "accrual".
 #' 
 #' @param x Object to test
+#' @param ... For R CMD check compatibility.
 #' 
 #' @return TRUE or FALSE
 #' 

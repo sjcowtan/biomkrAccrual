@@ -5,8 +5,9 @@
 \title{A class to contain the accrued patient allocations,
 by site, treatment/control arm and week}
 \usage{
-accrual(treatment_arm_ids, shared_control, target_arm_size, 
-target_control, target_interim, accrual_period, interim_period, centres_df)
+accrual(treatment_arm_ids, shared_control, fixed_site_rates, target_arm_size, 
+target_control, target_interim, accrual_period, interim_period, 
+control_ratio, var_lambda, centres_df)
 }
 \arguments{
 \item{treatment_arm_ids}{Named list of lists of recruitment arms by
@@ -14,6 +15,9 @@ treatment arm.}
 
 \item{shared_control}{TRUE if all experimental arms share one control arm;
 FALSE if each has their own}
+
+\item{fixed_site_rates}{TRUE if expected site rate to be used; FALSE
+draws the site rate from a gamma distribution}
 
 \item{target_arm_size}{Number of subjects required for each treatment arm.}
 
@@ -25,6 +29,11 @@ interim analysis.}
 \item{accrual_period}{Number of weeks in recruitment period.}
 
 \item{interim_period}{Number of weeks to recruit for interim analysis.}
+
+\item{control_ratio}{Ratio of patient allocation to treatment arm
+versus control for all active arms; defaults to c(1, 1).}
+
+\item{var_lambda}{Variance of site recruitment rates.}
 
 \item{centres_df}{Dataframe with columns "site", "start_month", "mean_rate",
 "region" and "site_cap"}
@@ -62,6 +71,9 @@ interim analysis.}
 
 \item{\code{shared_control}}{TRUE if a shared control arm is being used, else FALSE}
 
+\item{\code{fixed_site_rates}}{TRUE if expected site rate to be used; FALSE
+draws the site rate from a gamma distribution}
+
 \item{\code{site_in_region}}{Vector of indices for which set of expected
 prevalences each site should use}
 
@@ -78,5 +90,7 @@ gamma distribution}
 
 \item{\code{treatment_arm_ids}}{Named list of lists of recruitment arms by
 treatment arm.}
+
+\item{\code{var_lambda}}{Variance of site recruitment rates.}
 }}
 
