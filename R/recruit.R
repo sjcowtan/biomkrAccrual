@@ -274,6 +274,15 @@ do_choose_cap <- function(population, captotal) {
 #' @return Duration in weeks
 #' 
 get_weeks <- function(months) {
+
+  checkmate::assert_numeric(
+    months,
+    lower = 0,
+    finite = TRUE,
+    any.missing = FALSE,
+    min.len = 1,
+    null.ok = FALSE
+  )
   as.integer(round(months * 4, 0))
 }
 

@@ -58,6 +58,7 @@ trial_structure <- S7::new_class("trial_structure",
     recruit_arm_prevalence = S7::class_double,
     recruit_arm_prevalence_start = S7::class_double,
     recruit_arm_names = S7::class_character,
+    precision = S7::class_numeric,
     shared_control = S7::class_logical,
     control_ratio = S7::class_vector,
     treatment_arm_ids = S7::class_list,
@@ -118,6 +119,7 @@ trial_structure <- S7::new_class("trial_structure",
         get_recruit_arm_prevalence(
           props_df, centres_df, precision, fixed_region_prevalences
         ),
+      precision = precision,
       shared_control = shared_control,
       control_ratio = control_ratio,
       treatment_arm_ids = arms_ls,
@@ -183,7 +185,7 @@ get_recruit_arm_prevalence <- function(
   # If fixed_region_prevalences is FALSE, check contents of 
   # precision; otherwise should be NULL
   if (fixed_region_prevalences) {
-    assert_null(precision)
+    checkmate::assert_null(precision)
   } else {
     # Check format and content of precision
     checkmate::assert_numeric(
