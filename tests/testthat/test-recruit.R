@@ -316,8 +316,6 @@ test_that("apply_site_cap: Sites under the cap are not capped.", {
   )
 })
 
-print(colSums(fixed_acc_obj@accrual))
-
 # Testing apply_arm_cap()
 
 fixed_acc_obj@target_arm_size <- as.integer(16)
