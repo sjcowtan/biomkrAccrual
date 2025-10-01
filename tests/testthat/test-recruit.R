@@ -342,7 +342,6 @@ struct_obj <- trial_structure(
 )
 
 #fixed_acc_obj <- apply_arm_cap(fixed_acc_obj)
-
 #print(fixed_acc_obj@accrual)
 
 # Testing get_weeks()
