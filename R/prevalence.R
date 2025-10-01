@@ -58,7 +58,6 @@ trial_structure <- S7::new_class("trial_structure",
     recruit_arm_prevalence = S7::class_double,
     recruit_arm_prevalence_start = S7::class_double,
     recruit_arm_names = S7::class_character,
-    precision = S7::class_numeric,
     shared_control = S7::class_logical,
     control_ratio = S7::class_vector,
     treatment_arm_ids = S7::class_list,
@@ -119,7 +118,6 @@ trial_structure <- S7::new_class("trial_structure",
         get_recruit_arm_prevalence(
           props_df, centres_df, precision, fixed_region_prevalences
         ),
-      precision = precision,
       shared_control = shared_control,
       control_ratio = control_ratio,
       treatment_arm_ids = arms_ls,
@@ -255,21 +253,26 @@ get_recruit_arm_prevalence <- function(
 
   # Any column that isn't "category" is assumed to be a region -
   # allows for named regions
-  region_prevalence <- 
-    props_df[, grep("^category$", names(props_df), invert = TRUE)]
+  region_prevalence <- as.matrix(
+    props_df[, grep("^category$", names(props_df), invert = TRUE)],
+    ncol = ncol(props_df) - 1
+  )
 
   checkmate::assert_numeric(
-    as.matrix(region_prevalence),
+    region_prevalence,
     lower = 0,
     upper = 1,
     finite = TRUE
   )
 
+  # Fails when only 1 region as r_a_p remains a vector
   if (fixed_region_prevalences) {
     # Use region prevalences unchanged
     recruit_arm_prevalence <- as.matrix(
-      region_prevalence[, sites_in_region]
+      region_prevalence[, sites_in_region],
+      ncol = ncol(props_df) - 1
     )
+    
     # Scale columns to sum to 1
     recruit_arm_prevalence <- sweep(
       recruit_arm_prevalence,
