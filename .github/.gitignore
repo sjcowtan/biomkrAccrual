@@ -3,5 +3,5 @@
 .vscode/extensions.json
 .vscode/
 rprof.out
-tests/biomkrAccrual_output_data/*.csv
-tests/biomkrAccrual_output_data/figures/*.png
+tests/biomkrAccrual_output_data/\\*.csv
+tests/biomkrAccrual_output_data/figures/\\*.png

@@ -10,13 +10,15 @@ fixed_acc_obj <- accrual(
   var_lambda = 0.25,
   centres_df = data.frame(
     site = 1:2,
-    start_month = c(1, 5),
+    start_month = c(1, 2),
     mean_rate = c(10, 18),
     region = c(1, 1),
     site_cap = c(40, 20),
-    start_week = c(1, 20)
+    start_week = c(1, 5)
   )
 )
+
+# Testing constructor
 
 test_that(paste(
   "accrual constructor: produces an object of classes",
@@ -119,11 +121,11 @@ variable_acc_obj <- accrual(
   var_lambda = 0.25,
   centres_df = data.frame(
     site = 1:2,
-    start_month = c(1, 5),
+    start_month = c(1, 2),
     mean_rate = c(10, 18),
     region = c(1, 1),
     site_cap = c(40, 20),
-    start_week = c(1, 20)
+    start_week = c(1, 5)
   )
 )
 
@@ -150,11 +152,11 @@ ts_obj <- trial_structure(
   ),
   centres_df = data.frame(
     site = 1:2,
-    start_month = c(1, 5),
+    start_month = c(1, 2),
     mean_rate = c(10, 18),
     region = c(1, 1),
     site_cap = c(40, 20),
-    start_week = c(1, 20)
+    start_week = c(1, 4)
   ),
   precision = 10,
   shared_control = TRUE,
@@ -247,3 +249,132 @@ test_that("accrue_week: trial structure correct (no capping)", {
     matrix(c(rep(c(TRUE, FALSE, TRUE), each = 2)), ncol = 2)
   )
 })
+
+
+# Testing site_sums()
+
+test_that("site_sums: site totals are correct", {
+  expect_equal(
+    as.vector(site_sums(aw_out_ls[[1]])),
+    c(4, 0)
+  )
+})
+
+
+# Testing apply_site_cap()
+
+## Setup
+
+site_cap_accrual_ar <- array(
+  data = as.integer(
+    c(
+      rep(4, 4), 3, rep(0, 7),
+      rep(0, 4), 4, rep(0, 7),
+      rep(4, 5), rep(0, 7),
+      rep(2, 4), 1, rep(0, 7),
+      rep(0, 4), 2, rep(0, 7),
+      rep(2, 4), 1, rep(0, 7)
+    )
+  ),
+  dim = c(12, 3, 2),
+  dimnames = list(
+    Weeks = NULL, 
+    Arms = c("T1", "T2", "Control"), 
+    Centres = paste("Centre", 1:2)
+  )
+)
+
+fixed_acc_obj@accrual <- site_cap_accrual_ar
+fixed_acc_obj@week <- as.integer(5)
+
+fixed_acc_obj <- apply_site_cap(fixed_acc_obj)
+
+test_that("apply_site_cap: Sites with too much accrual are capped.", {
+  expect_equal(
+    sum(colSums(fixed_acc_obj@accrual[, , 1])),
+    fixed_acc_obj@site_cap[1]
+  )
+})
+
+test_that("apply_site_cap: Capping happens on most recent week only.", {
+  expect_equal(
+    fixed_acc_obj@accrual[1:4, , 1],
+    site_cap_accrual_ar[1:4, , 1]
+  )
+})
+
+test_that("apply_site_cap: Capping never increases accrual to an arm", {
+  expect_true(all(
+    fixed_acc_obj@accrual[5, , 1] <= site_cap_accrual_ar[5, , 1]
+  ))
+})
+
+test_that("apply_site_cap: Sites under the cap are not capped.", {
+  expect_equal(
+    fixed_acc_obj@accrual[, , 2],
+    site_cap_accrual_ar[, , 2]
+  )
+})
+
+# Testing apply_arm_cap()
+
+fixed_acc_obj@target_arm_size <- as.integer(16)
+fixed_acc_obj@target_interim <- as.integer(8)
+
+struct_obj <- trial_structure(
+  props_df = data.frame(
+    category = c("B1", "B2"),
+    region_1 = c(0.54, 0.46)
+  ),
+  arms_ls = list(T1 = 1:2, T2 = 1:2),
+  centres_df = data.frame(
+    site = 1:2,
+    start_month = c(1, 2),
+    mean_rate = c(8, 4),
+    region = c(1, 1),
+    site_cap = c(40, 20),
+    start_week = c(1, 5)
+  ),
+  precision = NULL,
+  shared_control = TRUE,
+  control_ratio = c(1, 1),
+  fixed_region_prevalences = TRUE
+)
+
+#fixed_acc_obj <- apply_arm_cap(fixed_acc_obj)
+#print(fixed_acc_obj@accrual)
+
+# Testing get_weeks()
+
+weeks <- get_weeks(c(3, 5))
+
+test_that("get_weeks: produces integer output", {
+  checkmate::expect_integer(
+    weeks,
+    lower = 0,
+    any.missing = FALSE,
+    len = 2,
+    null.ok = FALSE
+  )
+})
+
+test_that("get_weeks: results are correct", {
+  expect_equal(
+    weeks,
+    c(12, 20)
+  )
+})
+
+test_that("get_weeks: does not work with negative months", {
+  expect_error(get_weeks(-1))
+})
+
+test_that("get_weeks: does not work with missing data", {
+  expect_error(get_weeks(c(1, NA)))
+})
+
+test_that("get_weeks: does not work with null data", {
+  expect_error(get_weeks(c(NULL)))
+})
+
+

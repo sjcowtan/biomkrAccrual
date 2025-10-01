@@ -183,7 +183,7 @@ get_recruit_arm_prevalence <- function(
   # If fixed_region_prevalences is FALSE, check contents of 
   # precision; otherwise should be NULL
   if (fixed_region_prevalences) {
-    assert_null(precision)
+    checkmate::assert_null(precision)
   } else {
     # Check format and content of precision
     checkmate::assert_numeric(
@@ -253,21 +253,26 @@ get_recruit_arm_prevalence <- function(
 
   # Any column that isn't "category" is assumed to be a region -
   # allows for named regions
-  region_prevalence <- 
-    props_df[, grep("^category$", names(props_df), invert = TRUE)]
+  region_prevalence <- as.matrix(
+    props_df[, grep("^category$", names(props_df), invert = TRUE)],
+    ncol = ncol(props_df) - 1
+  )
 
   checkmate::assert_numeric(
-    as.matrix(region_prevalence),
+    region_prevalence,
     lower = 0,
     upper = 1,
     finite = TRUE
   )
 
+  # Fails when only 1 region as r_a_p remains a vector
   if (fixed_region_prevalences) {
     # Use region prevalences unchanged
     recruit_arm_prevalence <- as.matrix(
-      region_prevalence[, sites_in_region]
+      region_prevalence[, sites_in_region],
+      ncol = ncol(props_df) - 1
     )
+    
     # Scale columns to sum to 1
     recruit_arm_prevalence <- sweep(
       recruit_arm_prevalence,
