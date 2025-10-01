@@ -259,7 +259,7 @@ get_recruit_arm_prevalence <- function(
   )
 
   checkmate::assert_numeric(
-    as.matrix(region_prevalence),
+    region_prevalence,
     lower = 0,
     upper = 1,
     finite = TRUE
