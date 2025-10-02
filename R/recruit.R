@@ -185,7 +185,8 @@ treat_sums <- function(x, control_total, ...) {
 #' control arms (not used if `shared_control` is TRUE); defaults to FALSE.
 #' @param ... Additional arguments (none needed).
 #' @param no_treat_arms Number of treatment arms (as opposed to control 
-#' arms) - MUST use `no_treat_sums =` to set.
+#' arms); only needed if shared_control is FALSE. MUST use 
+#' `no_treat_sums =` to set.
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE. MUST use `shared_control =` to set.
@@ -201,6 +202,19 @@ treat_sums.array <- function(
   no_treat_arms,
   shared_control = TRUE
 ) {
+
+  # Check that arguments are consistent
+  if (!shared_control) {
+    checkmate::assert_logical(control_total)
+    checkmate::assert_integerish(
+      no_treat_arms,
+      lower = 1,
+      any.missing = FALSE,
+      len = 1,
+      null.ok = FALSE
+    )
+  }
+
   # Permute the array so that the first dimension is the
   # dimension you want to get sums for (experimental arms)
   arm_sums <-
@@ -260,7 +274,7 @@ do_choose_cap <- function(population, captotal) {
     # Use whole population if correct length
     capped <- population
   } else {  
-    # Sample      
+    # Sample    
     capped <- sample(population, size = captotal)
   }
 
