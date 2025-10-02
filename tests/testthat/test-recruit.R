@@ -82,7 +82,7 @@ test_that(paste(
 
 arr <- array(1:24, 2:4)
 
-test_that("treat_sums: sum by treatment a 3-D accrual array", {
+test_that("treat_sums: sum accrual array by treatment, shared control", {
   checkmate::expect_integer(
     treat_sums(arr),
     min.len = 1,
@@ -93,7 +93,7 @@ test_that("treat_sums: sum by treatment a 3-D accrual array", {
   )
 })
 
-test_that("treat_sums: output correct for valid array", {
+test_that("treat_sums: output correct for valid array, shared control", {
   expect_identical(
     treat_sums(arr),
     as.integer(c(84, 100, 116))
@@ -102,12 +102,28 @@ test_that("treat_sums: output correct for valid array", {
 
 #### With shared_control = FALSE & control_total = TRUE
 arr_notshared <- array(1:32, c(2, 4, 4))
-print(treat_sums(
-  arr_notshared, 
-  control_total = TRUE, 
-  no_treat_arms = 2, 
-  shared_control = FALSE
-))
+
+test_that("treat_sums: sum accrual array by treatment, separate control", {
+  checkmate::expect_integer(
+    treat_sums(
+      arr_notshared, 
+      control_total = TRUE, 
+      no_treat_arms = 2, 
+      shared_control = FALSE
+    ),
+    len = 2,
+    lower = 0,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+})
+
+test_that("treat_sums: output correct for valid array, separate control", {
+  expect_identical(
+    treat_sums(arr_notshared),
+    as.integer(108, 124, 140, 156)
+  )
+})
 
 ## Testing treat_sums on an accrual object
 
