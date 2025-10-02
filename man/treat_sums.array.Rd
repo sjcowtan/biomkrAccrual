@@ -15,7 +15,8 @@ control arms (not used if \code{shared_control} is TRUE); defaults to FALSE.}
 \item{...}{Additional arguments (none needed).}
 
 \item{no_treat_arms}{Number of treatment arms (as opposed to control
-arms) - MUST use \verb{no_treat_sums =} to set.}
+arms); only needed if shared_control is FALSE. MUST use
+\verb{no_treat_sums =} to set.}
 
 \item{shared_control}{TRUE if all treatment arms share the
 same control arm; FALSE if each treatment arm has its own

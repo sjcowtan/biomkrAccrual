@@ -1,5 +1,38 @@
 ### Testing accrual() constructor
 
+#### Separate control arms
+
+unshared_acc_obj <- accrual(
+  treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
+  shared_control = FALSE,
+  accrual_period = as.integer(12),
+  interim_period = as.integer(6),
+  control_ratio = c(1, 1),
+  fixed_site_rates = TRUE,
+  var_lambda = 0.25,
+  centres_df = data.frame(
+    site = 1:2,
+    start_month = c(1, 2),
+    mean_rate = c(10, 18),
+    region = c(1, 1),
+    site_cap = c(40, 20),
+    start_week = c(1, 5)
+  )
+)
+
+test_that(paste(
+  "accrual constructor: produces an object of classes",
+  "S7_object and biomkrAccrual::accrual"
+), {
+  checkmate::expect_class(unshared_acc_obj, c(
+    "biomkrAccrual::accrual",
+    "S7_object"
+  ))
+})
+
+
+#### Shared control arms
+
 fixed_acc_obj <- accrual(
   treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
   shared_control = TRUE,
@@ -43,7 +76,10 @@ test_that(paste(
 })
 
 
-### Testing treat_sums()
+### Testing treat_sums() 
+
+#### with shared_control = TRUE
+
 arr <- array(1:24, 2:4)
 
 test_that("treat_sums: sum by treatment a 3-D accrual array", {
@@ -63,6 +99,15 @@ test_that("treat_sums: output correct for valid array", {
     as.integer(c(84, 100, 116))
   )
 })
+
+#### With shared_control = FALSE & control_total = TRUE
+arr_notshared <- array(1:32, c(2, 4, 4))
+print(treat_sums(
+  arr_notshared, 
+  control_total = TRUE, 
+  no_treat_arms = 2, 
+  shared_control = FALSE
+))
 
 ## Testing treat_sums on an accrual object
 
@@ -95,6 +140,13 @@ test_that("do_choose_cap: does not produce extra repeats", {
         which(table_uncapped$uncapped %in% table_capped$capped),
       ]$Freq >= table_capped$Freq
     )
+  )
+})
+
+test_that("do_choose_cap: does not cap when unnecessary", {
+  expect_identical(
+    uncapped,
+    do_choose_cap(uncapped, 5)
   )
 })
 
