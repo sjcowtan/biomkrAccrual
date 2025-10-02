@@ -112,6 +112,8 @@ test_that("set_site_rates: fixed site rate is correct", {
 
 
 variable_acc_obj <- accrual(
+  target_arm_size = 20,
+  target_interim = 10,
   treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
   shared_control = TRUE,
   accrual_period = as.integer(12),
@@ -341,8 +343,12 @@ struct_obj <- trial_structure(
   fixed_region_prevalences = TRUE
 )
 
-#fixed_acc_obj <- apply_arm_cap(fixed_acc_obj)
-#print(fixed_acc_obj@accrual)
+# Change these so only the last week is over the cap
+
+fixed_acc_obj@target_arm_size <- as.integer(25)
+fixed_acc_obj@target_interim <- as.integer(15)
+
+fixed_acc_obj <- apply_arm_cap(fixed_acc_obj, struct_obj)
 
 # Testing get_weeks()
 

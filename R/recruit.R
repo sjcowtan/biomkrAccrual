@@ -260,7 +260,7 @@ do_choose_cap <- function(population, captotal) {
     # Use whole population if correct length
     capped <- population
   } else {  
-    # Sample      
+    # Sample    
     capped <- sample(population, size = captotal)
   }
 
