@@ -193,6 +193,7 @@ treat_sums <- function(x, control_total, ...) {
 #' 
 #' @return vector of total accrual by experimental arm.
 #' 
+#' @importFrom checkmate assert_logical assert_integerish
 #' @export
 #' 
 treat_sums.array <- function(
@@ -286,6 +287,8 @@ do_choose_cap <- function(population, captotal) {
 #' Currently 4 week month, fix later using lubridate
 #' @param months Duration in months
 #' @return Duration in weeks
+#' 
+#' @importFrom checkmate assert_numeric
 #' 
 get_weeks <- function(months) {
 

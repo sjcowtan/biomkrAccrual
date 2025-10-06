@@ -121,7 +121,7 @@ test_that("treat_sums: sum accrual array by treatment, separate control", {
 test_that("treat_sums: output correct for valid array, separate control", {
   expect_identical(
     treat_sums(arr_notshared),
-    as.integer(108, 124, 140, 156)
+    as.integer(c(108, 124, 140, 156))
   )
 })
 
