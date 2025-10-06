@@ -35,7 +35,7 @@ jobs:
             install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
           )
           print(cov)
-          print(covr::zero_coverage(cov))
+          print(covr::tally_coverage(cov, by = "line"))
         shell: Rscript {0}
 
       - name: Show testthat output
