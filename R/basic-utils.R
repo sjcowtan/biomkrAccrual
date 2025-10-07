@@ -4,12 +4,13 @@
 #' created for another purpose.
 #' 
 #' @param file_path Location of directory to check/create
-#' @param min_access Minimum access permissions ("rwx", "rx" etc.)
+#' @param min_access Minimum access permissions ("rwx", "rx" etc. -
+#' defaults to "rwx").
 #' 
 #' @importFrom checkmate test_directory_exists assert_access
 #' 
 
-makeifnot_dir <- function(file_path, min_access) {
+makeifnot_dir <- function(file_path, min_access = "rwx") {
   # Set up directory if does not already exist
   if (checkmate::test_directory_exists(file.path(
     file_path
