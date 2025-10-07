@@ -190,10 +190,10 @@ biomkrAccrual <- function(
   ), access = "r")
 
   # Set up output directory if does not already exist
-  makeifnot_dir(output_path, min_access = "rwx")
+  makeifnot_dir(output_path)
   
   # Set up output figures directory if does not already exist
-  makeifnot_dir(figs_path, min_access = "rwx")
+  makeifnot_dir(figs_path)
   
   # Read parameters
   prop_params_df <- utils::read.csv(system.file(
