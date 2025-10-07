@@ -1,3 +1,11 @@
+# Testing theme creation
+
+test_that("theme_bma creates a valid theme", {
+  expect_list(theme_bma())
+  checkmate::expect_class(theme_bma(), c("theme", "gg"))
+})
+
+
 # Testing postscript font name selector
 
 test_that("get_base_family returns a string", {
@@ -15,3 +23,6 @@ test_that("get_base_family returns either Arial or sans", {
     perl = TRUE
   )
 })
+
+
+# Testing 
