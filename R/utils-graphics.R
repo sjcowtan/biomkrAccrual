@@ -185,7 +185,7 @@ accrual_plot_from_file <- function(
 
   checkmate::assert_file_exists(file.path(input_file))
 
-  makeifnot_dir(figs_path, min_access = "rwx")
+  makeifnot_dir(figs_path)
 
   accrual_raw_df <- utils::read.csv(file.path(input_file))
 

@@ -7,12 +7,10 @@ issue error if it does exist but the minimum access
 requirements are not met, to avoid using directories
 created for another purpose.}
 \usage{
-makeifnot_dir(file_path, min_access)
+makeifnot_dir(file_path)
 }
 \arguments{
 \item{file_path}{Location of directory to check/create}
-
-\item{min_access}{Minimum access permissions ("rwx", "rx" etc.)}
 }
 \description{
 Create directory if it doesn't already exist, or
