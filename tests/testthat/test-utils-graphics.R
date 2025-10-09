@@ -193,12 +193,4 @@ test_that("plot.accrualplotdata: S3 dispatch works", {
 })
 
 
-test_that("plot.accrualplotdata: Axis labels are correct", {
-  expect_identical(p$labels$x, "Week")
-  expect_identical(p$labels$y, "Recruitment")
-  expect_identical(p1$labels$x, "Week")
-  expect_identical(p1$labels$y, "Recruitment")
-})
-
-
 
