@@ -1,5 +1,10 @@
-# biomkrAccrual
+# biomkrAccrual <img src="man/figures/logo.png" align="right" height="139" alt="" />
 ## Simulating recruitment at time of randomisation to adaptive trials with arm eligibility determined by biomarker status.
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/sjcowtan/biomkrAccrual/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sjcowtan/biomkrAccrual/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/github/sjcowtan/biomkrAccrual/graph/badge.svg?token=1LIAWRVBU3)](https://codecov.io/github/sjcowtan/biomkrAccrual)
+<!-- badges: end -->
 
 The `{biomkrAccrual}` package uses a Poisson-Gamma-Dirichlet model to simulate
 trial recruitment for multi-site, multi-region, multi-arm trials. Recruitment per 
