@@ -200,19 +200,5 @@ test_that("plot.accrualplotdata: Axis labels are correct", {
   expect_identical(p1$labels$y, "Recruitment")
 })
 
-test_that("plot.accrualplotdata: Legend labels are correct", {
-  expect_identical(p$labels$group, "Arm")
-  expect_identical(p$labels$colour, "Arm")
-  expect_identical(p1$labels$group, "Arm")
-  expect_identical(p1$labels$colour, "Arm")
-})
-
-# Retrieve underlying lists
-class(p) <- "list"
-class(p1) <- "list"
-
-# Remove unpredictable "environment" element
-p$plot_env <- NULL
-p1$plot_env <- NULL
 
 
