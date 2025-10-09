@@ -51,6 +51,13 @@ test_that("accrual_to_long: returns dataframe of correct format", {
 
 atl_out <- accrual_to_long(acc_df)
 
+test_that("accrual_to_long: output is of class accrualplotdata", {
+  checkmate::expect_class(
+    atl_out,
+    c("accrualplotdata", "data.frame")
+  )
+})
+
 test_that("accrual_to_long: correct column names", {
   checkmate::expect_set_equal(
     names(atl_out),
@@ -101,4 +108,111 @@ test_that("accrual_to_long: arm names in expected distribution", {
     rep(c("T1", "T2", "C"), each = 12)
   )
 })
+
+
+# Testing plot.accrualplotdata
+
+### Conveniently atl_out is of class accrualplotdata
+
+#### Thanks to Comevussor and hplieninger 
+#### https://stackoverflow.com/questions/31038709/
+#### how-to-write-a-test-for-a-ggplot-plot
+
+test_that("plot.accrualplotdata: produces an object of class ggplot", {
+  expect_silent(
+    plot.accrualplotdata(
+      atl_out,
+      target_arm_size = 40,
+      target_control = 80,
+      target_interim = 20,
+      accrual_period = 12,
+      interim_period = 6
+    )
+  )
+  expect_s3_class(
+    plot.accrualplotdata(
+      atl_out,
+      target_arm_size = 40,
+      target_control = 80,
+      target_interim = 20,
+      accrual_period = 12,
+      interim_period = 6
+    ),
+    "ggplot"
+  )
+})
+
+test_that("plot.accrualplotdata: dispatch is working for this class", {
+  expect_silent(
+    plot(
+      atl_out,
+      target_arm_size = 40,
+      target_control = 80,
+      target_interim = 20,
+      accrual_period = 12,
+      interim_period = 6
+    )
+  )
+  expect_s3_class(
+    plot(
+      atl_out,
+      target_arm_size = 40,
+      target_control = 80,
+      target_interim = 20,
+      accrual_period = 12,
+      interim_period = 6
+    ),
+    "ggplot"
+  )
+})
+
+p <- plot.accrualplotdata(
+  atl_out,
+  target_arm_size = 40,
+  target_control = 80,
+  target_interim = 20,
+  accrual_period = 12,
+  interim_period = 6
+)
+
+p1 <- plot(
+  atl_out,
+  target_arm_size = 40,
+  target_control = 80,
+  target_interim = 20,
+  accrual_period = 12,
+  interim_period = 6
+)
+print(names(p))
+
+test_that("plot.accrualplotdata: S3 dispatch works", {
+  expect_identical(
+    p$coordinates, 
+    p1$coordinates
+  )
+})
+
+
+test_that("plot.accrualplotdata: Axis labels are correct", {
+  expect_identical(p$labels$x, "Week")
+  expect_identical(p$labels$y, "Recruitment")
+  expect_identical(p1$labels$x, "Week")
+  expect_identical(p1$labels$y, "Recruitment")
+})
+
+test_that("plot.accrualplotdata: Legend labels are correct", {
+  expect_identical(p$labels$group, "Arm")
+  expect_identical(p$labels$colour, "Arm")
+  expect_identical(p1$labels$group, "Arm")
+  expect_identical(p1$labels$colour, "Arm")
+})
+
+# Retrieve underlying lists
+class(p) <- "list"
+class(p1) <- "list"
+
+# Remove unpredictable "environment" element
+p$plot_env <- NULL
+p1$plot_env <- NULL
+
 
