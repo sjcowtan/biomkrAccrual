@@ -1,4 +1,4 @@
-# biomkrAccrual
+# biomkrAccrual <img src="man/figures/logo.png" align="right" height="139" alt="" />
 ## Simulating recruitment at time of randomisation to adaptive trials with arm eligibility determined by biomarker status.
 
 <!-- badges: start -->
