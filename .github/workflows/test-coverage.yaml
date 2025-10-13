@@ -36,8 +36,6 @@ jobs:
           )
           print(cov)
           covr::to_cobertura(cov)
-          tally <- covr::tally_coverage(cov, by = "line")
-          print(tally[tally$value == 0, , drop = FALSE])
         shell: Rscript {0}
 
       - uses: codecov/codecov-action@v5
