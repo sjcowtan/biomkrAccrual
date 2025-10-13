@@ -64,10 +64,13 @@ get_base_family <- function() {
 
   if (any(grepl("Arial", avail_fontnames))) {
     base_family <- avail_fontnames[grep("Arial", avail_fontnames)[1]]
-  } else if (any(grepl("Calibri", avail_fontnames))) {
-    base_family <- avail_fontnames[grep("Calibri", avail_fontnames)[1]]
+    print("Arial")
+  } else if (any(grepl("Verdana", avail_fontnames))) {
+    base_family <- avail_fontnames[grep("Verdana", avail_fontnames)[1]]
+    print("Verdana")
   } else {
     base_family <- "sans"
+    print("sans")
   }
 
   return(base_family)

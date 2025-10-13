@@ -16,6 +16,8 @@ test_that("get_base_family returns a string", {
   )
 })
 
+print(get_base_family())
+
 test_that("get_base_family returns either Arial or sans", {
   expect_match(
     get_base_family(),
