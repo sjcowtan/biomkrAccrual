@@ -62,12 +62,25 @@ get_base_family <- function() {
 
   avail_fontnames <- names(avail_fonts)
 
+  sysinfo <- Sys.info()["sysname"]
+  platform <- .Platform$OS.type
+  if (!is.null(sysinfo)) {
+    if (tolower(sysinfo) == "darwin") {
+      base_family <- "Helvetica"
+    } else if (tolower(sysinfo) == "windows") {
+      # Arial is the default
+      base_family <- NULL
+    } else if (tolower(sysinfo) == "linux") {
+    }
+
+  }
+
   if (any(grepl("Arial", avail_fontnames)) && .Platform$OS.type != "windows") {
     base_family <- avail_fontnames[grep("Arial", avail_fontnames)[1]]
-    print("Arial")
+  } else if (.Platform.$OS.type == "windows") {
+    base_family <- NULL
   } else {
     base_family <- "sans"
-    print("sans")
   }
 
   return(base_family)
