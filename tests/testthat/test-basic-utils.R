@@ -6,6 +6,8 @@ if (!dir.exists(testpath)) {
   dir.create(testpath, mode = "0777")
 }
 
+print(dir.exists(testpath))
+
 testpath <- paste0(testpath, "/makeadir")
 
 test_that("Non-existant directory can be created", {
@@ -17,6 +19,8 @@ test_that("Non-existant directory can be created", {
     access = "rwx"
   )
 })
+
+print(dir.exists(testpath))
 
 test_that("Exits correctly if directory already exists", {
   expect_success(
