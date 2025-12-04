@@ -2,22 +2,18 @@
 #' Theme for ggplot2
 #' @param base_size Legend title size, all other sizes scaled appropriately 
 #' to this
-#' @param base_family Font family
 #' 
 #' @import ggplot2
 #' 
 theme_bma <- function(
-  base_size = 10, 
-  base_family = get_base_family()
+  base_size = 10
 ) {
 
   `%+replace%` <- ggplot2::`%+replace%`
 
-  base_family <- ifelse(is.null(base_family), get_base_family(), base_family)
-
-  ggplot2::theme_bw(base_size = base_size, base_family = base_family) %+replace%
+  ggplot2::theme_bw(base_size = base_size) %+replace%
     ggplot2::theme(
-      text = ggplot2::element_text(family = base_family),
+      text = ggplot2::element_text(size = base_size),
       plot.title = ggplot2::element_text(
         size = base_size + 6,
         margin = margin(0, 0, 13, 0),
@@ -43,47 +39,6 @@ theme_bma <- function(
       legend.title = ggplot2::element_text(size = base_size + 2),
       strip.background = ggplot2::element_rect(fill = "grey90")
     )
-}
-
-
-#' Set base font family for ggplot2.
-#' 
-#' @return Character string of the name of a postscript font related to 
-#' Arial if available, otherwise "sans".
-#' 
-#' @importFrom grDevices postscriptFonts
-#' 
-get_base_family <- function() {
-  avail_fonts <- tryCatch(
-    grDevices::postscriptFonts(),
-    error = function(cond) NULL,
-    warning = function(cond) NULL
-  )
-
-  avail_fontnames <- names(avail_fonts)
-
-  sysinfo <- Sys.info()["sysname"]
-  platform <- .Platform$OS.type
-  if (!is.null(sysinfo)) {
-    if (tolower(sysinfo) == "darwin") {
-      base_family <- "Helvetica"
-    } else if (tolower(sysinfo) == "windows") {
-      # Arial is the default
-      base_family <- NULL
-    } else if (tolower(sysinfo) == "linux") {
-    }
-
-  }
-
-  if (any(grepl("Arial", avail_fontnames)) && .Platform$OS.type != "windows") {
-    base_family <- avail_fontnames[grep("Arial", avail_fontnames)[1]]
-  } else if (.Platform.$OS.type == "windows") {
-    base_family <- NULL
-  } else {
-    base_family <- "sans"
-  }
-
-  return(base_family)
 }
 
 
