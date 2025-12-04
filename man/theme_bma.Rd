@@ -4,13 +4,11 @@
 \alias{theme_bma}
 \title{Theme for ggplot2}
 \usage{
-theme_bma(base_size = 10, base_family = get_base_family())
+theme_bma(base_size = 10)
 }
 \arguments{
 \item{base_size}{Legend title size, all other sizes scaled appropriately
 to this}
-
-\item{base_family}{Font family}
 }
 \description{
 Theme for ggplot2
