@@ -490,6 +490,7 @@ label_vlines <- function(
 #' @param plot_id Vector of plot type names (typically "Interim" and "Accrual").
 #' @param i Index of treatment arm to plot.
 #' 
+#' @import ggplot2
 #' 
 accrual_arm_plot <- function(
   data_df,
@@ -501,34 +502,42 @@ accrual_arm_plot <- function(
 ) {
   arm_names <- colnames(data_df)
 
-  if (length(unique(data_df[, i])) == 1) {
+  #if (length(unique(data_df[, i])) == 1) {
     # BODGE - don't want to see this but need it to produce graph
-    arm_col <- "white"
-    alpha <- 0.0001
-  } else {
+  #  arm_col <- "white"
+  #  alpha <- 0.0001
+  #} else {
     arm_col <- arm_colours[i]
     alpha <- 0.4
-  }
+  #}
+
+  binwidth <- max(
+    1,
+    (max(data_df[, i]) - min(data_df[, i])) %/% 30
+  )
+
+  print(binwidth)
 
 
   p <- ggplot2::ggplot(
     data = data_df
   ) +
-    ggplot2::geom_density(
+    ggplot2::geom_histogram(
       ggplot2::aes(x = .data[[arm_names[i]]]),
-      col = arm_col, fill = arm_col,
-      alpha = alpha, adjust = 1
+      col = "white", fill = arm_col,
+      alpha = alpha, 
+      binwidth = binwidth
     ) 
   
-  if (length(unique(data_df[, i])) == 1) {
-    p <- p +
-      ggplot2::geom_vline(
-        xintercept = unique(data_df[, i]),
-        linewidth = 2,
-        colour = arm_colours[i],
-        alpha = 0.4
-      )
-  }
+  #if (length(unique(data_df[, i])) == 1) {
+  #  p <- p +
+  #    ggplot2::geom_vline(
+  #      xintercept = unique(data_df[, i]),
+  #      linewidth = 2,
+  #      colour = arm_colours[i],
+  #      alpha = 0.4
+  #    )
+  #}
 
   p <- p + 
     ggplot2::geom_vline(
