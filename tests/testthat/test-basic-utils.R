@@ -9,7 +9,7 @@ if (!dir.exists(testpath)) {
 testpath <- paste0(testpath, "/makeadir")
 
 test_that("Non-existant directory can be created", {
-  expect_no_failure(
+  expect_success(
     makeifnot_dir(testpath)
   )
   checkmate::expect_directory_exists(
@@ -19,13 +19,15 @@ test_that("Non-existant directory can be created", {
 })
 
 test_that("Exits correctly if directory already exists", {
-  expect_no_failure(
+  expect_success(
     makeifnot_dir(testpath)
   )
 })
 
 # Make a non-writeable directory and test can't create directory in it
 dir.create(paste0(testpath, "/nonwriteable"), mode = "0555")
+print("Umask of nonwriteable")
+print(Sys.umask(paste0(testpath, "/nonwriteable")))
 
 bad_testpath <- paste0(testpath, "/nonwriteable/bad")
 
