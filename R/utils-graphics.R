@@ -425,8 +425,7 @@ label_vlines <- function(
     ggplot2::geom_text(
       data = abline_df,
       ggplot2::aes(x = x, y = y, label = label),
-      size = size,
-      family = get_base_family()
+      size = size
     )
 
   return(p)
