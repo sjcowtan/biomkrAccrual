@@ -5,7 +5,8 @@
 #' 
 #' @param file_path Location of directory to check/create
 #' 
-#' @importFrom checkmate test_directory_exists assert_access
+#' @importFrom checkmate test_directory_exists assertTRUE
+#' @importFrom R.utils fileAccess
 #' 
 
 makeifnot_dir <- function(file_path) {
@@ -14,9 +15,17 @@ makeifnot_dir <- function(file_path) {
     file_path
   ))) {
     # Can we write to it?
-    checkmate::assert_access(file.path(
-      file_path, access = "rwx"
-    )) 
+    ## checkmate::assert_access() relies on base::file.access()
+    ## which is unreliable on ubuntu and network drives
+    ## c.f. https://github.com/mllg/checkmate/issues/267
+    checkmate::assertTRUE(
+      all(
+        sapply(
+          c(0, 1, 2, 4), 
+          function(p)  R.utils::fileAccess(file_path, mode = p)
+        ) == 0
+      )
+    ) 
   } else {
     # Wrap me in a tryCatch
     tryCatch(
