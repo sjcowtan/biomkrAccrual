@@ -15,8 +15,7 @@ test_that("Non-existant directory can be created", {
     makeifnot_dir(testpath)
   )
   checkmate::expect_directory_exists(
-    testpath,
-    access = "rwx"
+    testpath
   )
 })
 
@@ -28,18 +27,19 @@ test_that("Exits correctly if directory already exists", {
   )
 })
 
-# Make a non-writeable directory and test can't create directory in it
-dir.create(paste0(testpath, "/nonwriteable"), mode = "0555")
-print("Umask of nonwriteable")
-print(Sys.umask(paste0(testpath, "/nonwriteable")))
+if (.Platform$OS.type == "unix") {
+  # Make a non-writeable directory and test can't create directory in it
+  dir.create(paste0(testpath, "/nonwriteable"), mode = "0555")
 
-bad_testpath <- paste0(testpath, "/nonwriteable/bad")
+  bad_testpath <- paste0(testpath, "/nonwriteable/bad")
 
-test_that("Fails if parent directory is not writeable", {
-  expect_error(
-    makeifnot_dir(bad_testpath)
-  )
-})
+  test_that("Fails if parent directory is not writeable", {
+    expect_error(
+      makeifnot_dir(bad_testpath)
+    )
+  })
+
+}
 
 # Clean up
 unlink(testpath, recursive = TRUE)
