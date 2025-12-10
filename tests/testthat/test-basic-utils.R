@@ -11,7 +11,7 @@ print(dir.exists(testpath))
 testpath <- paste0(testpath, "/makeadir")
 
 test_that("Non-existant directory can be created", {
-  expect_no_failure(
+  expect_no_error(
     makeifnot_dir(testpath)
   )
   checkmate::expect_directory_exists(
