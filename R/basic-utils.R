@@ -21,6 +21,7 @@ makeifnot_dir <- function(file_path) {
     checkmate::assertTRUE(
       all(
         sapply(
+          # Exists, read, write, execute
           c(0, 1, 2, 4), 
           function(p)  R.utils::fileAccess(file_path, mode = p)
         ) == 0
