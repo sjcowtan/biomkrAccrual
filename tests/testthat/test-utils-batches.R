@@ -1,7 +1,7 @@
 # Testing the code for running multiple simulations
 
 biomkrAccrualSim(
-  n = 500,
+  n = 50,
   target_arm_size = 20,
   target_interim = 10,
   target_control = 60,

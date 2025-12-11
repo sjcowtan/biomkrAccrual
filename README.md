@@ -4,6 +4,7 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/sjcowtan/biomkrAccrual/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sjcowtan/biomkrAccrual/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/github/sjcowtan/biomkrAccrual/graph/badge.svg?token=1LIAWRVBU3)](https://codecov.io/github/sjcowtan/biomkrAccrual)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 The `{biomkrAccrual}` package uses a Poisson-Gamma-Dirichlet model to simulate
