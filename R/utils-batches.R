@@ -188,6 +188,9 @@ biomkrAccrualSim <- function(
 
   # Interim plot
 
+  ### This is a bodge
+  target_interim_control <- target_control * target_interim / target_arm_size
+
   p <- plot(
     arm_interim_mx, 
     target = c(

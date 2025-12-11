@@ -2,22 +2,18 @@
 #' Theme for ggplot2
 #' @param base_size Legend title size, all other sizes scaled appropriately 
 #' to this
-#' @param base_family Font family
 #' 
 #' @import ggplot2
 #' 
 theme_bma <- function(
-  base_size = 10, 
-  base_family = get_base_family()
+  base_size = 10
 ) {
 
   `%+replace%` <- ggplot2::`%+replace%`
 
-  base_family <- ifelse(is.null(base_family), get_base_family(), base_family)
-
-  ggplot2::theme_bw(base_size = base_size, base_family = base_family) %+replace%
+  ggplot2::theme_bw(base_size = base_size) %+replace%
     ggplot2::theme(
-      text = ggplot2::element_text(family = base_family),
+      text = ggplot2::element_text(size = base_size),
       plot.title = ggplot2::element_text(
         size = base_size + 6,
         margin = margin(0, 0, 13, 0),
@@ -43,32 +39,6 @@ theme_bma <- function(
       legend.title = ggplot2::element_text(size = base_size + 2),
       strip.background = ggplot2::element_rect(fill = "grey90")
     )
-}
-
-
-#' Set base font family for ggplot2.
-#' 
-#' @return Character string of the name of a postscript font related to 
-#' Arial if available, otherwise "sans".
-#' 
-#' @importFrom grDevices postscriptFonts
-#' 
-get_base_family <- function() {
-  avail_fonts <- tryCatch(
-    grDevices::postscriptFonts(),
-    error = function(cond) NULL,
-    warning = function(cond) NULL
-  )
-
-  avail_fontnames <- names(avail_fonts)
-
-  if (any(grepl("Arial", avail_fontnames))) {
-    base_family <- avail_fontnames[grep("Arial", avail_fontnames)[1]]
-  } else {
-    base_family <- "sans"
-  }
-
-  return(base_family)
 }
 
 
@@ -455,8 +425,7 @@ label_vlines <- function(
     ggplot2::geom_text(
       data = abline_df,
       ggplot2::aes(x = x, y = y, label = label),
-      size = size,
-      family = get_base_family()
+      size = size
     )
 
   return(p)
@@ -475,6 +444,7 @@ label_vlines <- function(
 #' @param plot_id Vector of plot type names (typically "Interim" and "Accrual").
 #' @param i Index of treatment arm to plot.
 #' 
+#' @import ggplot2
 #' 
 accrual_arm_plot <- function(
   data_df,
@@ -486,34 +456,42 @@ accrual_arm_plot <- function(
 ) {
   arm_names <- colnames(data_df)
 
-  if (length(unique(data_df[, i])) == 1) {
+  #if (length(unique(data_df[, i])) == 1) {
     # BODGE - don't want to see this but need it to produce graph
-    arm_col <- "white"
-    alpha <- 0.0001
-  } else {
+  #  arm_col <- "white"
+  #  alpha <- 0.0001
+  #} else {
     arm_col <- arm_colours[i]
     alpha <- 0.4
-  }
+  #}
+
+  binwidth <- max(
+    1,
+    (max(data_df[, i]) - min(data_df[, i])) %/% 30
+  )
+
+  print(binwidth)
 
 
   p <- ggplot2::ggplot(
     data = data_df
   ) +
-    ggplot2::geom_density(
+    ggplot2::geom_histogram(
       ggplot2::aes(x = .data[[arm_names[i]]]),
-      col = arm_col, fill = arm_col,
-      alpha = alpha, adjust = 1
+      col = "white", fill = arm_col,
+      alpha = alpha, 
+      binwidth = binwidth
     ) 
   
-  if (length(unique(data_df[, i])) == 1) {
-    p <- p +
-      ggplot2::geom_vline(
-        xintercept = unique(data_df[, i]),
-        linewidth = 2,
-        colour = arm_colours[i],
-        alpha = 0.4
-      )
-  }
+  #if (length(unique(data_df[, i])) == 1) {
+  #  p <- p +
+  #    ggplot2::geom_vline(
+  #      xintercept = unique(data_df[, i]),
+  #      linewidth = 2,
+  #      colour = arm_colours[i],
+  #      alpha = 0.4
+  #    )
+  #}
 
   p <- p + 
     ggplot2::geom_vline(

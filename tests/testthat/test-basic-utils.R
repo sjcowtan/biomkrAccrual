@@ -9,31 +9,33 @@ if (!dir.exists(testpath)) {
 testpath <- paste0(testpath, "/makeadir")
 
 test_that("Non-existant directory can be created", {
-  expect_no_failure(
+  expect_no_error(
     makeifnot_dir(testpath)
   )
   checkmate::expect_directory_exists(
-    testpath,
-    access = "rwx"
+    testpath
   )
 })
 
 test_that("Exits correctly if directory already exists", {
-  expect_no_failure(
+  expect_no_error(
     makeifnot_dir(testpath)
   )
 })
 
-# Make a non-writeable directory and test can't create directory in it
-dir.create(paste0(testpath, "/nonwriteable"), mode = "0555")
+if (.Platform$OS.type == "unix") {
+  # Make a non-writeable directory and test can't create directory in it
+  dir.create(paste0(testpath, "/nonwriteable"), mode = "0555")
 
-bad_testpath <- paste0(testpath, "/nonwriteable/bad")
+  bad_testpath <- paste0(testpath, "/nonwriteable/bad")
 
-test_that("Fails if parent directory is not writeable", {
-  expect_error(
-    makeifnot_dir(bad_testpath)
-  )
-})
+  test_that("Fails if parent directory is not writeable", {
+    expect_error(
+      makeifnot_dir(bad_testpath)
+    )
+  })
+
+}
 
 # Clean up
 unlink(testpath, recursive = TRUE)

@@ -6,28 +6,14 @@ test_that("theme_bma creates a valid theme", {
 })
 
 
-# Testing postscript font name selector
-
-test_that("get_base_family returns a string", {
-  checkmate::expect_string(
-    get_base_family(),
-    null.ok = FALSE,
-    na.ok = FALSE
-  )
-})
-
-test_that("get_base_family returns either Arial or sans", {
-  expect_match(
-    get_base_family(),
-    "([Aa]rial)|(sans)",
-    perl = TRUE
-  )
-})
 
 
 # Testing get_arm_closures
 
+
 # Testing accrual_plot_from_file
+
+
 
 # Testing accrual_to_long
 
@@ -114,10 +100,6 @@ test_that("accrual_to_long: arm names in expected distribution", {
 
 ### Conveniently atl_out is of class accrualplotdata
 
-#### Thanks to Comevussor and hplieninger 
-#### https://stackoverflow.com/questions/31038709/
-#### how-to-write-a-test-for-a-ggplot-plot
-
 test_that("plot.accrualplotdata: produces an object of class ggplot", {
   expect_silent(
     plot.accrualplotdata(
@@ -193,4 +175,6 @@ test_that("plot.accrualplotdata: S3 dispatch works", {
 })
 
 
+# Testing plot.armtotals
 
+### Uses data from batch output

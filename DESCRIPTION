@@ -11,6 +11,7 @@ Depends:
 Imports: 
     jsonlite,
     rlang,
+    R.utils,
     withr,
     grDevices,
     checkmate (>= 2.3.0),
