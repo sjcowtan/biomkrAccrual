@@ -201,11 +201,37 @@ biomkrAccrualSim <- function(
       "Interim", "Interim\ncontrol", 
       "Accrual", "Accrual\ncontrol"
     ),
-    target_week = interim_period
+    target_week = interim_period,
+    plot_id = "Interim accrual"
   )
 
   ggplot2::ggsave(
     paste0(figs_path, "arm-totals-interim-", run_time, ".png"),
+    plot = p,
+    width = 12,
+    height = 8,
+    dpi = 400
+  )
+
+  print(p)
+
+
+  p <- plot(
+    arm_totals_mx, 
+    target = c(
+      target_interim, target_interim_control, 
+      target_arm_size, target_control
+    ), 
+    target_names = c(
+      "Interim", "Interim\ncontrol", 
+      "Accrual", "Accrual\ncontrol"
+    ),
+    target_week = accrual_period,
+    plot_id = "Total accrual"
+  )
+
+  ggplot2::ggsave(
+    paste0(figs_path, "arm-totals-", run_time, ".png"),
     plot = p,
     width = 12,
     height = 8,

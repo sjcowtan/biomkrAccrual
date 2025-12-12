@@ -344,6 +344,7 @@ plot.armtotals <- function(
   ...,
   target,
   target_names,
+  plot_id,
   adjust = 1
 ) {
   data_df <- matrix_to_long(x)
@@ -379,7 +380,7 @@ plot.armtotals <- function(
     ) +
     ggplot2::labs(
       y = "Probability density",
-      title = target_names[1],
+      title = plot_id,
     ) +
     theme_bma(base_size = 16)
 
@@ -469,9 +470,6 @@ accrual_arm_plot <- function(
     1,
     (max(data_df[, i]) - min(data_df[, i])) %/% 30
   )
-
-  print(binwidth)
-
 
   p <- ggplot2::ggplot(
     data = data_df
