@@ -325,11 +325,11 @@ plot.accrualplotdata <- function(
 #' 
 #' @param x Matrix with columns for each recruitment arm, 
 #' including control.
-#' @param ... Not used.
+#' @param ... For compliance with plot.default().
 #' @param target Vector of targets for recruitment. First two
 #' should be those directly relevant to the subject of the graph.
 #' @param target_names Vector of target names, for labelling.
-#' @param ... For compliance with plot.default().
+#' @param plot_id Type of plot for title, e.g. "Interim accrual".
 #' @param adjust The adjust parameter from `ggplot2::geom_density`;
 #' higher values mean more smoothing. Defaults to 1.
 #' 
@@ -344,6 +344,7 @@ plot.armtotals <- function(
   ...,
   target,
   target_names,
+  plot_id,
   adjust = 1
 ) {
   data_df <- matrix_to_long(x)
@@ -379,7 +380,7 @@ plot.armtotals <- function(
     ) +
     ggplot2::labs(
       y = "Probability density",
-      title = target_names[1],
+      title = plot_id,
     ) +
     theme_bma(base_size = 16)
 
@@ -469,9 +470,6 @@ accrual_arm_plot <- function(
     1,
     (max(data_df[, i]) - min(data_df[, i])) %/% 30
   )
-
-  print(binwidth)
-
 
   p <- ggplot2::ggplot(
     data = data_df

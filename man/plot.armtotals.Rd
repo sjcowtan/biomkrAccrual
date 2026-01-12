@@ -4,7 +4,7 @@
 \alias{plot.armtotals}
 \title{Plot distributions of recruitment to arms at given time.}
 \usage{
-\method{plot}{armtotals}(x, ..., target, target_names, adjust = 1)
+\method{plot}{armtotals}(x, ..., target, target_names, plot_id, adjust = 1)
 }
 \arguments{
 \item{x}{Matrix with columns for each recruitment arm,
@@ -16,6 +16,8 @@ including control.}
 should be those directly relevant to the subject of the graph.}
 
 \item{target_names}{Vector of target names, for labelling.}
+
+\item{plot_id}{Type of plot for title, e.g. "Interim accrual".}
 
 \item{adjust}{The adjust parameter from \code{ggplot2::geom_density};
 higher values mean more smoothing. Defaults to 1.}

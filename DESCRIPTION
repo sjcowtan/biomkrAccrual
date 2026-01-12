@@ -14,6 +14,7 @@ Imports:
     R.utils,
     withr,
     grDevices,
+    parallel,
     checkmate (>= 2.3.0),
     ggplot2 (>= 3.5.0),
     S7 (>= 0.1.1)
