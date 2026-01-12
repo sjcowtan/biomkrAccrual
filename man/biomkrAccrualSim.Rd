@@ -4,7 +4,9 @@
 \alias{biomkrAccrualSim}
 \title{Run a number of batches of recruitment prediction and
 collect summary statistics on arm closures, and final
-recruitment totals for all experimental and control arms}
+recruitment totals for all experimental and control arms.
+Seeds for each run are generated using the L'Ecuyer
+pseudo-random number generator.}
 \usage{
 biomkrAccrualSim(
   n = 100,
@@ -27,7 +29,8 @@ biomkrAccrualSim(
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
   quietly = FALSE,
-  keep_files = TRUE
+  keep_files = TRUE,
+  seed = 123456
 )
 }
 \arguments{
@@ -102,6 +105,8 @@ them.}
 
 \item{keep_files}{Save data files and plots generated during the run.
 Defaults to TRUE.}
+
+\item{seed}{Seed to be used to generate the seeds for each simulation.}
 }
 \value{
 Dataframe of site closing times
@@ -111,5 +116,7 @@ Dataframe of experimental arm totals
 \description{
 Run a number of batches of recruitment prediction and
 collect summary statistics on arm closures, and final
-recruitment totals for all experimental and control arms
+recruitment totals for all experimental and control arms.
+Seeds for each run are generated using the L'Ecuyer
+pseudo-random number generator.
 }

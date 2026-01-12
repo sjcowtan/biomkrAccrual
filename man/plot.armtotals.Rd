@@ -4,7 +4,7 @@
 \alias{plot.armtotals}
 \title{Plot distributions of recruitment to arms at given time.}
 \usage{
-\method{plot}{armtotals}(x, ..., target, target_names, adjust = 1)
+\method{plot}{armtotals}(x, ..., target, target_names, plot_id, adjust = 1)
 }
 \arguments{
 \item{x}{Matrix with columns for each recruitment arm,
