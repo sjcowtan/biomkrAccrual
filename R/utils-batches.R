@@ -1,6 +1,64 @@
+#' Set seeds for multiple simulations, using a new L'Ecuyer 
+#' stream for each one.
+#' 
+#' @param n No. runs
+#' @param seed Starting seed
+#' @return List of N sets of 7 seeds
+#' @importFrom parallel nextRNGStream nextRNGSubStream
+#' 
+
+getseeds <- function(
+  n = 5, 
+  seed = NULL
+) {
+
+  # Get current RNG and seed for current environment
+  oldrng <- RNGkind()[1L]
+  oldseed <- get(x = ".Random.seed", envir = as.environment(-1))
+
+  # On exit: Reset RNG and seed for current environment to previous value
+  on.exit(
+    set.seed(
+      kind = oldrng, 
+      seed = oldseed
+    )
+  )
+  if (is.null(seed)) {
+    seed <- oldseed
+  } 
+
+  # Make sure the seed is at least plausible
+  stopifnot(
+    is.numeric(seed), 
+    all(is.finite(seed))
+  )
+
+  # Set a L'Ecuyer seed
+  set.seed(
+    kind = "L'Ecuyer-CMRG", 
+    seed = seed
+  )
+  le_seed <- get(".Random.seed", envir = as.environment(-1))
+
+  # Initialise empty seed list, one per simulation
+  seeds <- vector(mode = "list", length = n)
+
+  for (i in 1:n) {
+    le_seed <- parallel::nextRNGStream(le_seed)
+    seeds[[i]] <- le_seed
+  }
+
+  return(seeds)
+}
+
+
+
 #' Run a number of batches of recruitment prediction and
 #' collect summary statistics on arm closures, and final
-#' recruitment totals for all experimental and control arms
+#' recruitment totals for all experimental and control arms.
+#' Seeds for each run are generated using the L'Ecuyer 
+#' pseudo-random number generator.
+#' 
 #' @param n Number of instances to run (defaults to 100)
 #' @param target_arm_size Number of patients required per 
 #' treatment arm
@@ -52,6 +110,7 @@
 #' them.
 #' @param keep_files Save data files and plots generated during the run. 
 #' Defaults to TRUE.
+#' @param seed Seed to be used to generate the seeds for each simulation.
 #' @return Dataframe of site closing times
 #' @return Dataframe of experimental arm totals
 #' @export
@@ -81,7 +140,8 @@ biomkrAccrualSim <- function(
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
   quietly = FALSE,
-  keep_files = TRUE
+  keep_files = TRUE,
+  seed = 123456
 ) {
   # Timestamp for batch files (but not individual run files)
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
@@ -123,8 +183,48 @@ biomkrAccrualSim <- function(
   }
   colnames(arm_interim_mx) <- colnames(arm_totals_mx)
 
+  # Get current RNG and seed for current environment
+  oldrng <- RNGkind()
+  oldseed <- get(x = ".Random.seed", envir = as.environment(-1))
+
+  # On exit: Reset RNG and seed for current environment to previous value
+  on.exit(
+    RNGkind(
+      oldrng[1L], 
+      normal.kind = oldrng[2L], 
+      sample.kind = oldrng[3L]
+    )
+  )
+  on.exit(
+    set.seed(
+      kind = oldrng[1L], 
+      seed = oldseed
+    ),
+    add = TRUE
+  )
+
+  # Generate a list of seeds, one per simulation
+  seeds <- getseeds(n, seed)
+
+  # Set the random number generator to the one compatible
+  # with RNGstreams
+  RNGkind(
+    kind = "L'Ecuyer-CMRG", 
+    normal.kind = "Inversion", 
+    sample.kind = "Rejection"
+  )
+
   # Run batches
   for (irun in seq(n)) {
+
+    # Set seed for next L'Ecuyer stream
+    assign(
+      x = ".Random.seed", 
+      value = seeds[[irun]],
+      envir = as.environment(-1)
+    )
+
+    # Run one simulation
     accrual_instance <- biomkrAccrual(
       target_arm_size = target_arm_size,
       target_interim = target_interim,
