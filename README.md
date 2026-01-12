@@ -38,10 +38,6 @@ one of which (the relationship of treatment arms to biomarker recruitment arms) 
 This is because flexibility is required, and they are intended to be driven by a dashboard 
 in future.
 
-This package will not pass R CMD Check because it is written using the new object orientation 
-system for R, `{S7}`, and CMD Check does not yet understand the syntax.
-
-
 Anisimov, V.V., Fedorov, V.V., 2007. Modelling, prediction and adaptive adjustment of 
 recruitment in multicentre trials. Statistics in Medicine 26, 4958–4975. 
 https://doi.org/10.1002/sim.2956
