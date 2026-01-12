@@ -325,11 +325,11 @@ plot.accrualplotdata <- function(
 #' 
 #' @param x Matrix with columns for each recruitment arm, 
 #' including control.
-#' @param ... Not used.
+#' @param ... For compliance with plot.default().
 #' @param target Vector of targets for recruitment. First two
 #' should be those directly relevant to the subject of the graph.
 #' @param target_names Vector of target names, for labelling.
-#' @param ... For compliance with plot.default().
+#' @param plot_id Type of plot for title, e.g. "Interim accrual".
 #' @param adjust The adjust parameter from `ggplot2::geom_density`;
 #' higher values mean more smoothing. Defaults to 1.
 #' 

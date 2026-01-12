@@ -17,6 +17,8 @@ should be those directly relevant to the subject of the graph.}
 
 \item{target_names}{Vector of target names, for labelling.}
 
+\item{plot_id}{Type of plot for title, e.g. "Interim accrual".}
+
 \item{adjust}{The adjust parameter from \code{ggplot2::geom_density};
 higher values mean more smoothing. Defaults to 1.}
 }
