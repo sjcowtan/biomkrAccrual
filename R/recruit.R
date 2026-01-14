@@ -271,6 +271,7 @@ treat_sums.array <- function(
 #' @return Vector of arms to cap (can include multiples of the same arm)
 #' 
 do_choose_cap <- function(population, captotal) {
+  cat("pop", population, "captotal", captotal, "\n")
   if (length(population) == captotal) { 
     # Use whole population if correct length
     capped <- population
@@ -361,16 +362,19 @@ S7::method(apply_site_cap, accrual) <- function(obj, ...) {
   # selected arms until sites are at cap 
   # Represents sites closing during the week
   site_captotal <- site_sums(obj) - obj@site_cap
+  cat("site_sums", site_sums(obj), "\n", "site_cap", obj@site_cap, "\n      diff", site_captotal, "\n\n")
 
   if (any(site_captotal > 0)) {
     # Loop over sites which are above the cap
     for (site in which(site_captotal > 0)) {
+      cat("Site", site, "\n")
       # Vector of instances of populated arms in week's accrual, 
       # including control, e.g. c(1, 1, 2, 4)
       population <- unlist(sapply(
         which(obj@accrual[obj@week, , site] > 0), 
         function(j) rep(j, obj@accrual[obj@week, j, site])
       ))
+      cat("Population", population, "\n")
 
       # Randomly select population instances to remove, leaving
       # enough to max out the cap
@@ -569,6 +573,8 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
           week_acc
       } else {
         # Extending a predefined array is a pain in the arse in R
+        cat("Extending array\n")
+        cat("Week acc\n", week_acc, "\n")
         accrual_obj@accrual <- array(
           c(
             as.vector(accrual_obj@accrual),
@@ -580,6 +586,8 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
           )
         ) 
       }
+
+      cat("Accrual obj\n", colSums(accrual_obj@accrual[dim(accrual_obj@accrual)[1], , ]), "\n\n")
 
       # Apply site cap
       accrual_obj <- apply_site_cap(accrual_obj)
