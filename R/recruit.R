@@ -564,8 +564,22 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
       week_acc <- week_acc_ls[[2]]
 
       # Assign the week's accrual to the object
-      accrual_obj@accrual[accrual_obj@week, , ] <-
-        week_acc
+      if (accrual_obj@week <= accrual_obj@accrual_period) { 
+        accrual_obj@accrual[accrual_obj@week, , ] <-
+          week_acc
+      } else {
+        # Extending a predefined array is a pain in the arse in R
+        accrual_obj@accrual <- array(
+          c(
+            as.vector(accrual_obj@accrual),
+            as.vector(week_acc)
+          ),
+          c(
+            dim(accrual_obj@accrual)[1] + 1,
+            dim(accrual_obj@accrual)[2:3]
+          )
+        ) 
+      }
 
       # Apply site cap
       accrual_obj <- apply_site_cap(accrual_obj)
