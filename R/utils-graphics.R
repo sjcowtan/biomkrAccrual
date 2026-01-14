@@ -60,7 +60,7 @@ theme_bma <- function(
 #' @importFrom utils read.csv write.csv
 #' 
 ##### Nothing is calling this?
-get_arm_closures <- function(
+get_arm_closures2 <- function(
   file_prefix = "closures",
   run_time = "2024-08-07-18-35-09",
   output_path = "../biomkrAccrual_output_data/",
@@ -457,14 +457,17 @@ accrual_arm_plot <- function(
 ) {
   arm_names <- colnames(data_df)
 
-  #if (length(unique(data_df[, i])) == 1) {
+  no_unique <- length(unique(data_df[, i]))
+
+  if (no_unique == 1) {
     # BODGE - don't want to see this but need it to produce graph
-  #  arm_col <- "white"
-  #  alpha <- 0.0001
-  #} else {
+    arm_col <- "white"
+    alpha <- 0.0001
+    unique_val <- unique(data_df[, i])
+  } else {
     arm_col <- arm_colours[i]
     alpha <- 0.4
-  #}
+  }
 
   binwidth <- max(
     1,
@@ -481,15 +484,15 @@ accrual_arm_plot <- function(
       binwidth = binwidth
     ) 
   
-  #if (length(unique(data_df[, i])) == 1) {
-  #  p <- p +
-  #    ggplot2::geom_vline(
-  #      xintercept = unique(data_df[, i]),
-  #      linewidth = 2,
-  #      colour = arm_colours[i],
-  #      alpha = 0.4
-  #    )
-  #}
+  if (length(unique(data_df[, i])) == 1) {
+    p <- p +
+      ggplot2::geom_vline(
+        xintercept = unique(data_df[, i]),
+        linewidth = 6,
+        colour = arm_colours[i],
+        alpha = 0.4
+      ) 
+  }
 
   p <- p + 
     ggplot2::geom_vline(
@@ -511,8 +514,17 @@ accrual_arm_plot <- function(
       y = "Probability density",
       title = paste(plot_id, "for", arm_names[i]),
     ) +
-    ggplot2::scale_x_continuous(expand = expansion(mult = 0.07)) +
     theme_bma(base_size = 16)
+  
+  if (length(unique(data_df[, i])) == 1) {
+    cat(c("Targets ", targets))
+    p <- p + ggplot2::scale_x_continuous(breaks = seq(
+      unique_val - 1, length.out = 3
+    ))
+  } else {
+    p <- p +
+      ggplot2::scale_x_continuous(expand = expansion(mult = 0.07))
+  }
 
   p <- label_vlines(
     p, 
