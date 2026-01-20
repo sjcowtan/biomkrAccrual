@@ -594,7 +594,7 @@ extend_week <- function(accrual, week_acc) {
   acc <- array(
     c(
       as.vector(acc),
-      as.vector(as.integer(rep(NA_integer_, length(week_acc))))
+      as.integer(as.vector(rep(0, length(week_acc))))
     ),
     c(
       dim(acc)[1:2],
