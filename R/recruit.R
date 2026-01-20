@@ -590,19 +590,23 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
 #' @param week_acc accrual for week
 #' 
 extend_week <- function(accrual, week_acc) {
-  acc <- aperm(accrual, c(3, 2, 1))
+  acc <- aperm(accrual, c(2, 3, 1))
   acc <- array(
     c(
       as.vector(acc),
-      as.vector(as.integer(rep(0, length(week_acc))))
+      as.vector(as.integer(rep(NA_integer_, length(week_acc))))
     ),
     c(
       dim(acc)[1:2],
       dim(acc)[3] + 1
     )
   ) 
-  acc <- aperm(acc, c(3, 2, 1))
-  acc[dim(acc)[1], , ] <- as.integer(week_acc)
+
+  # Week_acc is arms * sites
+  # accrual is weeks * arms * sites permuted to arms * sites * weeks
+  acc[, , dim(acc)[3]] <- as.integer(week_acc)
+  acc <- aperm(acc, c(3, 1, 2))
+  
   acc
 }
 

@@ -339,9 +339,7 @@ biomkrAccrualSim <- function(
   )
 
   print(p)
-
-  #
-
+  
 
   # Individual accrual plots
   arm_names <- dimnames(arm_totals_mx)[[2]]

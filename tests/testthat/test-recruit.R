@@ -451,4 +451,18 @@ test_that("get_weeks: does not work with null data", {
   expect_error(get_weeks(c(NULL)))
 })
 
+test_that("extend_week: appends a matrix to array by 3rd dim", {
+  expect_identical(
+    extend_week(
+      array(1:36, dim = c(3, 3, 2)),
+      matrix(1:6, ncol = 3, byrow = TRUE)
+    ),
+    array(
+      as.integer(
+        c(1:3, 1, 4:6, 4, 7:9, 2, 10:12, 5, 13:15, 3, 16:18, 6)
+      ),
+      dim = c(4, 3, 2)
+    )
+  )
+})
 

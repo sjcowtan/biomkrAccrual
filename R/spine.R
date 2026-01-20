@@ -315,7 +315,7 @@ biomkrAccrual <- function(
   accrual_instance@accrual <- 
     accrual_instance@accrual[seq(accrual_instance@week - 1), , ]
 
-  print(c("Accrual period:", dim(accrual_instance@accrual)[1], "Target", accrual_instance@accrual_period))
+  #print(c("Accrual period:", dim(accrual_instance@accrual)[1], "Target", accrual_instance@accrual_period))
   if (keep_files) {
     write.csv(
       accrual_instance@accrual, 
