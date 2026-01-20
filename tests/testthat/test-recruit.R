@@ -459,9 +459,9 @@ test_that("extend_week: appends a matrix to array by 3rd dim", {
     ),
     array(
       as.integer(
-        c(50, 1, 52, 2, 54, 3, 51, 4, 53, 5, 55, 6)
+        c(50, 1, 51, 4, 52, 2, 53, 5, 54, 3, 55, 6)
       ),
-      dim = c(2, 3, 2)
+      dim = c(2, 2, 3)
     )
   )
 })
