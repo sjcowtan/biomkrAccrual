@@ -295,9 +295,7 @@ biomkrAccrual <- function(
     # Any arms are recruiting
     any(trial_structure_instance@treatment_arm_struct) &&
       # Any sites are recruiting
-      length(accrual_instance@active_sites) > 0 &&
-      # Not out of time
-      accrual_instance@week <= accrual_instance@accrual_period
+      length(accrual_instance@active_sites) > 0 
   ) {
 
     # Add a week's accrual
