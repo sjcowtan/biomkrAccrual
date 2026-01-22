@@ -361,7 +361,6 @@ S7::method(apply_site_cap, accrual) <- function(obj, ...) {
   # selected arms until sites are at cap 
   # Represents sites closing during the week
   site_captotal <- site_sums(obj) - obj@site_cap
-
   if (any(site_captotal > 0)) {
     # Loop over sites which are above the cap
     for (site in which(site_captotal > 0)) {
@@ -371,7 +370,7 @@ S7::method(apply_site_cap, accrual) <- function(obj, ...) {
         which(obj@accrual[obj@week, , site] > 0), 
         function(j) rep(j, obj@accrual[obj@week, j, site])
       ))
-
+      
       # Randomly select population instances to remove, leaving
       # enough to max out the cap
       if (length(population) > 0) {
@@ -562,10 +561,15 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
       week_acc_ls <- week_accrue(accrual_obj, struct_obj)
       accrual_obj <- week_acc_ls[[1]]
       week_acc <- week_acc_ls[[2]]
-
+      
       # Assign the week's accrual to the object
-      accrual_obj@accrual[accrual_obj@week, , ] <-
-        week_acc
+      if (accrual_obj@week <= accrual_obj@accrual_period) { 
+        accrual_obj@accrual[accrual_obj@week, , ] <-
+          week_acc
+      } else {
+        # Extending a predefined array is a pain in the arse in R
+        accrual_obj@accrual <- extend_week(accrual_obj@accrual, week_acc)
+      }
 
       # Apply site cap
       accrual_obj <- apply_site_cap(accrual_obj)
@@ -580,6 +584,31 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
     return(list(accrual_obj, struct_obj))
   }
 
+
+#' Extend predefined array along week axis
+#' @param accrual accrual array
+#' @param week_acc accrual for week
+#' 
+extend_week <- function(accrual, week_acc) {
+  acc <- aperm(accrual, c(2, 3, 1))
+  acc <- array(
+    c(
+      as.vector(acc),
+      as.integer(as.vector(rep(0, length(week_acc))))
+    ),
+    c(
+      dim(acc)[1:2],
+      dim(acc)[3] + 1
+    )
+  ) 
+
+  # Week_acc is arms * sites
+  # accrual is weeks * arms * sites permuted to arms * sites * weeks
+  acc[, , dim(acc)[3]] <- as.integer(week_acc)
+  acc <- aperm(acc, c(3, 1, 2))
+  
+  acc
+}
 
 
 #' Check whether an object is of class "accrual".
