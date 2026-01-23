@@ -152,6 +152,12 @@ biomkrAccrualSim <- function(
       data_path, arms_file, package = "biomkrAccrual"
     ), simplifyVector = TRUE)
 
+  no_arms <- ifelse(
+    shared_control,
+    length(arms_ls) + 1,
+    2 * length(arms_ls)
+  )
+
   # Define matrix of zeroes for efficiency
   arm_closures_mx <- structure(
     matrix(0, nrow = n, ncol = length(arms_ls)),
@@ -173,6 +179,7 @@ biomkrAccrualSim <- function(
     )),
     class = c("armtotals", "matrix", "array")
   )
+  arm_accrual_ls <- list(length = n)
 
   # Set column names
   colnames(arm_closures_mx) <- names(arms_ls)
@@ -259,7 +266,29 @@ biomkrAccrualSim <- function(
         seq(accrual_instance@interim_period), , 
       ]
     )
+
+    # Don't know how many weeks to predeclare => not array. List of matrices
+    arm_accrual_ls[[irun]] <- apply(
+      accrual_instance@accrual,
+      1:2,
+      sum
+    )
   }
+
+  # Reformat accrual list to be all the same length
+  most_weeks <- max(unlist(lapply(arm_accrual_ls, nrow)))
+  accrual_ls <- lapply(1:n, function(x) matrix(
+    NA_integer_, 
+    ncol = most_weeks,
+    nrow = no_arms
+  ))
+  for (i in seq_len(n)) {
+    accrual_ls[[i]][seq_len(nrow(arm_accrual_ls[[i]])), ] <-
+      arm_accrual_ls[[i]]
+  }
+
+  # Now convert to array
+  arm_accrual_ar <- simplify2array(accrual_ls)
 
   # Keep copies of output, stamped with datetime
   datetime <- format(Sys.time(), "%y-%m-%d_%H-%M-%S")
