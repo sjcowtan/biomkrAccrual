@@ -606,6 +606,7 @@ extend_week <- function(accrual, week_acc) {
   # accrual is weeks * arms * sites permuted to arms * sites * weeks
   acc[, , dim(acc)[3]] <- as.integer(week_acc)
   acc <- aperm(acc, c(3, 1, 2))
+  dimnames(acc) <- dimnames(accrual)
   
   acc
 }

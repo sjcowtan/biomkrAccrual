@@ -277,11 +277,14 @@ biomkrAccrualSim <- function(
 
   # Reformat accrual list to be all the same length
   most_weeks <- max(unlist(lapply(arm_accrual_ls, nrow)))
-  accrual_ls <- lapply(1:n, function(x) matrix(
-    NA_integer_, 
-    ncol = most_weeks,
-    nrow = no_arms
-  ))
+  accrual_ls <- lapply(1:n, function(x) {
+    matrix(
+      0, 
+      nrow = most_weeks,
+      ncol = no_arms
+    )
+  })
+  
   for (i in seq_len(n)) {
     accrual_ls[[i]][seq_len(nrow(arm_accrual_ls[[i]])), ] <-
       arm_accrual_ls[[i]]
@@ -289,6 +292,17 @@ biomkrAccrualSim <- function(
 
   # Now convert to array
   arm_accrual_ar <- simplify2array(accrual_ls)
+  dimnames(arm_accrual_ar)[[2]] <- dimnames(accrual_instance@accrual)[[2]]
+  names(dimnames(arm_accrual_ar)) <- c("Week", "Arm", "Simulation")
+
+
+  # And now to a list of matrices by arm
+  accrual_byarm_ls <- asplit(arm_accrual_ar, 2)
+  accrual_byarm_ls <- lapply(
+    accrual_byarm_ls,
+    function(m) structure(m, class = c("armaccrual", "matrix", "array"))
+  )
+  cat("Class", class(accrual_byarm_ls[[2]]), "\n")
 
   # Keep copies of output, stamped with datetime
   datetime <- format(Sys.time(), "%y-%m-%d_%H-%M-%S")
@@ -309,6 +323,11 @@ biomkrAccrualSim <- function(
     as.data.frame(arm_interim_mx),
     paste0(output_path, "arm_interim_totals_", datetime, ".csv"),
     row.names = FALSE
+  )
+
+  jsonlite::write_json(
+    accrual_byarm_ls,
+    paste0(output_path, "arm_accrual_", datetime, ".json")
   )
 
   print(summary(as.data.frame(arm_closures_mx)))
