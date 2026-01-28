@@ -302,7 +302,6 @@ biomkrAccrualSim <- function(
     accrual_byarm_ls,
     function(m) structure(m, class = c("armaccrual", "matrix", "array"))
   )
-  cat("Class", class(accrual_byarm_ls[[2]]), "\n")
 
   # Keep copies of output, stamped with datetime
   datetime <- format(Sys.time(), "%y-%m-%d_%H-%M-%S")
@@ -325,6 +324,8 @@ biomkrAccrualSim <- function(
     row.names = FALSE
   )
 
+  # Write simulation data as a JSON of a list, one element per
+  # arm, consisting of matrices of simulation number * week
   jsonlite::write_json(
     accrual_byarm_ls,
     paste0(output_path, "arm_accrual_", datetime, ".json")
@@ -394,6 +395,7 @@ biomkrAccrualSim <- function(
 
   ## Mark arms as treatment or control
   treatment_arms <- startsWith(arm_names, "T")
+  cat("TA", treatment_arms, "\n")
 
   ## Same colours as in interim plot
   col_order <- c(seq_len(length(treatment_arms))[-1], 1)
@@ -443,6 +445,15 @@ biomkrAccrualSim <- function(
 
       print(p)
     }
+  }
+
+  ## Plot simulations for each arm
+
+  for (i in seq_len(length(accrual_byarm_ls))) {
+    p <- plot(
+      accrual_byarm_ls[[i]]
+    )
+    print(p)
   }
 }
 

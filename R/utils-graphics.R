@@ -517,7 +517,6 @@ accrual_arm_plot <- function(
     theme_bma(base_size = 16)
   
   if (length(unique(data_df[, i])) == 1) {
-    cat(c("Targets ", targets))
     p <- p + ggplot2::scale_x_continuous(breaks = seq(
       unique_val - 1, length.out = 3
     ))
@@ -541,4 +540,101 @@ accrual_arm_plot <- function(
   )
 
   return(p)
+}
+
+
+#' Plot simulations of recruitment to given arm over time.
+#' 
+#' @param x Matrix with columns for each simulation.
+#' @param ... For compliance with plot.default().
+#' @param target Vector of targets for recruitment. First two
+#' should be those directly relevant to the subject of the graph.
+#' @param target_names Vector of target names, for labelling.
+#' @param plot_id Type of plot for title, e.g. "Treatment A".
+#' @param adjust The adjust parameter from `ggplot2::geom_density`;
+#' higher values mean more smoothing. Defaults to 1.
+#' 
+#' @importFrom stats reshape
+#' @import ggplot2
+#' @importFrom grDevices palette.colors
+#' 
+#' @export
+#' 
+plot.armaccrual <- function(
+  x,
+  ...,
+  target,
+  target_names,
+  plot_id,
+  adjust = 1
+) {
+
+  dimnames(x) <- list(
+    Week = seq_len(nrow(x)),
+    Simulation = c(seq_len(ncol(x)))
+  )
+
+  data_mx <- apply(x, 2, cumsum)
+
+  sds <- apply(data_mx, 1, function(x) sd(x))
+  ribbonwidth <- qt(
+    1 - 0.005 / 2,
+    length(sds) - 1
+  ) * sds / sqrt(length(sds))
+  means <- rowMeans(data_mx)
+
+  data_df <- stats::reshape(
+    as.data.frame(data_mx),
+    direction = "long",
+    varying = colnames(x),
+    timevar = "Simulation",
+    times = colnames(x),
+    v.names = "Recruitment",
+    idvar = "Week"
+  )
+
+  data_df$Simulation <- as.factor(data_df$Simulation)
+
+  # Now summary data for ribbon
+  ribbon_df <- data.frame(
+    Week = seq_len(nrow(data_mx)),
+    Mean = rowMeans(data_mx),
+    Lower = means - ribbonwidth,
+    Upper = means + ribbonwidth
+  )
+
+  print(summary(ribbon_df))
+
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_line(
+      data = data_df,
+      ggplot2::aes(
+        x = Week,  
+        y = Recruitment
+      ),
+      alpha = 0.2,
+      col = "grey75"
+    ) +
+    ggplot2::geom_ribbon(
+      data = ribbon_df,
+      ggplot2::aes(
+        x = Week,
+        ymin = Lower,
+        ymax = Upper
+      ),
+      col = "steelblue",
+      alpha = 0.5
+    ) +
+    ggplot2::geom_line(
+      data = ribbon_df,
+      ggplot2::aes(
+        x = Week,
+        y = Mean
+      ),
+      col = "steelblue",
+      size = 1
+    ) +
+    theme_bma(
+      base_size = 14
+    )
 }
