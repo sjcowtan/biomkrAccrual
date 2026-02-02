@@ -4,7 +4,7 @@
 \alias{plot.armaccrual}
 \title{Plot simulations of recruitment to given arm over time.}
 \usage{
-\method{plot}{armaccrual}(x, ..., arm_colour, target, target_names, plot_id, adjust = 1)
+\method{plot}{armaccrual}(x, ..., arm_colour, target, target_names, plot_id)
 }
 \arguments{
 \item{x}{Matrix with columns for each simulation.}
@@ -17,9 +17,6 @@ should be those directly relevant to the subject of the graph.}
 \item{target_names}{Vector of target names, for labelling.}
 
 \item{plot_id}{Type of plot for title, e.g. "Treatment A".}
-
-\item{adjust}{The adjust parameter from \code{ggplot2::geom_density};
-higher values mean more smoothing. Defaults to 1.}
 }
 \description{
 Plot simulations of recruitment to given arm over time.

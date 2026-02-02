@@ -551,8 +551,6 @@ accrual_arm_plot <- function(
 #' should be those directly relevant to the subject of the graph.
 #' @param target_names Vector of target names, for labelling.
 #' @param plot_id Type of plot for title, e.g. "Treatment A".
-#' @param adjust The adjust parameter from `ggplot2::geom_density`;
-#' higher values mean more smoothing. Defaults to 1.
 #' 
 #' @importFrom stats reshape
 #' @import ggplot2
@@ -563,10 +561,10 @@ accrual_arm_plot <- function(
 plot.armaccrual <- function(
   x,
   ...,
+  arm_colour,
   target,
   target_names,
-  plot_id,
-  adjust = 1
+  plot_id
 ) {
 
   dimnames(x) <- list(
@@ -576,12 +574,9 @@ plot.armaccrual <- function(
 
   data_mx <- apply(x, 2, cumsum)
 
-  sds <- apply(data_mx, 1, function(x) sd(x))
-  ribbonwidth <- qt(
-    1 - 0.005 / 2,
-    length(sds) - 1
-  ) * sds / sqrt(length(sds))
-  means <- rowMeans(data_mx)
+
+  ribbonwidth <- apply(data_mx, 1, function(x) quantile(x, c(0.025, 0.975)))
+
 
   data_df <- stats::reshape(
     as.data.frame(data_mx),
@@ -596,14 +591,20 @@ plot.armaccrual <- function(
   data_df$Simulation <- as.factor(data_df$Simulation)
 
   # Now summary data for ribbon
-  ribbon_df <- data.frame(
-    Week = seq_len(nrow(data_mx)),
-    Mean = rowMeans(data_mx),
-    Lower = means - ribbonwidth,
-    Upper = means + ribbonwidth
-  )
+  ribbon_df <- as.data.frame(t(apply(
+    data_mx, 1, function(x) quantile(x, c(0.025, 0.975))
+  )))
+  names(ribbon_df) <- c("Lower", "Upper")
 
-  print(summary(ribbon_df))
+  ribbon_df$Week <- seq_len(nrow(data_mx))
+  ribbon_df$Mean <- rowMeans(data_mx)
+
+  # Label hlines
+  hline_df <- data.frame(
+    x = nrow(data_mx) * .90,
+    y = target,  
+    label = paste(target_names, "\ntarget")
+  )
 
   p <- ggplot2::ggplot() +
     ggplot2::geom_line(
@@ -613,7 +614,7 @@ plot.armaccrual <- function(
         y = Recruitment
       ),
       alpha = 0.2,
-      col = "grey75"
+      col = "grey65"
     ) +
     ggplot2::geom_ribbon(
       data = ribbon_df,
@@ -622,8 +623,25 @@ plot.armaccrual <- function(
         ymin = Lower,
         ymax = Upper
       ),
-      col = "steelblue",
-      alpha = 0.5
+      fill = arm_colour,
+      alpha = 0.2
+    ) +
+    ggplot2::geom_hline(
+      yintercept = target[1],
+      linewidth = 1,
+      linetype = 2,
+      color = "grey75"
+    ) +
+    ggplot2::geom_hline(
+      yintercept = target[2],
+      linewidth = 1,
+      linetype = 2,
+      color = "grey75"
+    ) +
+    ggplot2::geom_text(
+      data = hline_df,
+      ggplot2::aes(x = x, y = y, label = label),
+      size = 6
     ) +
     ggplot2::geom_line(
       data = ribbon_df,
@@ -631,9 +649,10 @@ plot.armaccrual <- function(
         x = Week,
         y = Mean
       ),
-      col = "steelblue",
+      col = arm_colour,
       size = 1
     ) +
+    ggtitle(paste(plot_id, "accrual")) +
     theme_bma(
       base_size = 14
     )

@@ -395,7 +395,6 @@ biomkrAccrualSim <- function(
 
   ## Mark arms as treatment or control
   treatment_arms <- startsWith(arm_names, "T")
-  cat("TA", treatment_arms, "\n")
 
   ## Same colours as in interim plot
   col_order <- c(seq_len(length(treatment_arms))[-1], 1)
@@ -450,8 +449,32 @@ biomkrAccrualSim <- function(
   ## Plot simulations for each arm
 
   for (i in seq_len(length(accrual_byarm_ls))) {
+    target_index <- 2 - as.numeric(treatment_arms[[i]])
+    name <- names(accrual_byarm_ls)[[i]]
     p <- plot(
-      accrual_byarm_ls[[i]]
+      accrual_byarm_ls[[i]],
+      arm_colour = arm_colours[i],
+      target = c(
+        target_ls[[1]][target_index], 
+        target_ls[[2]][target_index]
+      ),
+      target_names = c("Interim", "Accrual"),
+      plot_id = name
+    )
+    ggplot2::ggsave(
+      paste0(
+        figs_path, 
+        "arm-accrual-",
+        tolower(names(data_ls)[j]),
+        "-",
+        arm_names[i], "-", 
+        run_time, 
+        ".png"
+      ),
+      plot = p,
+      width = 12,
+      height = 8,
+      dpi = 400
     )
     print(p)
   }
