@@ -59,7 +59,6 @@
 #' biomkrAccrual()
 #' 
 #' @import checkmate 
-#' @import base64enc
 #' @importFrom jsonlite read_json
 #' @importFrom rlang abort warn
 #' @importFrom utils read.csv
