@@ -547,6 +547,7 @@ accrual_arm_plot <- function(
 #' 
 #' @param x Matrix with columns for each simulation.
 #' @param ... For compliance with plot.default().
+#' @param arm_colour Hexadecimal colour associated with arm.
 #' @param target Vector of targets for recruitment. First two
 #' should be those directly relevant to the subject of the graph.
 #' @param target_names Vector of target names, for labelling.

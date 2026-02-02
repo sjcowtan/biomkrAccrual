@@ -11,6 +11,8 @@
 
 \item{...}{For compliance with plot.default().}
 
+\item{arm_colour}{Hexadecimal colour associated with arm.}
+
 \item{target}{Vector of targets for recruitment. First two
 should be those directly relevant to the subject of the graph.}
 
