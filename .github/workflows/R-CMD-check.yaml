@@ -42,6 +42,7 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: 
+            any::base64enc
             any::rcmdcheck
           needs: check
 
