@@ -446,7 +446,7 @@ biomkrAccrualSim <- function(
     }
   }
 
-  ## Plot simulations for each arm
+  ## Plot simulations over time for each arm
 
   for (i in seq_len(length(accrual_byarm_ls))) {
     target_index <- 2 - as.numeric(treatment_arms[[i]])
