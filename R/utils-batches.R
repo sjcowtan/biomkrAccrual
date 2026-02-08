@@ -52,7 +52,6 @@ getseeds <- function(
 }
 
 
-
 #' Run a number of batches of recruitment prediction and
 #' collect summary statistics on arm closures, and final
 #' recruitment totals for all experimental and control arms.
@@ -398,8 +397,13 @@ biomkrAccrualSim <- function(
 
   ## Same colours as in interim plot
   col_order <- c(seq_len(length(treatment_arms))[-1], 1)
-  arm_colours <- grDevices::palette.colors(length(treatment_arms))[col_order]
-  
+  palette <- grDevices::palette.colors(
+    palette = "R4",
+    length(treatment_arms) + 1
+    # One pink is more than enough
+  )[-6]
+  arm_colours <- palette[col_order]
+
   
 
   # Total accrual plots
@@ -478,6 +482,44 @@ biomkrAccrualSim <- function(
     )
     print(p)
   }
+
+  # Plot time to accrual for each target and each arm
+  for (i in seq_len(length(accrual_byarm_ls))) {
+    # Treatment or control arms?
+    target_index <- 2 - as.numeric(treatment_arms[[i]])
+    # Data extraction for interim and accrual
+    accrual_times <- threshold_week(
+      accrual_byarm_ls[[i]], 
+      sapply(target_ls, function(t) t[target_index])
+    )
+
+    for (j in 1:2) {
+      p <- plot(
+        accrual_times[[j]],
+        arm_colour = arm_colours[i],
+        target = target_ls[[j]][target_index],
+        target_names = c("Interim", "Total")[j],
+        plot_id = names(accrual_byarm_ls)[[i]]
+      )
+      ggplot2::ggsave(
+        paste0(
+          figs_path, 
+          "arm-week-", 
+          names(accrual_byarm_ls)[[i]],
+          "-",
+          c("Interim", "Total")[j], 
+          "-",
+          run_time, 
+          ".png"
+        ),
+        plot = p,
+        width = 12,
+        height = 8,
+        dpi = 400
+      )
+      print(p)
+    }
+  }
 }
 
 
@@ -501,3 +543,4 @@ matrix_to_long <- function(data) {
 
   return(data_df)
 }
+

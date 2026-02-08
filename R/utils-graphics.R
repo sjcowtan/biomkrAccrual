@@ -466,7 +466,7 @@ accrual_arm_plot <- function(
     unique_val <- unique(data_df[, i])
   } else {
     arm_col <- arm_colours[i]
-    alpha <- 0.4
+    alpha <- 0.6
   }
 
   binwidth <- max(
@@ -657,4 +657,154 @@ plot.armaccrual <- function(
     theme_bma(
       base_size = 14
     )
+}
+
+
+
+#' Extract from a simulation * week accrual matrix for a 
+#' specific trial arm, the week in which an arm target 
+#' threshold or thresholds are first met or exceeded for 
+#' each simulation.
+#' 
+#' @param accrual Matrix of accrual data for a given arm
+#' @param targets Target threshold(s) for recruitment.
+#' 
+#' @return List of vectors of the weeks in which each simulation
+#' reaches the target accrual threshold.
+#' 
+threshold_week <- function(accrual, targets) {
+  # Use cumulative version of accrual matrix
+  accrual_cumsum_mx <- apply(
+    accrual,
+    2,
+    cumsum
+  )
+  # Which week, if any, does simulation exceed target
+  accrual_times_ls <- vector(mode = "list", length = length(targets))
+
+  # Get list of vectors of weeks accrual meets threshold
+  for (i in seq_len(length(targets))){
+    accrual_times_ls[[i]] <- apply(
+      accrual_cumsum_mx,
+      2,
+      function(x) {
+        which(x >= targets[i])[1]
+      }
+    )
+    # Set class so can use plot method
+    accrual_times_ls[[i]] <- structure(
+      accrual_times_ls[[i]],
+      class = c("targetweek", "integer")
+    )
+
+  }
+  return(accrual_times_ls)
+}
+
+
+#' Plot distribution of time to accrual to a specified
+#' target for a specified arm.
+#' 
+#' @param x Vector of times to accrual.
+#' @param ... For compliance with plot.default().
+#' @param arm_colour Hexadecimal colour associated with arm.
+#' @param target Accrual target, for labelling.
+#' @param target_names Target name, for labelling.
+#' @param plot_id Type of plot for title, e.g. "Treatment A".
+#' 
+#' @importFrom stats reshape
+#' @import ggplot2
+#' @importFrom grDevices palette.colors
+#' 
+#' @export
+#' 
+plot.targetweek <- function(
+  x,
+  ...,
+  arm_colour,
+  target,
+  target_names = NULL,
+  plot_id
+) {
+  if (all(is.na(x))) {
+    message(paste(
+      "No simulations of arm", plot_id, 
+      "reached the target", target
+    ))
+    return(NULL)
+  }
+
+  target_names <- tolower(target_names)
+
+  plot_label <- paste0(
+    "Week in which accrual to ",
+    plot_id,
+    " met the ",
+    ifelse(is.null(target_names), "", paste0(target_names, " ")),
+    "target of ", 
+    target
+  )
+  plot_sublabel <- paste(
+    sum(is.na(x)),
+    "of",
+    length(x),
+    "simulations did not reach the target before all sites were closed"
+  )
+
+  no_unique <- length(unique(x[!is.na(x)]))
+
+  if (no_unique == 1) {
+    # BODGE - don't want to see this but need it to produce graph
+    arm_col <- "white"
+    alpha <- 0.0001
+    unique_val <- unique(x[!is.na(x)])
+  } else {
+    arm_col <- arm_colour
+    alpha <- 0.6
+  }
+
+
+  xrange <- range(x, na.rm = TRUE)
+  ticksep <- 1 + diff(xrange) %/% 20
+  xmin <- xrange[1] - (xrange[1] %% ticksep)
+  xmax <- xrange[2] + (ifelse(xrange[2] %% ticksep > 0, ticksep, 0))
+
+
+  p <- ggplot2::ggplot(data.frame(x = x[!is.na(x)])) +
+    ggplot2::geom_histogram(
+      ggplot2::aes(x = x),
+      col = "white", fill = arm_col,
+      alpha = alpha,
+      binwidth = 1
+    ) +
+    ggplot2::scale_x_continuous(
+      breaks = seq(
+        xmin, 
+        xmax, 
+        ticksep
+      )
+    )
+  
+  if (no_unique == 1) {
+    p <- p +
+      ggplot2::geom_vline(
+        xintercept = unique_val,
+        linewidth = 6,
+        colour = arm_colours[i],
+        alpha = 0.4
+      )
+  }
+    
+    
+  p <- p +
+    labs(
+      title = plot_label,
+      subtitle = plot_sublabel,
+      x = "Week",
+      y = "Count"
+    ) +
+    theme_bma(base_size = 14)
+
+  return(p)
+
 }
