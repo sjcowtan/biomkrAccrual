@@ -52,7 +52,6 @@ getseeds <- function(
 }
 
 
-
 #' Run a number of batches of recruitment prediction and
 #' collect summary statistics on arm closures, and final
 #' recruitment totals for all experimental and control arms.
@@ -152,6 +151,12 @@ biomkrAccrualSim <- function(
       data_path, arms_file, package = "biomkrAccrual"
     ), simplifyVector = TRUE)
 
+  no_arms <- ifelse(
+    shared_control,
+    length(arms_ls) + 1,
+    2 * length(arms_ls)
+  )
+
   # Define matrix of zeroes for efficiency
   arm_closures_mx <- structure(
     matrix(0, nrow = n, ncol = length(arms_ls)),
@@ -173,6 +178,7 @@ biomkrAccrualSim <- function(
     )),
     class = c("armtotals", "matrix", "array")
   )
+  arm_accrual_ls <- list(length = n)
 
   # Set column names
   colnames(arm_closures_mx) <- names(arms_ls)
@@ -259,7 +265,42 @@ biomkrAccrualSim <- function(
         seq(accrual_instance@interim_period), , 
       ]
     )
+
+    # Don't know how many weeks to predeclare => not array. List of matrices
+    arm_accrual_ls[[irun]] <- apply(
+      accrual_instance@accrual,
+      1:2,
+      sum
+    )
   }
+
+  # Reformat accrual list to be all the same length
+  most_weeks <- max(unlist(lapply(arm_accrual_ls, nrow)))
+  accrual_ls <- lapply(1:n, function(x) {
+    matrix(
+      0, 
+      nrow = most_weeks,
+      ncol = no_arms
+    )
+  })
+  
+  for (i in seq_len(n)) {
+    accrual_ls[[i]][seq_len(nrow(arm_accrual_ls[[i]])), ] <-
+      arm_accrual_ls[[i]]
+  }
+
+  # Now convert to array
+  arm_accrual_ar <- simplify2array(accrual_ls)
+  dimnames(arm_accrual_ar)[[2]] <- dimnames(accrual_instance@accrual)[[2]]
+  names(dimnames(arm_accrual_ar)) <- c("Week", "Arm", "Simulation")
+
+
+  # And now to a list of matrices by arm
+  accrual_byarm_ls <- asplit(arm_accrual_ar, 2)
+  accrual_byarm_ls <- lapply(
+    accrual_byarm_ls,
+    function(m) structure(m, class = c("armaccrual", "matrix", "array"))
+  )
 
   # Keep copies of output, stamped with datetime
   datetime <- format(Sys.time(), "%y-%m-%d_%H-%M-%S")
@@ -280,6 +321,13 @@ biomkrAccrualSim <- function(
     as.data.frame(arm_interim_mx),
     paste0(output_path, "arm_interim_totals_", datetime, ".csv"),
     row.names = FALSE
+  )
+
+  # Write simulation data as a JSON of a list, one element per
+  # arm, consisting of matrices of simulation number * week
+  jsonlite::write_json(
+    accrual_byarm_ls,
+    paste0(output_path, "arm_accrual_", datetime, ".json")
   )
 
   print(summary(as.data.frame(arm_closures_mx)))
@@ -349,10 +397,14 @@ biomkrAccrualSim <- function(
 
   ## Same colours as in interim plot
   col_order <- c(seq_len(length(treatment_arms))[-1], 1)
-  arm_colours <- grDevices::palette.colors(length(treatment_arms))[col_order]
-  
-  
+  palette <- grDevices::palette.colors(
+    palette = "R4",
+    length(treatment_arms) + 1
+    # One pink is more than enough
+  )[-6]
+  arm_colours <- palette[col_order]
 
+  
   # Total accrual plots
 
   data_ls <- list(
@@ -396,6 +448,77 @@ biomkrAccrualSim <- function(
       print(p)
     }
   }
+
+  ## Plot simulations over time for each arm
+
+  for (i in seq_len(length(accrual_byarm_ls))) {
+    target_index <- 2 - as.numeric(treatment_arms[[i]])
+    name <- names(accrual_byarm_ls)[[i]]
+    p <- plot(
+      accrual_byarm_ls[[i]],
+      arm_colour = arm_colours[i],
+      target = c(
+        target_ls[[1]][target_index], 
+        target_ls[[2]][target_index]
+      ),
+      target_names = c("Interim", "Accrual"),
+      plot_id = name
+    )
+    ggplot2::ggsave(
+      paste0(
+        figs_path, 
+        "arm-accrual-",
+        tolower(names(data_ls)[j]),
+        "-",
+        arm_names[i], "-", 
+        run_time, 
+        ".png"
+      ),
+      plot = p,
+      width = 12,
+      height = 8,
+      dpi = 400
+    )
+    print(p)
+  }
+
+  # Plot time to accrual for each target and each arm
+  for (i in seq_len(length(accrual_byarm_ls))) {
+    # Treatment or control arms?
+    target_index <- 2 - as.numeric(treatment_arms[[i]])
+    # Data extraction for interim and accrual
+    accrual_times <- threshold_week(
+      accrual_byarm_ls[[i]], 
+      sapply(target_ls, function(t) t[target_index])
+    )
+
+    for (j in 1:2) {
+      p <- plot(
+        accrual_times[[j]],
+        arm_colour = arm_colours[i],
+        target = target_ls[[j]][target_index],
+        target_names = c("Interim", "Total")[j],
+        plot_id = names(accrual_byarm_ls)[[i]]
+      )
+      ggplot2::ggsave(
+        paste0(
+          figs_path, 
+          "arm-week-", 
+          names(accrual_byarm_ls)[[i]],
+          "-",
+          c("Interim", "Total")[j], 
+          "-",
+          run_time, 
+          ".png"
+        ),
+        plot = p,
+        width = 12,
+        height = 8,
+        dpi = 400
+      )
+      print(p)
+    }
+  }
 }
 
 
@@ -419,3 +542,4 @@ matrix_to_long <- function(data) {
 
   return(data_df)
 }
+

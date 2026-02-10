@@ -60,7 +60,7 @@ theme_bma <- function(
 #' @importFrom utils read.csv write.csv
 #' 
 ##### Nothing is calling this?
-get_arm_closures <- function(
+get_arm_closures2 <- function(
   file_prefix = "closures",
   run_time = "2024-08-07-18-35-09",
   output_path = "../biomkrAccrual_output_data/",
@@ -135,9 +135,9 @@ get_arm_closures <- function(
 #' 
 #' @export
 #' 
-accrual_plot_from_file <- function(
+accrual_at_time_plot_from_file <- function(
   file_prefix = "accrual",
-  plot_prefix = "accrual-from-file",
+  plot_prefix = "all-accrual-from-file",
   run_time = "2024-08-07-18-35-09",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/")
@@ -457,14 +457,17 @@ accrual_arm_plot <- function(
 ) {
   arm_names <- colnames(data_df)
 
-  #if (length(unique(data_df[, i])) == 1) {
+  no_unique <- length(unique(data_df[, i]))
+
+  if (no_unique == 1) {
     # BODGE - don't want to see this but need it to produce graph
-  #  arm_col <- "white"
-  #  alpha <- 0.0001
-  #} else {
+    arm_col <- "white"
+    alpha <- 0.0001
+    unique_val <- unique(data_df[, i])
+  } else {
     arm_col <- arm_colours[i]
-    alpha <- 0.4
-  #}
+    alpha <- 0.6
+  }
 
   binwidth <- max(
     1,
@@ -481,15 +484,15 @@ accrual_arm_plot <- function(
       binwidth = binwidth
     ) 
   
-  #if (length(unique(data_df[, i])) == 1) {
-  #  p <- p +
-  #    ggplot2::geom_vline(
-  #      xintercept = unique(data_df[, i]),
-  #      linewidth = 2,
-  #      colour = arm_colours[i],
-  #      alpha = 0.4
-  #    )
-  #}
+  if (length(unique(data_df[, i])) == 1) {
+    p <- p +
+      ggplot2::geom_vline(
+        xintercept = unique(data_df[, i]),
+        linewidth = 6,
+        colour = arm_colours[i],
+        alpha = 0.4
+      ) 
+  }
 
   p <- p + 
     ggplot2::geom_vline(
@@ -511,8 +514,16 @@ accrual_arm_plot <- function(
       y = "Probability density",
       title = paste(plot_id, "for", arm_names[i]),
     ) +
-    ggplot2::scale_x_continuous(expand = expansion(mult = 0.07)) +
     theme_bma(base_size = 16)
+  
+  if (length(unique(data_df[, i])) == 1) {
+    p <- p + ggplot2::scale_x_continuous(breaks = seq(
+      unique_val - 1, length.out = 3
+    ))
+  } else {
+    p <- p +
+      ggplot2::scale_x_continuous(expand = expansion(mult = 0.07))
+  }
 
   p <- label_vlines(
     p, 
@@ -529,4 +540,384 @@ accrual_arm_plot <- function(
   )
 
   return(p)
+}
+
+
+#' Plot simulations of recruitment to given arm over time.
+#' 
+#' @param x Matrix with columns for each simulation.
+#' @param ... For compliance with plot.default().
+#' @param arm_colour Hexadecimal colour associated with arm.
+#' @param target Vector of targets for recruitment. First two
+#' should be those directly relevant to the subject of the graph.
+#' @param target_names Vector of target names, for labelling.
+#' @param plot_id Type of plot for title, e.g. "Treatment A".
+#' 
+#' @importFrom stats reshape
+#' @import ggplot2
+#' @importFrom grDevices palette.colors
+#' 
+#' @export
+#' 
+plot.armaccrual <- function(
+  x,
+  ...,
+  arm_colour,
+  target,
+  target_names,
+  plot_id
+) {
+
+  dimnames(x) <- list(
+    Week = seq_len(nrow(x)),
+    Simulation = c(seq_len(ncol(x)))
+  )
+
+  data_mx <- apply(x, 2, cumsum)
+
+
+  ribbonwidth <- apply(data_mx, 1, function(x) quantile(x, c(0.025, 0.975)))
+
+
+  data_df <- stats::reshape(
+    as.data.frame(data_mx),
+    direction = "long",
+    varying = colnames(x),
+    timevar = "Simulation",
+    times = colnames(x),
+    v.names = "Recruitment",
+    idvar = "Week"
+  )
+
+  data_df$Simulation <- as.factor(data_df$Simulation)
+
+  # Now summary data for ribbon
+  ribbon_df <- as.data.frame(t(apply(
+    data_mx, 1, function(x) quantile(x, c(0.025, 0.975))
+  )))
+  names(ribbon_df) <- c("Lower", "Upper")
+
+  ribbon_df$Week <- seq_len(nrow(data_mx))
+  ribbon_df$Mean <- rowMeans(data_mx)
+
+  # Label hlines
+  hline_df <- data.frame(
+    x = nrow(data_mx) * .90,
+    y = target,  
+    label = paste(target_names, "\ntarget")
+  )
+
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_line(
+      data = data_df,
+      ggplot2::aes(
+        x = Week,  
+        y = Recruitment
+      ),
+      alpha = 0.2,
+      col = "grey65"
+    ) +
+    ggplot2::geom_ribbon(
+      data = ribbon_df,
+      ggplot2::aes(
+        x = Week,
+        ymin = Lower,
+        ymax = Upper
+      ),
+      fill = arm_colour,
+      alpha = 0.2
+    ) +
+    ggplot2::geom_hline(
+      yintercept = target[1],
+      linewidth = 1,
+      linetype = 2,
+      color = "grey75"
+    ) +
+    ggplot2::geom_hline(
+      yintercept = target[2],
+      linewidth = 1,
+      linetype = 2,
+      color = "grey75"
+    ) +
+    ggplot2::geom_text(
+      data = hline_df,
+      ggplot2::aes(x = x, y = y, label = label),
+      size = 6
+    ) +
+    ggplot2::geom_line(
+      data = ribbon_df,
+      ggplot2::aes(
+        x = Week,
+        y = Mean
+      ),
+      col = arm_colour,
+      size = 1
+    ) +
+    ggtitle(paste(plot_id, "accrual")) +
+    theme_bma(
+      base_size = 14
+    )
+}
+
+
+
+#' Extract from a simulation * week accrual matrix for a 
+#' specific trial arm, the week in which an arm target 
+#' threshold or thresholds are first met or exceeded for 
+#' each simulation.
+#' 
+#' @param accrual Matrix of accrual data for a given arm
+#' @param targets Target threshold(s) for recruitment.
+#' 
+#' @return List of vectors of the weeks in which each simulation
+#' reaches the target accrual threshold.
+#' 
+threshold_week <- function(accrual, targets) {
+  # Use cumulative version of accrual matrix
+  accrual_cumsum_mx <- apply(
+    accrual,
+    2,
+    cumsum
+  )
+  # Which week, if any, does simulation exceed target
+  accrual_times_ls <- vector(mode = "list", length = length(targets))
+
+  # Get list of vectors of weeks accrual meets threshold
+  for (i in seq_len(length(targets))){
+    accrual_times_ls[[i]] <- apply(
+      accrual_cumsum_mx,
+      2,
+      function(x) {
+        which(x >= targets[i])[1]
+      }
+    )
+    # Set class so can use plot method
+    accrual_times_ls[[i]] <- structure(
+      accrual_times_ls[[i]],
+      class = c("targetweek", "integer")
+    )
+
+  }
+  return(accrual_times_ls)
+}
+
+
+#' Plot predicted week at which recruitment reaches specified targets
+#' for each arm from file containing a json consisting of a list
+#' of matrices of arm recruitment by week, one for each arm.
+#' 
+#' @param file_prefix Consistent beginning of filenames holding 
+#' arm closure data. Defaults to `accrual`.
+#' @param plot_prefix Prefix for file name to identify plot type. 
+#' Defaults to `accrual_plot`.
+#' @param run_time Specify a particular instance of `biomkrAccrual()`
+#' execution using a date-time format `yyyy-mm-dd-hh-mm-ss`. 
+#' Used to select which files will be summarised.
+#' @param output_path Directory where the output files from the 
+#' `biomkrAccrual()` instance are located.
+#' @param figs_path Folder where figures generated during execution
+#' will be stored; defaults to the `figures` subdirectory in
+#' `output_path`.
+#' @param target_treatment Recruitment target for treatment arms.
+#' @param target_control Recruitment target for control arms. 
+#' @param arm_colours Vector of hexadecimal colours, one for each arm.
+#' If only one value is supplied, it will be used for all arms. If no
+#' value is supplied, a colourblind-friendly palette will be used.
+#' @export
+#' 
+accrual_to_target_plot_from_file <- function(
+  file_prefix = "arm_accrual",
+  plot_prefix = "accrual-arm-target-week-from-file",
+  run_time = "26-02-08_14-15-05",
+  output_path = "../biomkrAccrual_output_data/",
+  figs_path = paste0(output_path, "figures/"),
+  target_treatment = NA_integer_,
+  target_control = NA_integer,
+  arm_colours = NULL
+) {
+  # Validate input
+
+  checkmate::assert_directory_exists(
+    file.path(output_path), 
+    access = "rx"
+  )
+
+  input_file <- paste0(
+    output_path, file_prefix, "_", run_time, ".json"
+  )
+
+  checkmate::assert_file_exists(file.path(input_file))
+
+  # Recruitment targets should be integerish and not missing
+  checkmate::assert_integerish(
+    target_treatment, lower = 1, upper = 10^7, len = 1, any.missing = FALSE
+  )
+  checkmate::assert_integerish(
+    target_control, lower = 1, upper = 10^7, len = 1, any.missing = FALSE
+  )
+
+  # Colours should be hexadecimal
+  if (!is.null(arm_colours)) {
+    if (!all(grepl("^#[A-Fa-f0-9]+$", arm_colours))) {
+      rlang::abort("Colours should be in the form #123456.")
+    }
+  }
+
+  makeifnot_dir(figs_path)
+
+  accrual_raw_ls <- jsonlite::read_json(
+    input_file,
+    simplifyVector = TRUE
+  )
+
+  plot_id <- names(accrual_raw_ls)
+  target_index <- 2 - startsWith(plot_id, "T")
+  targets <- c(target_treatment, target_control)
+
+  if (is.null(arm_colours)) {
+    col_order <- c(seq_len(length(plot_id))[-1], 1)
+    palette <- grDevices::palette.colors(
+      palette = "R4",
+      length(plot_id) + 1
+      # One pink is more than enough
+    )[-6]
+    arm_colours <- palette[col_order]
+  } else if (length(arm_colours) == 1) {
+    arm_colours <- rep(arm_colours, length(plot_id))
+  } else if (length(arm_colours) != length(plot_id)) {
+    rlang::abort(paste(
+      "Invalid number of arm_colours: please supply",
+      "either nothing, one value or one value per arm."
+    ))
+  }
+
+  for (i in seq_len(length(plot_id))) {
+    accrual_times <- threshold_week(
+      accrual = accrual_raw_ls[[i]],
+      targets = targets[target_index[i]]
+    )
+    
+    p <- plot(
+      accrual_times[[1]],
+      arm_colour = arm_colours[i],
+      target = targets[target_index[i]],
+      plot_id = plot_id[i]
+    )
+
+    print(p)
+    
+  }
+
+
+
+}
+
+
+#' Plot distribution of time to accrual to a specified
+#' target for a specified arm.
+#' 
+#' @param x Vector of times to accrual.
+#' @param ... For compliance with plot.default().
+#' @param arm_colour Hexadecimal colour associated with arm.
+#' @param target Accrual target, for labelling.
+#' @param target_names Target name, for labelling.
+#' @param plot_id Type of plot for title, e.g. "Treatment A".
+#' 
+#' @importFrom stats reshape
+#' @import ggplot2
+#' @importFrom grDevices palette.colors
+#' 
+#' @export
+#' 
+plot.targetweek <- function(
+  x,
+  ...,
+  arm_colour,
+  target,
+  target_names = NULL,
+  plot_id
+) {
+  if (all(is.na(x))) {
+    message(paste(
+      "No simulations of arm", plot_id, 
+      "reached the target", target
+    ))
+    return(NULL)
+  }
+
+  target_names <- tolower(target_names)
+
+  plot_label <- paste0(
+    "Week in which accrual to ",
+    plot_id,
+    " met the ",
+    ifelse(is.null(target_names), "", paste0(target_names, " ")),
+    "target of ", 
+    target
+  )
+  plot_sublabel <- paste(
+    sum(is.na(x)),
+    "of",
+    length(x),
+    "simulations did not reach the target before all sites were closed"
+  )
+
+  no_unique <- length(unique(x[!is.na(x)]))
+
+  if (no_unique == 1) {
+    # BODGE - don't want to see this but need it to produce graph
+    arm_col <- "white"
+    alpha <- 0.0001
+    unique_val <- unique(x[!is.na(x)])
+  } else {
+    arm_col <- arm_colour
+    alpha <- 0.6
+  }
+
+
+  # Pretty breaks for x axis
+  xrange <- range(x, na.rm = TRUE)
+  ticksep <- 1 + diff(xrange) %/% 20
+  xmin <- xrange[1] - (xrange[1] %% ticksep)
+  xmax <- xrange[2] + (ifelse(xrange[2] %% ticksep > 0, ticksep, 0))
+
+  # Pretty breaks for y axis
+
+  p <- ggplot2::ggplot(data.frame(x = x[!is.na(x)])) +
+    ggplot2::geom_histogram(
+      ggplot2::aes(x = x),
+      col = "white", fill = arm_col,
+      alpha = alpha,
+      binwidth = 1
+    ) +
+    ggplot2::scale_x_continuous(
+      breaks = seq(
+        xmin, 
+        xmax, 
+        ticksep
+      )
+    )
+  
+  if (no_unique == 1) {
+    p <- p +
+      ggplot2::geom_vline(
+        xintercept = unique_val,
+        linewidth = 6,
+        colour = arm_colour,
+        alpha = 0.4
+      )
+  }
+    
+    
+  p <- p +
+    labs(
+      title = plot_label,
+      subtitle = plot_sublabel,
+      x = "Week",
+      y = "Count"
+    ) +
+    theme_bma(base_size = 14)
+
+  return(p)
+
 }
