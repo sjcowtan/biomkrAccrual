@@ -875,11 +875,13 @@ plot.targetweek <- function(
   }
 
 
+  # Pretty breaks for x axis
   xrange <- range(x, na.rm = TRUE)
   ticksep <- 1 + diff(xrange) %/% 20
   xmin <- xrange[1] - (xrange[1] %% ticksep)
   xmax <- xrange[2] + (ifelse(xrange[2] %% ticksep > 0, ticksep, 0))
 
+  # Pretty breaks for y axis
 
   p <- ggplot2::ggplot(data.frame(x = x[!is.na(x)])) +
     ggplot2::geom_histogram(
