@@ -720,7 +720,9 @@ threshold_week <- function(accrual, targets) {
 #' `output_path`.
 #' @param target_treatment Recruitment target for treatment arms.
 #' @param target_control Recruitment target for control arms. 
-#' 
+#' @param arm_colours Vector of hexadecimal colours, one for each arm.
+#' If only one value is supplied, it will be used for all arms. If no
+#' value is supplied, a colourblind-friendly palette will be used.
 #' @export
 #' 
 accrual_to_target_plot_from_file <- function(
@@ -730,7 +732,8 @@ accrual_to_target_plot_from_file <- function(
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
   target_treatment = NA_integer_,
-  target_control = NA_integer
+  target_control = NA_integer,
+  arm_colours = NULL
 ) {
   # Validate input
 
@@ -753,6 +756,13 @@ accrual_to_target_plot_from_file <- function(
     target_control, lower = 1, upper = 10^7, len = 1, any.missing = FALSE
   )
 
+  # Colours should be hexadecimal
+  if (!is.null(arm_colours)) {
+    if (!all(grepl("^#[A-Fa-f0-9]+$", arm_colours))) {
+      rlang::abort("Colours should be in the form #123456.")
+    }
+  }
+
   makeifnot_dir(figs_path)
 
   accrual_raw_ls <- jsonlite::read_json(
@@ -762,15 +772,39 @@ accrual_to_target_plot_from_file <- function(
 
   plot_id <- names(accrual_raw_ls)
   target_index <- 2 - startsWith(plot_id, "T")
-  targets <- c(target_index, target_control)
+  targets <- c(target_treatment, target_control)
+
+  if (is.null(arm_colours)) {
+    col_order <- c(seq_len(length(plot_id))[-1], 1)
+    palette <- grDevices::palette.colors(
+      palette = "R4",
+      length(plot_id) + 1
+      # One pink is more than enough
+    )[-6]
+    arm_colours <- palette[col_order]
+  } else if (length(arm_colours) == 1) {
+    arm_colours <- rep(arm_colours, length(plot_id))
+  } else if (length(arm_colours) != length(plot_id)) {
+    rlang::abort(paste(
+      "Invalid number of arm_colours: please supply",
+      "either nothing, one value or one value per arm."
+    ))
+  }
 
   for (i in seq_len(length(plot_id))) {
     accrual_times <- threshold_week(
       accrual = accrual_raw_ls[[i]],
-      targets = targets[i]
+      targets = targets[target_index[i]]
     )
-    print(plot_id[i])
-    print(accrual_times)
+    
+    p <- plot(
+      accrual_times[[1]],
+      arm_colour = arm_colours[i],
+      target = targets[target_index[i]],
+      plot_id = plot_id[i]
+    )
+
+    print(p)
     
   }
 
@@ -867,7 +901,7 @@ plot.targetweek <- function(
       ggplot2::geom_vline(
         xintercept = unique_val,
         linewidth = 6,
-        colour = arm_colours[i],
+        colour = arm_colour,
         alpha = 0.4
       )
   }

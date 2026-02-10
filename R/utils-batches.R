@@ -405,7 +405,6 @@ biomkrAccrualSim <- function(
   arm_colours <- palette[col_order]
 
   
-
   # Total accrual plots
 
   data_ls <- list(

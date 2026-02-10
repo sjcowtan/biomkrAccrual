@@ -13,7 +13,8 @@ accrual_to_target_plot_from_file(
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
   target_treatment = NA_integer_,
-  target_control = NA_integer
+  target_control = NA_integer,
+  arm_colours = NULL
 )
 }
 \arguments{
@@ -37,6 +38,10 @@ will be stored; defaults to the \code{figures} subdirectory in
 \item{target_treatment}{Recruitment target for treatment arms.}
 
 \item{target_control}{Recruitment target for control arms.}
+
+\item{arm_colours}{Vector of hexadecimal colours, one for each arm.
+If only one value is supplied, it will be used for all arms. If no
+value is supplied, a colourblind-friendly palette will be used.}
 }
 \description{
 Plot predicted week at which recruitment reaches specified targets
