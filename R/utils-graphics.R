@@ -135,9 +135,9 @@ get_arm_closures2 <- function(
 #' 
 #' @export
 #' 
-accrual_plot_from_file <- function(
+accrual_at_time_plot_from_file <- function(
   file_prefix = "accrual",
-  plot_prefix = "accrual-from-file",
+  plot_prefix = "all-accrual-from-file",
   run_time = "2024-08-07-18-35-09",
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/")
@@ -699,6 +699,83 @@ threshold_week <- function(accrual, targets) {
 
   }
   return(accrual_times_ls)
+}
+
+
+#' Plot predicted week at which recruitment reaches specified targets
+#' for each arm from file containing a json consisting of a list
+#' of matrices of arm recruitment by week, one for each arm.
+#' 
+#' @param file_prefix Consistent beginning of filenames holding 
+#' arm closure data. Defaults to `accrual`.
+#' @param plot_prefix Prefix for file name to identify plot type. 
+#' Defaults to `accrual_plot`.
+#' @param run_time Specify a particular instance of `biomkrAccrual()`
+#' execution using a date-time format `yyyy-mm-dd-hh-mm-ss`. 
+#' Used to select which files will be summarised.
+#' @param output_path Directory where the output files from the 
+#' `biomkrAccrual()` instance are located.
+#' @param figs_path Folder where figures generated during execution
+#' will be stored; defaults to the `figures` subdirectory in
+#' `output_path`.
+#' @param target_treatment Recruitment target for treatment arms.
+#' @param target_control Recruitment target for control arms. 
+#' 
+#' @export
+#' 
+accrual_to_target_plot_from_file <- function(
+  file_prefix = "arm_accrual",
+  plot_prefix = "accrual-arm-target-week-from-file",
+  run_time = "26-02-08_14-15-05",
+  output_path = "../biomkrAccrual_output_data/",
+  figs_path = paste0(output_path, "figures/"),
+  target_treatment = NA_integer_,
+  target_control = NA_integer
+) {
+  # Validate input
+
+  checkmate::assert_directory_exists(
+    file.path(output_path), 
+    access = "rx"
+  )
+
+  input_file <- paste0(
+    output_path, file_prefix, "_", run_time, ".json"
+  )
+
+  checkmate::assert_file_exists(file.path(input_file))
+
+  # Recruitment targets should be integerish and not missing
+  checkmate::assert_integerish(
+    target_treatment, lower = 1, upper = 10^7, len = 1, any.missing = FALSE
+  )
+  checkmate::assert_integerish(
+    target_control, lower = 1, upper = 10^7, len = 1, any.missing = FALSE
+  )
+
+  makeifnot_dir(figs_path)
+
+  accrual_raw_ls <- jsonlite::read_json(
+    input_file,
+    simplifyVector = TRUE
+  )
+
+  plot_id <- names(accrual_raw_ls)
+  target_index <- 2 - startsWith(plot_id, "T")
+  targets <- c(target_index, target_control)
+
+  for (i in seq_len(length(plot_id))) {
+    accrual_times <- threshold_week(
+      accrual = accrual_raw_ls[[i]],
+      targets = targets[i]
+    )
+    print(plot_id[i])
+    print(accrual_times)
+    
+  }
+
+
+
 }
 
 
