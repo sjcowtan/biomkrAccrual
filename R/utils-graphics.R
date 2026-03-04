@@ -651,7 +651,7 @@ plot.armaccrual <- function(
         y = Mean
       ),
       col = arm_colour,
-      size = 1
+      linewidth = 1
     ) +
     ggtitle(paste(plot_id, "accrual")) +
     theme_bma(
