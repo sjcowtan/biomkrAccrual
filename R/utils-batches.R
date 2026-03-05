@@ -145,11 +145,17 @@ biomkrAccrualSim <- function(
   # Timestamp for batch files (but not individual run files)
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
 
+  if (data_path == "extdata/") {
+    jsonfile <- system.file(
+      data_path, arms_file, package = "biomkrAccrual"
+    )
+  } else {
+    jsonfile <- paste(data_path, arms_file, sep = "/")
+  }
+
   # Information for setting up dataframe
   arms_ls <- 
-    jsonlite::read_json(system.file(
-      data_path, arms_file, package = "biomkrAccrual"
-    ), simplifyVector = TRUE)
+    jsonlite::read_json(jsonfile, simplifyVector = TRUE)
 
   no_arms <- ifelse(
     shared_control,
