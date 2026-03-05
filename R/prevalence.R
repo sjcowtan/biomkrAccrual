@@ -258,8 +258,6 @@ get_recruit_arm_prevalence <- function(
     ncol = ncol(props_df) - 1
   )
 
-  cat(as.vector(region_prevalence))
-
   checkmate::assert_numeric(
     region_prevalence,
     lower = 0,
