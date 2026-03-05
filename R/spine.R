@@ -194,31 +194,46 @@ biomkrAccrual <- function(
   
   # Set up output figures directory if does not already exist
   makeifnot_dir(figs_path)
+
+  # Switch between system.file() if using data shipped with the
+  # the package, or straight file access if now.
+
+  if (data_path == "extdata/") {
+    prop_file <- system.file(
+      data_path, prop_file, package = "biomkrAccrual"
+    )
+    arms_file <- system.file(
+      data_path, arms_file, package = "biomkrAccrual"
+    )
+    centres_file <- system.file(
+      data_path, centres_file, package = "biomkrAccrual"
+    )
+  } else {
+    prop_file <- paste(data_path, prop_file, sep = "/")
+    arms_file <- paste(data_path, arms_file, sep = "/")
+    centres_file <- paste(data_path, centres_file, sep = "/")
+  }
   
   # Read parameters
-  prop_params_df <- utils::read.csv(system.file(
-    data_path, prop_file, package = "biomkrAccrual"
-  )) 
+  prop_params_df <- utils::read.csv(prop_file) 
     
   arms_ls <- 
-    jsonlite::read_json(system.file(
-      data_path, arms_file, package = "biomkrAccrual"
-    ), simplifyVector = TRUE)
+    jsonlite::read_json(arms_file, simplifyVector = TRUE)
   
-  centres_df <- utils::read.csv(system.file(
-    data_path, centres_file, package = "biomkrAccrual"
-  ))
+  centres_df <- utils::read.csv(centres_file)
 
   # Add fail if read fails
 
   # Fail if centres_file is in wrong format
-  if (isFALSE(all.equal(
-    names(centres_df), 
-    c("site", "start_month", "mean_rate", "region", "site_cap")
-    # site_cap is optional, no cap if not present
-  )) || isFALSE(all.equal(
-    names(centres_df), c("site", "start_month", "mean_rate", "region")
-  ))) {
+  if (!(
+    isTRUE(all.equal(
+      names(centres_df), 
+      c("site", "start_month", "mean_rate", "region", "site_cap")
+      # site_cap is optional, no cap if not present
+    )) || isTRUE(all.equal(
+      names(centres_df), c("site", "start_month", "mean_rate", "region")
+    ))
+  )) {
     rlang::abort(paste(
       "Format error: centres.csv should have columns site,",
       "start_month, mean_rate, region, and optionally site_cap"
