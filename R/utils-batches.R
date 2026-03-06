@@ -145,7 +145,16 @@ biomkrAccrualSim <- function(
   # Timestamp for batch files (but not individual run files)
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
 
-  if (data_path == "extdata/") {
+  ## Check data directory exists
+  if (grepl("^extdata/?$", data_path)) {
+    checkmate::assert_directory_exists(system.file(
+      data_path, package = "biomkrAccrual"
+    ), access = "rx")
+  } else {
+    checkmate::assert_directory_exists(data_path, access = "rx")
+  }
+
+  if (grepl("^extdata/?$", data_path)) {
     jsonfile <- system.file(
       data_path, arms_file, package = "biomkrAccrual"
     )
@@ -238,9 +247,6 @@ biomkrAccrualSim <- function(
 
     # Run one simulation
     accrual_instance <- biomkrAccrual(
-      target_arm_size = target_arm_size,
-      target_interim = target_interim,
-      target_control = target_control,
       shared_control = shared_control,
       accrual_period = accrual_period,
       interim_period = interim_period,
@@ -248,6 +254,8 @@ biomkrAccrualSim <- function(
       var_lambda = var_lambda,
       control_ratio = control_ratio,
       centres_file = centres_file,
+      prop_file = prop_file,
+      target_file = target_file,
       arms_file = arms_file,
       data_path = data_path,
       fixed_centre_starts = fixed_centre_starts,
