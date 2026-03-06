@@ -25,7 +25,7 @@
 #' region. Defaults to `proportions.csv`.
 #' @param target_file Name of CSV file with target recruitment for each
 #' arm at each interim analysis time and at final recruitment. This 
-#' should have a column "target" with the arm name; this must match
+#' should have a column "arm" with the names of the treatment arms; this must match
 #' the arm name as specified in in `arms_file`. Control targets are
 #' not included as they can be deduced from the control_ratio and 
 #' shared_control arguments. It may then have one or more columns for 
@@ -274,7 +274,7 @@ biomkrAccrual <- function(
   # Fail if target_file is in wrong format
   if (!(
     isTRUE(all(
-      c("target", "final") %in% names(target_df)
+      c("arm", "final") %in% names(target_df)
     ))
   )) {
     rlang::abort(
@@ -297,6 +297,15 @@ biomkrAccrual <- function(
 
   # Sort target times and convert to weeks
   target_times <- get_weeks(sort(target_times))
+
+  # Sort target_df arm columns by value with the arm name first
+  arm_col <- which(colnames(target_df) == "arm")
+  target_df <- cbind(
+    target_df[, arm_col], 
+    target_df[, -arm_col]
+  )
+  target_df <- 
+    target_df[, c(1, 1 + order(unlist(target_df[1, -1])))]
 
   # Make control ratio sum to 1
   control_ratio <- control_ratio / sum(control_ratio)
