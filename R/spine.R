@@ -100,6 +100,12 @@ biomkrAccrual <- function(
     null.ok = FALSE
   )
 
+  checkmate::assert_logical(
+    shared_control,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
   if (fixed_region_prevalences && 
     checkmate::test_numeric(
       precision, 
@@ -121,6 +127,15 @@ biomkrAccrual <- function(
     finite = TRUE,
     len = 1,
     null.ok = TRUE
+  )
+
+  checkmate::assert_numeric(
+    control_ratio,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 2,
+    null.ok = FALSE
   )
 
   if (!fixed_region_prevalences && is.null(precision)) {
@@ -283,21 +298,10 @@ biomkrAccrual <- function(
   # Sort target times and convert to weeks
   target_times <- get_weeks(sort(target_times))
 
-  ######### using target_control here
   # Make control ratio sum to 1
-  if (is.null(control_ratio)) {
-    if (!is.null(target_control)) {
-      control_ratio <- c(1, target_control / target_arm_size)
-    } else {
-      rlang::abort(paste(
-        "For shared control, either control_ratio or", 
-        "target_control must be specified."
-      ))
-    }
-  }
   control_ratio <- control_ratio / sum(control_ratio)
 
-  # Generate target_control if needed
+  ####### Generate target_control if needed
   if (is.null(target_control) && shared_control) {
     target_control <- target_arm_size * control_ratio[2]
   } 
