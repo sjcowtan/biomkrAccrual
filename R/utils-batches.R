@@ -59,12 +59,6 @@ getseeds <- function(
 #' pseudo-random number generator.
 #' 
 #' @param n Number of instances to run (defaults to 100)
-#' @param target_arm_size Number of patients required per 
-#' treatment arm
-#' @param target_interim Number of patients required per 
-#' arm for interim analysis; defaults to `target_arm_size \ 2`
-#' @param target_control Number of patients required for the
-#' control arm(s)
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
@@ -84,6 +78,14 @@ getseeds <- function(
 #' for each region; this should have one column "category", naming
 #' the biomarkers or biomarker combinations, and one column per
 #' region. Defaults to `proportions.csv`.
+#' @param target_file Name of CSV file with target recruitment for each
+#' arm at each interim analysis time and at final recruitment. This 
+#' should have a column "target" with the arm name; this must match
+#' the arm name as specified in in `arms_file`. Control targets are
+#' not included as they can be deduced from the control_ratio and 
+#' shared_control arguments. It may then have one or more columns for 
+#' interim targets, and must have a "final" column for the final 
+#' recruitment target.
 #' @param arms_file Name of JSON file describing which recruitment
 #' arms (defined by biomarkers) recruit to which treatment arms. 
 #' Defaults to `arms_json`.
@@ -119,9 +121,6 @@ getseeds <- function(
 #' 
 biomkrAccrualSim <- function(
   n = 100,
-  target_arm_size = 60,
-  target_interim = target_arm_size / 2,
-  target_control = 180,
   shared_control = TRUE,
   accrual_period = 50 / 4,
   interim_period = accrual_period / 2,
@@ -131,6 +130,7 @@ biomkrAccrualSim <- function(
   control_ratio = c(1, 1),
   centres_file = "centres.csv",
   prop_file = "proportions.csv",
+  target_file = "targets.csv",
   arms_file = "arms.json",
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
