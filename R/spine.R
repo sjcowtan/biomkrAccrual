@@ -227,7 +227,6 @@ biomkrAccrual <- function(
   checkmate::assert_file_exists(centres_file, access = "r")
   checkmate::assert_file_exists(target_file, access = "r")
 
-
   
   # Read parameters
   prop_params_df <- utils::read.csv(prop_file) 
@@ -263,8 +262,14 @@ biomkrAccrual <- function(
       c("target", "final") %in% names(target_df)
     ))
   )) {
-    rlang::abort(paste(
+    rlang::abort(
       "Format error: target.csv must have columns target and final"
+    )
+  }
+  if (ncol(target_df) - 1 != length(target_times)) {
+    rlang::abort(paste(
+      "Format error: target_times must have one time value for each",
+      "target column in the targets file" 
     ))
   }
 
@@ -275,6 +280,10 @@ biomkrAccrual <- function(
   centres_df <- do_clean_centres(centres_df)
   centres_df$start_week <- get_weeks(centres_df$start_month - 1) + 1
 
+  # Sort target times and convert to weeks
+  target_times <- get_weeks(sort(target_times))
+
+  ######### using target_control here
   # Make control ratio sum to 1
   if (is.null(control_ratio)) {
     if (!is.null(target_control)) {
@@ -323,11 +332,8 @@ biomkrAccrual <- function(
   accrual_instance <- accrual(
     treatment_arm_ids = trial_structure_instance@treatment_arm_ids,
     shared_control = shared_control,
-    target_arm_size = target_arm_size,
-    target_control = target_control,
-    target_interim = target_interim,
-    accrual_period = get_weeks(accrual_period),
-    interim_period = get_weeks(interim_period),
+    target_df = target_df,
+    target_times = target_times,
     control_ratio = control_ratio,
     fixed_site_rates = FALSE,
     var_lambda = var_lambda,
