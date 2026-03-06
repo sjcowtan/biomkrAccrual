@@ -7,8 +7,8 @@
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
-#' @param accrual_period Recruitment period (months).
-#' @param interim_period Recruitment period to interim (months).
+#' @param target_months Vector of timings of interim and final
+#' recruitment assessments, in months.
 #' @param precision For the Dirichlet model of biomarker prevalences, 
 #' variability decreases as precision increases. Defaults to 10.
 #' @param var_lambda Variance estimate for site recruitment rates.  
@@ -69,8 +69,7 @@
 #' @export
 biomkrAccrual <- function(
   shared_control = TRUE,
-  accrual_period = 50 / 4,
-  interim_period = accrual_period / 2,
+  target_times = c(6, 12),
   precision = 10,
   var_lambda = 0.25,
   # active : control ratio (all active the same)
@@ -145,6 +144,15 @@ biomkrAccrual <- function(
     ))
     var_lambda <- NULL
   }
+
+  checkmate::assert_numeric(
+    target_times,
+    any.missing = FALSE,
+    lower = 0,
+    finite = TRUE,
+    min.len = 1,
+    null.ok = FALSE
+  )
 
   checkmate::assert_numeric(
     var_lambda,

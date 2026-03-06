@@ -62,8 +62,8 @@ getseeds <- function(
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
-#' @param accrual_period Recruitment period (months).
-#' @param interim_period Recruitment period to interim (months).
+#' @param target_months Vector of timings of interim and final
+#' recruitment assessments, in months.
 #' @param precision For the Dirichlet model of biomarker prevalences, 
 #' variability decreases as precision increases. Defaults to 10.
 #' @param var_lambda Variance estimate for site recruitment rates.  
@@ -122,8 +122,7 @@ getseeds <- function(
 biomkrAccrualSim <- function(
   n = 100,
   shared_control = TRUE,
-  accrual_period = 50 / 4,
-  interim_period = accrual_period / 2,
+  target_times = c(6, 12),
   precision = 10,
   var_lambda = 0.25,
   # active : control ratio (all active the same)
@@ -248,8 +247,7 @@ biomkrAccrualSim <- function(
     # Run one simulation
     accrual_instance <- biomkrAccrual(
       shared_control = shared_control,
-      accrual_period = accrual_period,
-      interim_period = interim_period,
+      target_times = target_times,
       precision = precision,
       var_lambda = var_lambda,
       control_ratio = control_ratio,

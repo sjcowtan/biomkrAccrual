@@ -11,8 +11,7 @@ pseudo-random number generator.}
 biomkrAccrualSim(
   n = 100,
   shared_control = TRUE,
-  accrual_period = 50/4,
-  interim_period = accrual_period/2,
+  target_times = c(6, 12),
   precision = 10,
   var_lambda = 0.25,
   control_ratio = c(1, 1),
@@ -37,10 +36,6 @@ biomkrAccrualSim(
 \item{shared_control}{TRUE if all treatment arms share the
 same control arm; FALSE if each treatment arm has its own
 control. Defaults to TRUE.}
-
-\item{accrual_period}{Recruitment period (months).}
-
-\item{interim_period}{Recruitment period to interim (months).}
 
 \item{precision}{For the Dirichlet model of biomarker prevalences,
 variability decreases as precision increases. Defaults to 10.}
@@ -105,6 +100,9 @@ them.}
 Defaults to TRUE.}
 
 \item{seed}{Seed to be used to generate the seeds for each simulation.}
+
+\item{target_months}{Vector of timings of interim and final
+recruitment assessments, in months.}
 }
 \value{
 Dataframe of site closing times
