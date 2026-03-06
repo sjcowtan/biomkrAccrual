@@ -5,9 +5,8 @@
 \title{A class to contain the accrued patient allocations,
 by site, treatment/control arm and week}
 \usage{
-accrual(treatment_arm_ids, shared_control, fixed_site_rates, target_arm_size, 
-target_control, target_interim, accrual_period, interim_period, 
-control_ratio, var_lambda, centres_df)
+accrual(treatment_arm_ids, shared_control, fixed_site_rates, 
+target_df, target_times, control_ratio, var_lambda, centres_df)
 }
 \arguments{
 \item{treatment_arm_ids}{Named list of lists of recruitment arms by
@@ -19,16 +18,11 @@ FALSE if each has their own}
 \item{fixed_site_rates}{TRUE if expected site rate to be used; FALSE
 draws the site rate from a gamma distribution}
 
-\item{target_arm_size}{Number of subjects required for each treatment arm.}
+\item{target_df}{Dataframe containing the targets for the number of
+patients recruited by each arm at each timepoint in \code{target_times}.}
 
-\item{target_control}{Number of subjects required for control arm(s).}
-
-\item{target_interim}{Number of subjects required for treatment arm at
-interim analysis.}
-
-\item{accrual_period}{Number of weeks in recruitment period.}
-
-\item{interim_period}{Number of weeks to recruit for interim analysis.}
+\item{target_times}{Vector of times of analyses or other recruitment
+progress assessments (weeks).}
 
 \item{control_ratio}{Ratio of patient allocation to treatment arm
 versus control for all active arms; defaults to c(1, 1).}
@@ -48,16 +42,11 @@ by site, treatment/control arm and week
 \item{\code{accrual}}{3-D array with axes site, experimental arm
 and week}
 
-\item{\code{target_arm_size}}{Number of subjects required for each treatment arm.}
+\item{\code{target_df}}{Dataframe containing the targets for the number of
+patients recruited by each arm at each timepoint in \code{target_times}.}
 
-\item{\code{target_control}}{Number of subjects required for control arm(s).}
-
-\item{\code{target_interim}}{Number of subjects required for treatment arm at
-interim analysis.}
-
-\item{\code{accrual_period}}{Number of weeks in recruitment period.}
-
-\item{\code{interim_period}}{Number of weeks to recruit for interim analysis.}
+\item{\code{target_times}}{Vector of times of analyses or other recruitment
+progress assessments (weeks).}
 
 \item{\code{phase_changes}}{Vector of week numbers when arms closed}
 
