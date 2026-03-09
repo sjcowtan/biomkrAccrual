@@ -398,7 +398,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
       treat_sums(accrual_obj)[seq_len(length(accrual_obj@phase_changes))]
 
     # Compare with cap
-    arm_captotal <- arm_sums - accrual_obj@target_arm_size
+    arm_captotal <- arm_sums - accrual_obj@target_df$final
 
     # Inactive arms can be at cap but not exceed it
     if (any(arm_captotal[-accrual_obj@active_arms] > 0)) {

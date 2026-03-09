@@ -307,26 +307,20 @@ biomkrAccrual <- function(
   target_df <- 
     target_df[, c(1, 1 + order(unlist(target_df[1, -1])))]
 
+  # Total target recruitment
+  target_recruit <- round(
+    sum(control_ratio) * sum(target_df$final) / 
+      control_ratio[1], 0
+  )
+
   # Make control ratio sum to 1
   control_ratio <- control_ratio / sum(control_ratio)
 
-  ####### Generate target_control if needed
-  if (is.null(target_control) && shared_control) {
-    target_control <- target_arm_size * control_ratio[2]
-  } 
-
-  # Total target recruitment
-  target_recruit <- ifelse(
-    shared_control, 
-    target_arm_size * length(arms_ls) + target_control,
-    target_arm_size * length(arms_ls) * (2 * control_ratio[2])
-  )
-
-  # Complete site cap if incomplete, using recruitment target
+  # Complete site cap if incomplete, using total recruitment target
   if (!("site_cap" %in% names(centres_df))) {
     centres_df$site_cap <- target_recruit
   } else {
-    centres_df$site_cap[is.na(centres_df$site_cap)] <- target_recruit
+    centres_df$site_cap[is.na(centes_df$site_cap)] <- target_recruit
   }
 
   # Create structure object
