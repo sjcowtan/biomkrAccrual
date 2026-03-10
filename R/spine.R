@@ -271,6 +271,13 @@ biomkrAccrual <- function(
     ))
   }
 
+  # Fail if arms file is in wrong format
+  if (any(duplicated(names(arms_ls)))) {
+    rlang::abort(paste(
+      "Format error: arm names duplicated in arms file"
+    ))
+  }
+
   # Fail if target_file is in wrong format
   if (!(
     isTRUE(all(
@@ -285,6 +292,18 @@ biomkrAccrual <- function(
     rlang::abort(paste(
       "Format error: target_times must have one time value for each",
       "target column in the targets file" 
+    ))
+  }
+  if (isFALSE(checkmate::testSetEqual(names(arms_ls), target_df$arm))) {
+    # Tests for names matching in any order
+    rlang::abort(paste(
+      "Format error: arm names in the targets file are not the same",
+      "as those in the arms file"
+    ))
+  }
+  if (any(duplicated(target_df$arm))) {
+    rlang::abort(paste(
+      "Format error: arm names duplicated in targets file"
     ))
   }
 
@@ -306,6 +325,11 @@ biomkrAccrual <- function(
   )
   target_df <- 
     target_df[, c(1, 1 + order(unlist(target_df[1, -1])))]
+
+  # Sort target_df by rows to match order of arms_ls
+  if (any(target_df$arm != names(arms_ls))) {
+    target_df <- target_df[match(names(arms_ls), target_df$arm), ]
+  }
 
   # Total target recruitment
   target_recruit <- round(
