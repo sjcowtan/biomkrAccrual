@@ -248,12 +248,12 @@ accrual_to_long <- function(accrual_df) {
 #' @param figs_path Folder where figures generated during execution
 #' will be stored; defaults to the `figures` subdirectory in
 #' `output_path`.
-#' @param target_arm_size Number of subjects required for each treatment arm.
-#' @param target_control Number of subjects required for control arm(s).
-#' @param target_interim Number of subjects required for treatment arm at 
-#' interim analysis.
-#' @param accrual_period Number of weeks in recruitment period.
-#' @param interim_period Number of weeks to recruit for interim analysis.
+#' @param target_df Dataframe containing the targets for the number of 
+#' patients recruited by each arm at each timepoint in `target_times`.
+#' @param target_times Vector of times of analyses or other recruitment
+#' progress assessments (weeks).
+#' @param control_ratio Ratio of patient allocation to treatment arm
+#' versus control for all active arms; defaults to c(1, 1).
 #' 
 #' @import ggplot2
 #' @importFrom grDevices palette.colors
@@ -268,11 +268,9 @@ plot.accrualplotdata <- function(
   run_time = NULL,
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
-  target_arm_size = NA_integer_,
-  target_control = NA_integer_,
-  target_interim = NA_integer_,
-  accrual_period = NA_integer_,
-  interim_period = NA_integer_
+  target_df,
+  target_times,
+  control_ratio
 ) {
   
   accrual_df <- x

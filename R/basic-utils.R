@@ -36,3 +36,35 @@ makeifnot_dir <- function(file_path) {
     )
   }
 }
+
+
+#' Expand target_df to include control arm(s)
+#' 
+#' @param target_df Dataframe of recruitment targets, as read from target file.
+#' @param shared_control One shared control arm or one per experimental arm 
+#' (logical, defaults to TRUE)?
+#' #' @param control_ratio Ratio of patient allocation to treatment arm
+#' versus control for all active arms; defaults to c(1, 1).
+#' 
+expand_targets <- function(
+  target_df, 
+  shared_control = TRUE, 
+  control_ratio = c(1, 1)
+) {
+  # Want control ratio in form 1:x
+  control_ratio <- control_ratio / control_ratio[1]
+
+  if (shared_control) {
+    control_df <- as.data.frame(append(
+      list(arm = "Control"),
+      round(colSums(target_df[-1]) * control_ratio[2], 0)
+    ))
+  } else {
+    control_df <- as.data.frame(append(
+      list(arm = paste(target_df$arm, "Control")),
+      round(target_df[-1] * control_ratio[2], 0)
+    ))
+  }
+
+  rbind(target_df, control_df)
+}
