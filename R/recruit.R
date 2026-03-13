@@ -94,7 +94,7 @@ accrual <- S7::new_class("accrual",
         as.integer(0), 
         dim = c(
           # Max. weeks
-          accrual_period,
+          target_times[length(target_times)],
           # No. experimental arms including control
           length(treatment_arm_ids) + 
             ifelse(shared_control, 1, length(treatment_arm_ids)),
@@ -115,7 +115,7 @@ accrual <- S7::new_class("accrual",
         )
       ),
       target_df = target_df,
-      target_times = target_times,
+      target_times = as.integer(target_times),
       control_ratio = control_ratio,
       phase_changes = rep(NA_integer_, length(treatment_arm_ids)),
       site_closures = rep(NA_integer_, length(unique(centres_df$site))),
@@ -551,7 +551,10 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
       week_acc <- week_acc_ls[[2]]
       
       # Assign the week's accrual to the object
-      if (accrual_obj@week <= accrual_obj@accrual_period) { 
+      if (
+        accrual_obj@week <= 
+          accrual_obj@target_times[length(accrual_obj@target_times)]
+      ) { 
         accrual_obj@accrual[accrual_obj@week, , ] <-
           week_acc
       } else {

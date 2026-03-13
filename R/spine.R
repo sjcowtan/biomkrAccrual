@@ -344,7 +344,7 @@ biomkrAccrual <- function(
   if (!("site_cap" %in% names(centres_df))) {
     centres_df$site_cap <- target_recruit
   } else {
-    centres_df$site_cap[is.na(centes_df$site_cap)] <- target_recruit
+    centres_df$site_cap[is.na(centres_df$site_cap)] <- target_recruit
   }
 
   # Create structure object

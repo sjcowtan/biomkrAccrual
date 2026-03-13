@@ -68,3 +68,24 @@ expand_targets <- function(
 
   rbind(target_df, control_df)
 }
+
+
+#' Convert targets dataframe to long format
+#' 
+#' @param target_df Dataframe of targets in target file or extended format
+#' 
+targets_tolong <- function(target_df) {
+  target_long_df <- reshape(
+    target_df, 
+    direction = "long", 
+    varying = list(names(target_df)[2:ncol(target_df)]), 
+    idvar = "arm", 
+    v.names = "value", 
+    timevar = "target", 
+    times = names(target_df)[-1]
+  )
+
+  target_long_df$target <- as.factor(target_long_df$target)
+
+  return(target_long_df)
+}

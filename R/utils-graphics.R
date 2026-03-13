@@ -270,19 +270,32 @@ plot.accrualplotdata <- function(
   figs_path = paste0(output_path, "figures/"),
   target_df,
   target_times,
-  control_ratio
+  control_ratio = c(1, 1)
 ) {
   
   accrual_df <- x
   arm_names <- levels(accrual_df$Arm)
+
+  # Expand target_df to include control arms
+  target_df <- expand_targets(
+    target_df,
+    control_ratio = control_ratio,
+    shared_control = length(arm_names) == nrow(target_df) + 1
+  )
 
   linetypes <- c(
     "Interim arm" = 2, "Experimental arm" = 3, "Control arm" = 4,
     "Interim accrual" = 5, "Total accrual" = 6
   )
 
-  hline_y <- c(target_interim, target_arm_size, target_control)
-  vline_x <- c(interim_period, accrual_period)
+  target_lines_df <- unique(
+    targets_tolong(target_df)[c("target", "value")]
+  )
+
+  # One horizontal line per unique target
+  hline_y <- target_lines_df$value
+  # One vertical line per evaluation point
+  vline_x <- target_times
 
   p <- ggplot2::ggplot(
     accrual_df, 
@@ -299,16 +312,24 @@ plot.accrualplotdata <- function(
       values = grDevices::palette.colors(length(arm_names))
     ) +
     ggplot2::geom_vline(
-      xintercept = vline_x,
+      xintercept = target_times,
       linewidth = 1,
-      linetype = 2:3,
+      linetype = seq_len(length(target_times)) + 1,
       color = "grey75"
     ) +
     ggplot2::geom_hline(
-      yintercept = hline_y,
+      data = target_lines_df,
+      ggplot2::aes(
+        yintercept = value,
+        linetype = target
+      ),
       linewidth = 1,
-      linetype = 4:6,
       color = "grey65"
+    ) +
+    scale_linetype_manual(
+      values = seq_len(length(levels(target_lines_df$target))) + 1,
+      breaks = levels(target_lines_df$target),
+      aesthetics = "linetype"
     ) +
     ggplot2::labs(
       title = "Accrual plot"
