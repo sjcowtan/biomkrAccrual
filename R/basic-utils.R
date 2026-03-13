@@ -66,6 +66,9 @@ expand_targets <- function(
     ))
   }
 
+  cat(names(target_df))
+  cat(names(control_df))
+
   rbind(target_df, control_df)
 }
 

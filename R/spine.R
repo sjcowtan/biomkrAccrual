@@ -319,10 +319,7 @@ biomkrAccrual <- function(
 
   # Sort target_df arm columns by value with the arm name first
   arm_col <- which(colnames(target_df) == "arm")
-  target_df <- cbind(
-    target_df[, arm_col], 
-    target_df[, -arm_col]
-  )
+
   target_df <- 
     target_df[, c(1, 1 + order(unlist(target_df[1, -1])))]
 
