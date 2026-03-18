@@ -78,8 +78,6 @@ accrual <- S7::new_class("accrual",
     fixed_site_rates = S7::class_missing,
     target_df = S7::class_missing,
     target_times = S7::class_missing,
-    accrual_period = S7::class_missing,
-    interim_period = S7::class_missing,
     control_ratio = S7::class_missing,
     var_lambda = S7::class_missing,
     centres_df = S7::class_missing

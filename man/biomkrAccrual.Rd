@@ -50,7 +50,7 @@ region. Defaults to \code{proportions.csv}.}
 
 \item{target_file}{Name of CSV file with target recruitment for each
 arm at each interim analysis time and at final recruitment. This
-should have a column "target" with the arm name; this must match
+should have a column "arm" with the names of the treatment arms; this must match
 the arm name as specified in in \code{arms_file}. Control targets are
 not included as they can be deduced from the control_ratio and
 shared_control arguments. It may then have one or more columns for

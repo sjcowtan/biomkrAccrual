@@ -37,6 +37,9 @@ biomkrAccrualSim(
 same control arm; FALSE if each treatment arm has its own
 control. Defaults to TRUE.}
 
+\item{target_times}{Vector of timings of interim and final
+recruitment assessments, in months.}
+
 \item{precision}{For the Dirichlet model of biomarker prevalences,
 variability decreases as precision increases. Defaults to 10.}
 
@@ -100,9 +103,6 @@ them.}
 Defaults to TRUE.}
 
 \item{seed}{Seed to be used to generate the seeds for each simulation.}
-
-\item{target_months}{Vector of timings of interim and final
-recruitment assessments, in months.}
 }
 \value{
 Dataframe of site closing times
