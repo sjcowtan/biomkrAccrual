@@ -89,3 +89,30 @@ targets_tolong <- function(target_df) {
 
   return(target_long_df)
 }
+
+
+
+#' Group arm names by target value
+#' 
+#' @param target_df Dataframe with first column containing the name 
+#' of the arm and subsequent columns containing recruitment targets
+#' for that arm at different time periods.
+#' @param target_col Column number for the time period of interest 
+#' in `target_df`.
+#' 
+#' 
+target_group <- function(target_df, target_col) {
+   
+  sapply(unique(target_df[, target_col]), function(x) {
+    paste(
+      strwrap(
+        paste(
+          target_df$arm[which(target_df[, target_col] == x)],
+          collapse = ", "
+        ),
+        width = 15
+      ),
+      collapse = "\n"
+    )
+  })
+}

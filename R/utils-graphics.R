@@ -425,7 +425,6 @@ label_vlines <- function(
   size = 6
 ) {
   # Get height of y axis for this particular plot
-  message(paste("P: ", ggplot2::layer_scales(p)$y$range$range[2], 2))
   label_y <- round(ggplot2::layer_scales(p)$y$range$range[2], 2)
 
   # Get x range of plot

@@ -384,17 +384,17 @@ biomkrAccrualSim <- function(
   }
 
   target_df <- utils::read.csv(target_file)
+  target_expanded_df <- expand_targets(target_df)
 
   # Accrual for all arms at each analysis point
   for (i in seq_len(length(arm_interim_ls))) {
     p <- plot(
       arm_interim_ls[[i]], 
-      target = unlist(target_df[i, -1]), 
-      target_names = names(target_df)[-1],
+      target = unique(target_expanded_df[, i + 1]), 
+      target_names = target_group(target_expanded_df, target_col = i + 1),
       target_week = target_times[i],
       plot_id = paste("Accrual at", target_times[i], "months")
     )
-    print(p)
 
     ggplot2::ggsave(
       paste0(
@@ -407,20 +407,16 @@ biomkrAccrualSim <- function(
       dpi = 400
     )
 
-    #print(p)
+    print(p)
   }
 
   p <- plot(
     arm_totals_mx, 
-    target = c(
-      target_interim, target_interim_control, 
-      target_arm_size, target_control
-    ), 
-    target_names = c(
-      "Interim", "Interim\ncontrol", 
-      "Accrual", "Accrual\ncontrol"
+    target = target_expanded_df, 
+    target_names = target_group(
+      target_expanded_df, 
+      target_col = ncol(target_expanded_df)
     ),
-    target_week = accrual_period,
     plot_id = "Total accrual"
   )
 
