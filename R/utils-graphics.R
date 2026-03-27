@@ -367,7 +367,7 @@ plot.armtotals <- function(
   adjust = 1
 ) {
   data_df <- matrix_to_long(x)
-
+  
   # Which of the accrual targets are within the dataset
   if (length(target) > 2) {
     target_indices <- 
