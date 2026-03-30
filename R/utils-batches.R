@@ -451,25 +451,17 @@ biomkrAccrualSim <- function(
   
   # Total accrual plots
 
-  data_ls <- list(
-    Interim = as.data.frame(arm_interim_mx),
-    Accrual = as.data.frame(arm_totals_mx)
-  )
-  target_ls <- list(
-    Interim = c(target_interim, target_interim_control),
-    Accrual = c(target_arm_size, target_control)
-  )
-
-  ## Loop across interim and total
-  for (j in seq_len(length(data_ls))) {
-    # Loop across all arms
-    for (i in seq(treatment_arms)) {
+  # Loop across all arms
+  for (i in seq_len(length(accrual_byarm_ls))) {
+    ## Loop across interim and total
+    for (j in seq_len(ncol(target_expanded_df[, -1]))) {
+    
       p <- accrual_arm_plot(
-        data_ls[[j]],
+        arm_interim_ls[[j]],
         arm_colours, 
         treatment_arms,
-        target_ls[[j]],
-        plot_id = names(data_ls)[j],
+        target_expanded_df[[i, j + 1]],
+        plot_id = paste(target_times[j], "month"),
         i
       )
 
@@ -477,8 +469,8 @@ biomkrAccrualSim <- function(
         paste0(
           figs_path, 
           "arm-totals-",
-          tolower(names(data_ls)[j]),
-          "-",
+          target_times[j],
+          "mo-",
           arm_names[i], "-", 
           run_time, 
           ".png"
