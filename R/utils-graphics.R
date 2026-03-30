@@ -470,7 +470,7 @@ accrual_arm_plot <- function(
   data_df,
   arm_colours,
   treatment_arms,
-  targets,
+  target,
   plot_id,
   i
 ) {
@@ -515,11 +515,7 @@ accrual_arm_plot <- function(
 
   p <- p + 
     ggplot2::geom_vline(
-      xintercept = ifelse(
-        treatment_arms[i], 
-        targets[1], 
-        targets[2]
-      ), 
+      xintercept = target, 
       linetype = "dashed",
       linewidth = 1,
       colour = "grey75"
@@ -546,11 +542,7 @@ accrual_arm_plot <- function(
 
   p <- label_vlines(
     p, 
-    target = ifelse(
-      treatment_arms[i],
-      targets[1], 
-      targets[2]
-    ),
+    target = target,
     target_names = ifelse(
       treatment_arms[i],
       plot_id, 
