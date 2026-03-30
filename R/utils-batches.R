@@ -493,18 +493,15 @@ biomkrAccrualSim <- function(
     p <- plot(
       accrual_byarm_ls[[i]],
       arm_colour = arm_colours[i],
-      target = c(
-        target_ls[[1]][target_index], 
-        target_ls[[2]][target_index]
-      ),
-      target_names = c("Interim", "Accrual"),
+      target = unlist(target_expanded_df[i, -1]),
+      target_names = paste(target_times, "month"),
       plot_id = name
     )
     ggplot2::ggsave(
       paste0(
         figs_path, 
         "arm-accrual-",
-        tolower(names(data_ls)[j]),
+        tolower(names(accrual_byarm_ls)[j]),
         "-",
         arm_names[i], "-", 
         run_time, 
@@ -520,20 +517,18 @@ biomkrAccrualSim <- function(
 
   # Plot time to accrual for each target and each arm
   for (i in seq_len(length(accrual_byarm_ls))) {
-    # Treatment or control arms?
-    target_index <- 2 - as.numeric(treatment_arms[[i]])
     # Data extraction for interim and accrual
     accrual_times <- threshold_week(
       accrual_byarm_ls[[i]], 
-      sapply(target_ls, function(t) t[target_index])
+      unlist(target_expanded_df[i, -1])
     )
 
-    for (j in 1:2) {
+    for (j in seq_len(length(target_times))) {
       p <- plot(
         accrual_times[[j]],
         arm_colour = arm_colours[i],
-        target = target_ls[[j]][target_index],
-        target_names = c("Interim", "Total")[j],
+        target = unlist(target_expanded_df[i, j + 1]),
+        target_names = paste(target_times[j], "month"),
         plot_id = names(accrual_byarm_ls)[[i]]
       )
       ggplot2::ggsave(
@@ -542,8 +537,8 @@ biomkrAccrualSim <- function(
           "arm-week-", 
           names(accrual_byarm_ls)[[i]],
           "-",
-          c("Interim", "Total")[j], 
-          "-",
+          target_times[j], 
+          "mo-",
           run_time, 
           ".png"
         ),

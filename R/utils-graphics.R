@@ -614,7 +614,7 @@ plot.armaccrual <- function(
   # Label hlines
   hline_df <- data.frame(
     x = nrow(data_mx) * .90,
-    y = target,  
+    y = unlist(target),  
     label = paste(target_names, "\ntarget")
   )
 
