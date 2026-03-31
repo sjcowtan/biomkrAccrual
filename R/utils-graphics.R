@@ -743,7 +743,7 @@ accrual_to_target_plot_from_file <- function(
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
   target_treatment = NA_integer_,
-  target_control = NA_integer,
+  target_control = NA_integer_,
   arm_colours = NULL
 ) {
   # Validate input

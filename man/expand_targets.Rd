@@ -10,8 +10,9 @@ expand_targets(target_df, shared_control = TRUE, control_ratio = c(1, 1))
 \item{target_df}{Dataframe of recruitment targets, as read from target file.}
 
 \item{shared_control}{One shared control arm or one per experimental arm
-(logical, defaults to TRUE)?
-#' @param control_ratio Ratio of patient allocation to treatment arm
+(logical, defaults to TRUE)?}
+
+\item{control_ratio}{Ratio of patient allocation to treatment arm
 versus control for all active arms; defaults to c(1, 1).}
 }
 \description{
