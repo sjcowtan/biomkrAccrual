@@ -100,25 +100,27 @@ test_that("accrual_to_long: arm names in expected distribution", {
 
 ### Conveniently atl_out is of class accrualplotdata
 
+target_df <- data.frame(
+  arm = c("T1", "T2"),
+  interim = 20,
+  final = 40
+)
+
 test_that("plot.accrualplotdata: produces an object of class ggplot", {
   expect_silent(
     plot.accrualplotdata(
       atl_out,
-      target_arm_size = 40,
-      target_control = 80,
-      target_interim = 20,
-      accrual_period = 12,
-      interim_period = 6
+      target_df = target_df,
+      shared_control = TRUE,
+      target_times = c(6, 12)
     )
   )
   expect_s3_class(
     plot.accrualplotdata(
       atl_out,
-      target_arm_size = 40,
-      target_control = 80,
-      target_interim = 20,
-      accrual_period = 12,
-      interim_period = 6
+      target_df = target_df,
+      shared_control = TRUE,
+      target_times = c(6, 12)
     ),
     "ggplot"
   )
@@ -128,21 +130,17 @@ test_that("plot.accrualplotdata: dispatch is working for this class", {
   expect_silent(
     plot(
       atl_out,
-      target_arm_size = 40,
-      target_control = 80,
-      target_interim = 20,
-      accrual_period = 12,
-      interim_period = 6
+      target_df = target_df,
+      shared_control = TRUE,
+      target_times = c(6, 12)
     )
   )
   expect_s3_class(
     plot(
       atl_out,
-      target_arm_size = 40,
-      target_control = 80,
-      target_interim = 20,
-      accrual_period = 12,
-      interim_period = 6
+      target_df = target_df,
+      shared_control = TRUE,
+      target_times = c(6, 12)
     ),
     "ggplot"
   )
@@ -150,20 +148,16 @@ test_that("plot.accrualplotdata: dispatch is working for this class", {
 
 p <- plot.accrualplotdata(
   atl_out,
-  target_arm_size = 40,
-  target_control = 80,
-  target_interim = 20,
-  accrual_period = 12,
-  interim_period = 6
+  target_df = target_df,
+  shared_control = TRUE,
+  target_times = c(6, 12)
 )
 
 p1 <- plot(
   atl_out,
-  target_arm_size = 40,
-  target_control = 80,
-  target_interim = 20,
-  accrual_period = 12,
-  interim_period = 6
+  target_df = target_df,
+  shared_control = TRUE,
+  target_times = c(6, 12)
 )
 print(names(p))
 

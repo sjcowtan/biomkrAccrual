@@ -4,17 +4,11 @@
 
 #' @title Command line 
 #' 
-#' @param target_arm_size Number of patients required per 
-#' treatment arm
-#' @param target_interim Number of patients required per 
-#' arm for interim analysis; defaults to `target_arm_size \ 2`
-#' @param target_control Number of patients required for the
-#' control arm(s)
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
-#' @param accrual_period Recruitment period (months).
-#' @param interim_period Recruitment period to interim (months).
+#' @param target_times Vector of timings of interim and final
+#' recruitment assessments, in months.
 #' @param precision For the Dirichlet model of biomarker prevalences, 
 #' variability decreases as precision increases. Defaults to 10.
 #' @param var_lambda Variance estimate for site recruitment rates.  
@@ -29,6 +23,14 @@
 #' for each region; this should have one column "category", naming
 #' the biomarkers or biomarker combinations, and one column per
 #' region. Defaults to `proportions.csv`.
+#' @param target_file Name of CSV file with target recruitment for each
+#' arm at each interim analysis time and at final recruitment. This 
+#' should have a column "arm" with the names of the treatment arms; this must match
+#' the arm name as specified in in `arms_file`. Control targets are
+#' not included as they can be deduced from the control_ratio and 
+#' shared_control arguments. It may then have one or more columns for 
+#' interim targets, and must have a "final" column for the final 
+#' recruitment target.
 #' @param arms_file Name of JSON file describing which recruitment
 #' arms (defined by biomarkers) recruit to which treatment arms. 
 #' Defaults to `arms_json`.
@@ -66,18 +68,15 @@
 #' 
 #' @export
 biomkrAccrual <- function(
-  target_arm_size = 60,
-  target_interim = target_arm_size / 2,
-  target_control = 180,
   shared_control = TRUE,
-  accrual_period = 50 / 4,
-  interim_period = accrual_period / 2,
+  target_times = c(6, 12),
   precision = 10,
   var_lambda = 0.25,
   # active : control ratio (all active the same)
   control_ratio = c(1, 1),
   centres_file = "centres.csv",
   prop_file = "proportions.csv",
+  target_file = "targets.csv",
   arms_file = "arms.json",
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
@@ -97,6 +96,12 @@ biomkrAccrual <- function(
 
   checkmate::assert_logical(
     fixed_site_rates,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_logical(
+    shared_control,
     any.missing = FALSE,
     null.ok = FALSE
   )
@@ -124,6 +129,15 @@ biomkrAccrual <- function(
     null.ok = TRUE
   )
 
+  checkmate::assert_numeric(
+    control_ratio,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 2,
+    null.ok = FALSE
+  )
+
   if (!fixed_region_prevalences && is.null(precision)) {
     rlang::abort(paste("Either fixed_region_prevalences", 
       "must be TRUE, or a value must be given for the",
@@ -145,6 +159,15 @@ biomkrAccrual <- function(
     ))
     var_lambda <- NULL
   }
+
+  checkmate::assert_numeric(
+    target_times,
+    any.missing = FALSE,
+    lower = 0,
+    finite = TRUE,
+    min.len = 1,
+    null.ok = FALSE
+  )
 
   checkmate::assert_numeric(
     var_lambda,
@@ -175,19 +198,14 @@ biomkrAccrual <- function(
     output_path <- paste0(getwd(), "/", output_path)
   }
   
-  ## Check for switches e.g. av_site_rate_month first
-  checkmate::assert_directory_exists(system.file(
-    data_path, package = "biomkrAccrual"
-  ), access = "rx")
-  checkmate::assert_file_exists(system.file(
-    data_path, prop_file, package = "biomkrAccrual"
-  ), access = "r")
-  checkmate::assert_file_exists(system.file(
-    data_path, arms_file, package = "biomkrAccrual"
-  ), access = "r")
-  checkmate::assert_file_exists(system.file(
-    data_path, centres_file, package = "biomkrAccrual"
-  ), access = "r")
+  ## Check data directory exists
+  if (grepl("^extdata/?$", data_path)) {
+    checkmate::assert_directory_exists(system.file(
+      data_path, package = "biomkrAccrual"
+    ), access = "rx")
+  } else {
+    checkmate::assert_directory_exists(data_path, access = "rx")
+  }
 
   # Set up output directory if does not already exist
   makeifnot_dir(output_path)
@@ -198,7 +216,7 @@ biomkrAccrual <- function(
   # Switch between system.file() if using data shipped with the
   # the package, or straight file access if now.
 
-  if (data_path == "extdata/") {
+  if (grepl("^extdata/?$", data_path)) {
     prop_file <- system.file(
       data_path, prop_file, package = "biomkrAccrual"
     )
@@ -208,11 +226,22 @@ biomkrAccrual <- function(
     centres_file <- system.file(
       data_path, centres_file, package = "biomkrAccrual"
     )
+    target_file <- system.file(
+      data_path, target_file, package = "biomkrAccrual"
+    )
   } else {
     prop_file <- paste(data_path, prop_file, sep = "/")
     arms_file <- paste(data_path, arms_file, sep = "/")
     centres_file <- paste(data_path, centres_file, sep = "/")
+    target_file <- paste(data_path, target_file, sep = "/")
   }
+
+  # Check input files exist and are readable
+  checkmate::assert_file_exists(prop_file, access = "r")
+  checkmate::assert_file_exists(arms_file, access = "r")
+  checkmate::assert_file_exists(centres_file, access = "r")
+  checkmate::assert_file_exists(target_file, access = "r")
+
   
   # Read parameters
   prop_params_df <- utils::read.csv(prop_file) 
@@ -221,6 +250,8 @@ biomkrAccrual <- function(
     jsonlite::read_json(arms_file, simplifyVector = TRUE)
   
   centres_df <- utils::read.csv(centres_file)
+
+  target_df <- utils::read.csv(target_file)
 
   # Add fail if read fails
 
@@ -240,6 +271,42 @@ biomkrAccrual <- function(
     ))
   }
 
+  # Fail if arms file is in wrong format
+  if (any(duplicated(names(arms_ls)))) {
+    rlang::abort(paste(
+      "Format error: arm names duplicated in arms file"
+    ))
+  }
+
+  # Fail if target_file is in wrong format
+  if (!(
+    isTRUE(all(
+      c("arm", "final") %in% names(target_df)
+    ))
+  )) {
+    rlang::abort(
+      "Format error: target.csv must have columns target and final"
+    )
+  }
+  if (ncol(target_df) - 1 != length(target_times)) {
+    rlang::abort(paste(
+      "Format error: target_times must have one time value for each",
+      "target column in the targets file" 
+    ))
+  }
+  if (isFALSE(checkmate::testSetEqual(names(arms_ls), target_df$arm))) {
+    # Tests for names matching in any order
+    rlang::abort(paste(
+      "Format error: arm names in the targets file are not the same",
+      "as those in the arms file"
+    ))
+  }
+  if (any(duplicated(target_df$arm))) {
+    rlang::abort(paste(
+      "Format error: arm names duplicated in targets file"
+    ))
+  }
+
   # Set run_time to timestamp output files
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
 
@@ -247,32 +314,30 @@ biomkrAccrual <- function(
   centres_df <- do_clean_centres(centres_df)
   centres_df$start_week <- get_weeks(centres_df$start_month - 1) + 1
 
-  # Make control ratio sum to 1
-  if (is.null(control_ratio)) {
-    if (!is.null(target_control)) {
-      control_ratio <- c(1, target_control / target_arm_size)
-    } else {
-      rlang::abort(paste(
-        "For shared control, either control_ratio or", 
-        "target_control must be specified."
-      ))
-    }
-  }
-  control_ratio <- control_ratio / sum(control_ratio)
+  # Sort target times and convert to weeks
+  target_times <- get_weeks(sort(target_times))
 
-  # Generate target_control if needed
-  if (is.null(target_control) && shared_control) {
-    target_control <- target_arm_size * control_ratio[2]
-  } 
+  # Sort target_df arm columns by value with the arm name first
+  arm_col <- which(colnames(target_df) == "arm")
+
+  target_df <- 
+    target_df[, c(1, 1 + order(unlist(target_df[1, -1])))]
+
+  # Sort target_df by rows to match order of arms_ls
+  if (any(target_df$arm != names(arms_ls))) {
+    target_df <- target_df[match(names(arms_ls), target_df$arm), ]
+  }
 
   # Total target recruitment
-  target_recruit <- ifelse(
-    shared_control, 
-    target_arm_size * length(arms_ls) + target_control,
-    target_arm_size * length(arms_ls) * (2 * control_ratio[2])
+  target_recruit <- round(
+    sum(control_ratio) * sum(target_df$final) / 
+      control_ratio[1], 0
   )
 
-  # Complete site cap if incomplete, using recruitment target
+  # Make control ratio sum to 1
+  control_ratio <- control_ratio / sum(control_ratio)
+
+  # Complete site cap if incomplete, using total recruitment target
   if (!("site_cap" %in% names(centres_df))) {
     centres_df$site_cap <- target_recruit
   } else {
@@ -295,11 +360,8 @@ biomkrAccrual <- function(
   accrual_instance <- accrual(
     treatment_arm_ids = trial_structure_instance@treatment_arm_ids,
     shared_control = shared_control,
-    target_arm_size = target_arm_size,
-    target_control = target_control,
-    target_interim = target_interim,
-    accrual_period = get_weeks(accrual_period),
-    interim_period = get_weeks(interim_period),
+    target_df = target_df,
+    target_times = target_times,
     control_ratio = control_ratio,
     fixed_site_rates = FALSE,
     var_lambda = var_lambda,

@@ -248,12 +248,12 @@ accrual_to_long <- function(accrual_df) {
 #' @param figs_path Folder where figures generated during execution
 #' will be stored; defaults to the `figures` subdirectory in
 #' `output_path`.
-#' @param target_arm_size Number of subjects required for each treatment arm.
-#' @param target_control Number of subjects required for control arm(s).
-#' @param target_interim Number of subjects required for treatment arm at 
-#' interim analysis.
-#' @param accrual_period Number of weeks in recruitment period.
-#' @param interim_period Number of weeks to recruit for interim analysis.
+#' @param target_df Dataframe containing the targets for the number of 
+#' patients recruited by each arm at each timepoint in `target_times`.
+#' @param target_times Vector of times of analyses or other recruitment
+#' progress assessments (weeks).
+#' @param control_ratio Ratio of patient allocation to treatment arm
+#' versus control for all active arms; defaults to c(1, 1).
 #' 
 #' @import ggplot2
 #' @importFrom grDevices palette.colors
@@ -268,23 +268,34 @@ plot.accrualplotdata <- function(
   run_time = NULL,
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
-  target_arm_size = NA_integer_,
-  target_control = NA_integer_,
-  target_interim = NA_integer_,
-  accrual_period = NA_integer_,
-  interim_period = NA_integer_
+  target_df,
+  target_times,
+  control_ratio = c(1, 1)
 ) {
   
   accrual_df <- x
   arm_names <- levels(accrual_df$Arm)
+
+  # Expand target_df to include control arms
+  target_df <- expand_targets(
+    target_df,
+    control_ratio = control_ratio,
+    shared_control = length(arm_names) == nrow(target_df) + 1
+  )
 
   linetypes <- c(
     "Interim arm" = 2, "Experimental arm" = 3, "Control arm" = 4,
     "Interim accrual" = 5, "Total accrual" = 6
   )
 
-  hline_y <- c(target_interim, target_arm_size, target_control)
-  vline_x <- c(interim_period, accrual_period)
+  target_lines_df <- unique(
+    targets_tolong(target_df)[c("target", "value")]
+  )
+
+  # One horizontal line per unique target
+  hline_y <- target_lines_df$value
+  # One vertical line per evaluation point
+  vline_x <- target_times
 
   p <- ggplot2::ggplot(
     accrual_df, 
@@ -301,16 +312,24 @@ plot.accrualplotdata <- function(
       values = grDevices::palette.colors(length(arm_names))
     ) +
     ggplot2::geom_vline(
-      xintercept = vline_x,
+      xintercept = target_times,
       linewidth = 1,
-      linetype = 2:3,
+      linetype = seq_len(length(target_times)) + 1,
       color = "grey75"
     ) +
     ggplot2::geom_hline(
-      yintercept = hline_y,
+      data = target_lines_df,
+      ggplot2::aes(
+        yintercept = value,
+        linetype = target
+      ),
       linewidth = 1,
-      linetype = 4:6,
       color = "grey65"
+    ) +
+    scale_linetype_manual(
+      values = seq_len(length(levels(target_lines_df$target))) + 1,
+      breaks = levels(target_lines_df$target),
+      aesthetics = "linetype"
     ) +
     ggplot2::labs(
       title = "Accrual plot"
@@ -333,7 +352,7 @@ plot.accrualplotdata <- function(
 #' @param adjust The adjust parameter from `ggplot2::geom_density`;
 #' higher values mean more smoothing. Defaults to 1.
 #' 
-#' @importFrom stats reshape
+#' @importFrom stats reshape quantile
 #' @import ggplot2
 #' @importFrom grDevices palette.colors
 #' 
@@ -348,7 +367,7 @@ plot.armtotals <- function(
   adjust = 1
 ) {
   data_df <- matrix_to_long(x)
-
+  
   # Which of the accrual targets are within the dataset
   if (length(target) > 2) {
     target_indices <- 
@@ -440,7 +459,7 @@ label_vlines <- function(
 #' @param data_df Dataframe of biomkrAccrual output.
 #' @param arm_colours Vector of hexadecimal colours, one for each arm.
 #' @param treatment_arms Vector of names of the treatment arms.
-#' @param targets Vector of target names (excluding the
+#' @param target Vector of target names (excluding the
 #' word `target`).
 #' @param plot_id Vector of plot type names (typically "Interim" and "Accrual").
 #' @param i Index of treatment arm to plot.
@@ -451,7 +470,7 @@ accrual_arm_plot <- function(
   data_df,
   arm_colours,
   treatment_arms,
-  targets,
+  target,
   plot_id,
   i
 ) {
@@ -496,11 +515,7 @@ accrual_arm_plot <- function(
 
   p <- p + 
     ggplot2::geom_vline(
-      xintercept = ifelse(
-        treatment_arms[i], 
-        targets[1], 
-        targets[2]
-      ), 
+      xintercept = target, 
       linetype = "dashed",
       linewidth = 1,
       colour = "grey75"
@@ -527,11 +542,7 @@ accrual_arm_plot <- function(
 
   p <- label_vlines(
     p, 
-    target = ifelse(
-      treatment_arms[i],
-      targets[1], 
-      targets[2]
-    ),
+    target = target,
     target_names = ifelse(
       treatment_arms[i],
       plot_id, 
@@ -603,7 +614,7 @@ plot.armaccrual <- function(
   # Label hlines
   hline_df <- data.frame(
     x = nrow(data_mx) * .90,
-    y = target,  
+    y = unlist(target),  
     label = paste(target_names, "\ntarget")
   )
 
@@ -732,7 +743,7 @@ accrual_to_target_plot_from_file <- function(
   output_path = "../biomkrAccrual_output_data/",
   figs_path = paste0(output_path, "figures/"),
   target_treatment = NA_integer_,
-  target_control = NA_integer,
+  target_control = NA_integer_,
   arm_colours = NULL
 ) {
   # Validate input
@@ -910,7 +921,29 @@ plot.targetweek <- function(
     
     
   p <- p +
-    labs(
+    ggplot2::geom_vline(
+      xintercept = target,
+      linewidth = 1,
+      linetype = "dashed",
+      color = "grey75"
+    ) 
+
+  vline_df <- data.frame(
+    x = target,
+    y = 0.9 * round(ggplot2::layer_scales(p)$y$range$range[2], 2),
+    label = ifelse(
+      is.null(target_names), 
+      "target\ntime", 
+      paste0(target_names, "s")
+    )
+  )
+
+  p <- p +  
+    ggplot2::geom_text(
+      data = vline_df,
+      ggplot2::aes(x = x, y = y, label = label)
+    ) +
+    ggplot2::labs(
       title = plot_label,
       subtitle = plot_sublabel,
       x = "Week",

@@ -5,8 +5,12 @@
 unshared_acc_obj <- accrual(
   treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
   shared_control = FALSE,
-  accrual_period = as.integer(12),
-  interim_period = as.integer(6),
+  target_df = data.frame(
+    arm = c("T1", "T2"),
+    interim = as.integer(c(30, 30)),
+    final = as.integer(c(60, 60))
+  ),
+  target_times = c(6, 12),
   control_ratio = c(1, 1),
   fixed_site_rates = TRUE,
   var_lambda = 0.25,
@@ -36,8 +40,12 @@ test_that(paste(
 fixed_acc_obj <- accrual(
   treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
   shared_control = TRUE,
-  accrual_period = as.integer(12),
-  interim_period = as.integer(6),
+  target_df = data.frame(
+    arm = c("T1", "T2"),
+    interim = as.integer(c(30, 30)),
+    final = as.integer(c(60, 60))
+  ),
+  target_times = as.integer(c(6, 12)),
   control_ratio = c(1, 1),
   fixed_site_rates = TRUE,
   var_lambda = 0.25,
@@ -180,12 +188,14 @@ test_that("set_site_rates: fixed site rate is correct", {
 
 
 variable_acc_obj <- accrual(
-  target_arm_size = 20,
-  target_interim = 10,
+  target_df = data.frame(
+    arm = c("T1", "T2"),
+    interim = as.integer(c(10, 10)),
+    final = as.integer(c(20, 20))
+  ),
+  target_times = c(6, 12),
   treatment_arm_ids = list(T1 = as.integer(1), T2 = as.integer(2)),
   shared_control = TRUE,
-  accrual_period = as.integer(12),
-  interim_period = as.integer(6),
   control_ratio = c(1, 1),
   fixed_site_rates = FALSE,
   var_lambda = 0.25,
@@ -272,7 +282,10 @@ test_that("week_accrue: variable site rate is correct", {
 
 set.seed(123)
 
-aw_out_ls <- accrue_week(variable_acc_obj, ts_obj)
+aw_out_ls <- accrue_week(
+  accrual_obj = variable_acc_obj, 
+  struct_obj = ts_obj
+)
 
 test_that("accrue_week: first output is an accrual object", {
   expect_equal(
@@ -388,8 +401,11 @@ test_that("apply_site_cap: Sites under the cap are not capped.", {
 
 # Testing apply_arm_cap()
 
-fixed_acc_obj@target_arm_size <- as.integer(16)
-fixed_acc_obj@target_interim <- as.integer(8)
+fixed_acc_obj@target_df <- data.frame(
+  arm = c("T1", "T2"),
+  interim = c(8, 8),
+  final = c(16, 16)
+)
 
 struct_obj <- trial_structure(
   props_df = data.frame(
@@ -413,8 +429,11 @@ struct_obj <- trial_structure(
 
 # Change these so only the last week is over the cap
 
-fixed_acc_obj@target_arm_size <- as.integer(25)
-fixed_acc_obj@target_interim <- as.integer(15)
+fixed_acc_obj@target_df <- data.frame(
+  arm = c("T1", "T2"),
+  interim = c(15, 15),
+  final = c(25, 25)
+)
 
 fixed_acc_obj <- apply_arm_cap(fixed_acc_obj, struct_obj)
 

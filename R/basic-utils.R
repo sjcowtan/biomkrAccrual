@@ -36,3 +36,83 @@ makeifnot_dir <- function(file_path) {
     )
   }
 }
+
+
+#' Expand target_df to include control arm(s)
+#' 
+#' @param target_df Dataframe of recruitment targets, as read from target file.
+#' @param shared_control One shared control arm or one per experimental arm 
+#' (logical, defaults to TRUE)?
+#' @param control_ratio Ratio of patient allocation to treatment arm
+#' versus control for all active arms; defaults to c(1, 1).
+#' 
+expand_targets <- function(
+  target_df, 
+  shared_control = TRUE, 
+  control_ratio = c(1, 1)
+) {
+  # Want control ratio in form 1:x
+  control_ratio <- control_ratio / control_ratio[1]
+
+  if (shared_control) {
+    control_df <- as.data.frame(append(
+      list(arm = "Control"),
+      round(colSums(target_df[-1]) * control_ratio[2], 0)
+    ))
+  } else {
+    control_df <- as.data.frame(append(
+      list(arm = paste(target_df$arm, "Control")),
+      round(target_df[-1] * control_ratio[2], 0)
+    ))
+  }
+
+  rbind(target_df, control_df)
+}
+
+
+#' Convert targets dataframe to long format
+#' 
+#' @param target_df Dataframe of targets in target file or extended format
+#' 
+targets_tolong <- function(target_df) {
+  target_long_df <- reshape(
+    target_df, 
+    direction = "long", 
+    varying = list(names(target_df)[2:ncol(target_df)]), 
+    idvar = "arm", 
+    v.names = "value", 
+    timevar = "target", 
+    times = names(target_df)[-1]
+  )
+
+  target_long_df$target <- as.factor(target_long_df$target)
+
+  return(target_long_df)
+}
+
+
+
+#' Group arm names by target value
+#' 
+#' @param target_df Dataframe with first column containing the name 
+#' of the arm and subsequent columns containing recruitment targets
+#' for that arm at different time periods.
+#' @param target_col Column number for the time period of interest 
+#' in `target_df`.
+#' 
+#' 
+target_group <- function(target_df, target_col) {
+   
+  sapply(unique(target_df[, target_col]), function(x) {
+    paste(
+      strwrap(
+        paste(
+          target_df$arm[which(target_df[, target_col] == x)],
+          collapse = ", "
+        ),
+        width = 15
+      ),
+      collapse = "\n"
+    )
+  })
+}

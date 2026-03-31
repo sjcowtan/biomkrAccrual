@@ -4,7 +4,7 @@
 \alias{accrual_arm_plot}
 \title{Plot single arm accrual plot}
 \usage{
-accrual_arm_plot(data_df, arm_colours, treatment_arms, targets, plot_id, i)
+accrual_arm_plot(data_df, arm_colours, treatment_arms, target, plot_id, i)
 }
 \arguments{
 \item{data_df}{Dataframe of biomkrAccrual output.}
@@ -13,7 +13,7 @@ accrual_arm_plot(data_df, arm_colours, treatment_arms, targets, plot_id, i)
 
 \item{treatment_arms}{Vector of names of the treatment arms.}
 
-\item{targets}{Vector of target names (excluding the
+\item{target}{Vector of target names (excluding the
 word \code{target}).}
 
 \item{plot_id}{Vector of plot type names (typically "Interim" and "Accrual").}

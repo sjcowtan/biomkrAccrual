@@ -3,12 +3,10 @@
 #' 
 #' @slot accrual 3-D array with axes site, experimental arm
 #' and week
-#' @slot target_arm_size Number of subjects required for each treatment arm.
-#' @slot target_control Number of subjects required for control arm(s).
-#' @slot target_interim Number of subjects required for treatment arm at 
-#' interim analysis.
-#' @slot accrual_period Number of weeks in recruitment period.
-#' @slot interim_period Number of weeks to recruit for interim analysis.
+#' @slot target_df Dataframe containing the targets for the number of 
+#' patients recruited by each arm at each timepoint in `target_times`.
+#' @slot target_times Vector of times of analyses or other recruitment
+#' progress assessments (weeks).
 #' @slot phase_changes Vector of week numbers when arms closed
 #' @slot site_closures Vector of weeks sites closed; NA indicates open
 #' @slot week Current recruitment week
@@ -35,21 +33,18 @@
 #' FALSE if each has their own
 #' @param fixed_site_rates TRUE if expected site rate to be used; FALSE 
 #' draws the site rate from a gamma distribution
-#' @param target_arm_size Number of subjects required for each treatment arm.
-#' @param target_control Number of subjects required for control arm(s).
-#' @param target_interim Number of subjects required for treatment arm at 
-#' interim analysis.
-#' @param accrual_period Number of weeks in recruitment period.
-#' @param interim_period Number of weeks to recruit for interim analysis.
+#' @param target_df Dataframe containing the targets for the number of 
+#' patients recruited by each arm at each timepoint in `target_times`.
+#' @param target_times Vector of times of analyses or other recruitment
+#' progress assessments (weeks).
 #' @param control_ratio Ratio of patient allocation to treatment arm
 #' versus control for all active arms; defaults to c(1, 1).
 #' @param var_lambda Variance of site recruitment rates.
 #' @param centres_df Dataframe with columns "site", "start_month", "mean_rate", 
 #' "region" and "site_cap"
 #' 
-#' @usage accrual(treatment_arm_ids, shared_control, fixed_site_rates, target_arm_size, 
-#' target_control, target_interim, accrual_period, interim_period, 
-#' control_ratio, var_lambda, centres_df)
+#' @usage accrual(treatment_arm_ids, shared_control, fixed_site_rates, 
+#' target_df, target_times, control_ratio, var_lambda, centres_df)
 #' @name accrual
 #'
 #' @export
@@ -58,11 +53,8 @@ accrual <- S7::new_class("accrual",
   package = "biomkrAccrual",
   properties = list(
     accrual = S7::class_integer,
-    target_arm_size = S7::class_integer,
-    target_control = S7::class_integer,
-    target_interim = S7::class_integer,
-    accrual_period = S7::class_integer,
-    interim_period = S7::class_integer,
+    target_times = S7::class_integer,
+    target_df = S7::class_data.frame,
     control_ratio = S7::class_double,
     phase_changes = S7::class_integer,
     site_closures = S7::class_integer,
@@ -84,11 +76,8 @@ accrual <- S7::new_class("accrual",
     treatment_arm_ids = S7::class_missing,
     shared_control = S7::class_missing,
     fixed_site_rates = S7::class_missing,
-    target_arm_size = S7::class_missing,
-    target_control = S7::class_missing,
-    target_interim = S7::class_missing,
-    accrual_period = S7::class_missing,
-    interim_period = S7::class_missing,
+    target_df = S7::class_missing,
+    target_times = S7::class_missing,
     control_ratio = S7::class_missing,
     var_lambda = S7::class_missing,
     centres_df = S7::class_missing
@@ -103,7 +92,7 @@ accrual <- S7::new_class("accrual",
         as.integer(0), 
         dim = c(
           # Max. weeks
-          accrual_period,
+          target_times[length(target_times)],
           # No. experimental arms including control
           length(treatment_arm_ids) + 
             ifelse(shared_control, 1, length(treatment_arm_ids)),
@@ -123,11 +112,8 @@ accrual <- S7::new_class("accrual",
           Centres = c(paste("Centre", unique(centres_df$site)))
         )
       ),
-      target_arm_size = as.integer(target_arm_size),
-      target_control = as.integer(target_control),
-      target_interim = as.integer(target_interim),
-      accrual_period = accrual_period,
-      interim_period = interim_period,
+      target_df = target_df,
+      target_times = as.integer(target_times),
       control_ratio = control_ratio,
       phase_changes = rep(NA_integer_, length(treatment_arm_ids)),
       site_closures = rep(NA_integer_, length(unique(centres_df$site))),
@@ -410,7 +396,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
       treat_sums(accrual_obj)[seq_len(length(accrual_obj@phase_changes))]
 
     # Compare with cap
-    arm_captotal <- arm_sums - accrual_obj@target_arm_size
+    arm_captotal <- arm_sums - accrual_obj@target_df$final
 
     # Inactive arms can be at cap but not exceed it
     if (any(arm_captotal[-accrual_obj@active_arms] > 0)) {
@@ -563,7 +549,10 @@ S7::method(accrue_week, list(accrual, trial_structure)) <-
       week_acc <- week_acc_ls[[2]]
       
       # Assign the week's accrual to the object
-      if (accrual_obj@week <= accrual_obj@accrual_period) { 
+      if (
+        accrual_obj@week <= 
+          accrual_obj@target_times[length(accrual_obj@target_times)]
+      ) { 
         accrual_obj@accrual[accrual_obj@week, , ] <-
           week_acc
       } else {

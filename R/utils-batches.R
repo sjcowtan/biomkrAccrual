@@ -59,17 +59,11 @@ getseeds <- function(
 #' pseudo-random number generator.
 #' 
 #' @param n Number of instances to run (defaults to 100)
-#' @param target_arm_size Number of patients required per 
-#' treatment arm
-#' @param target_interim Number of patients required per 
-#' arm for interim analysis; defaults to `target_arm_size \ 2`
-#' @param target_control Number of patients required for the
-#' control arm(s)
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
-#' @param accrual_period Recruitment period (months).
-#' @param interim_period Recruitment period to interim (months).
+#' @param target_times Vector of timings of interim and final
+#' recruitment assessments, in months.
 #' @param precision For the Dirichlet model of biomarker prevalences, 
 #' variability decreases as precision increases. Defaults to 10.
 #' @param var_lambda Variance estimate for site recruitment rates.  
@@ -84,6 +78,14 @@ getseeds <- function(
 #' for each region; this should have one column "category", naming
 #' the biomarkers or biomarker combinations, and one column per
 #' region. Defaults to `proportions.csv`.
+#' @param target_file Name of CSV file with target recruitment for each
+#' arm at each interim analysis time and at final recruitment. This 
+#' should have a column "target" with the arm name; this must match
+#' the arm name as specified in in `arms_file`. Control targets are
+#' not included as they can be deduced from the control_ratio and 
+#' shared_control arguments. It may then have one or more columns for 
+#' interim targets, and must have a "final" column for the final 
+#' recruitment target.
 #' @param arms_file Name of JSON file describing which recruitment
 #' arms (defined by biomarkers) recruit to which treatment arms. 
 #' Defaults to `arms_json`.
@@ -119,18 +121,15 @@ getseeds <- function(
 #' 
 biomkrAccrualSim <- function(
   n = 100,
-  target_arm_size = 60,
-  target_interim = target_arm_size / 2,
-  target_control = 180,
   shared_control = TRUE,
-  accrual_period = 50 / 4,
-  interim_period = accrual_period / 2,
+  target_times = c(6, 12),
   precision = 10,
   var_lambda = 0.25,
   # active : control ratio (all active the same)
   control_ratio = c(1, 1),
   centres_file = "centres.csv",
   prop_file = "proportions.csv",
+  target_file = "targets.csv",
   arms_file = "arms.json",
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
@@ -145,7 +144,16 @@ biomkrAccrualSim <- function(
   # Timestamp for batch files (but not individual run files)
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
 
-  if (data_path == "extdata/") {
+  ## Check data directory exists
+  if (grepl("^extdata/?$", data_path)) {
+    checkmate::assert_directory_exists(system.file(
+      data_path, package = "biomkrAccrual"
+    ), access = "rx")
+  } else {
+    checkmate::assert_directory_exists(data_path, access = "rx")
+  }
+
+  if (grepl("^extdata/?$", data_path)) {
     jsonfile <- system.file(
       data_path, arms_file, package = "biomkrAccrual"
     )
@@ -176,13 +184,23 @@ biomkrAccrualSim <- function(
     )),
     class = c("armtotals", "matrix", "array")
   )
-  arm_interim_mx <- structure(
-    matrix(0, nrow = n, ncol = ifelse(
-      shared_control,
-      length(arms_ls) + 1,
-      2 * length(arms_ls)
-    )),
-    class = c("armtotals", "matrix", "array")
+  # List with one element for each assessment time
+  arm_interim_ls <- lapply(
+    seq_len(length(target_times)),
+    function(x) {
+      structure(
+        matrix(
+          0, 
+          nrow = n,
+          ncol = ifelse(
+            shared_control,
+            length(arms_ls) + 1,
+            2 * length(arms_ls)
+          )
+        ),
+        class = c("armtotals", "matrix", "array")
+      )
+    }
   )
   arm_accrual_ls <- list(length = n)
 
@@ -193,7 +211,8 @@ biomkrAccrualSim <- function(
   } else {
     colnames(arm_totals_mx) <- c(names(arms_ls), paste0("C-", names(arms_ls)))
   }
-  colnames(arm_interim_mx) <- colnames(arm_totals_mx)
+  arm_interim_ls <- 
+    lapply(arm_interim_ls, "colnames<-", colnames(arm_totals_mx))
 
   # Get current RNG and seed for current environment
   oldrng <- RNGkind()
@@ -238,16 +257,14 @@ biomkrAccrualSim <- function(
 
     # Run one simulation
     accrual_instance <- biomkrAccrual(
-      target_arm_size = target_arm_size,
-      target_interim = target_interim,
-      target_control = target_control,
       shared_control = shared_control,
-      accrual_period = accrual_period,
-      interim_period = interim_period,
+      target_times = target_times,
       precision = precision,
       var_lambda = var_lambda,
       control_ratio = control_ratio,
       centres_file = centres_file,
+      prop_file = prop_file,
+      target_file = target_file,
       arms_file = arms_file,
       data_path = data_path,
       fixed_centre_starts = fixed_centre_starts,
@@ -257,20 +274,29 @@ biomkrAccrualSim <- function(
       keep_files = FALSE
     )
 
+    # Tally arm closure times
     arm_closures_mx[irun, ] <- accrual_instance@phase_changes
     arm_totals_mx[irun, ] <- treat_sums(
       accrual_instance@accrual[
         seq_len(min(
-          nrow(accrual_instance@accrual), accrual_instance@accrual_period
+          nrow(accrual_instance@accrual), 
+          accrual_instance@target_times[length(accrual_instance@target_times)]
         )), ,
       ]
 
     )
-    arm_interim_mx[irun, ] <- treat_sums(
-      accrual_instance@accrual[
-        seq(accrual_instance@interim_period), , 
-      ]
-    )
+
+    # Tally arm totals at each interim analysis & planned or actual end
+    for (i in seq_len(length(accrual_instance@target_times))) {
+      arm_interim_ls[[i]][irun, ] <- treat_sums(
+        accrual_instance@accrual[
+          seq(min(
+            accrual_instance@target_times[i],
+            dim(accrual_instance@accrual)[1]
+          )), , 
+        ]
+      )
+    }
 
     # Don't know how many weeks to predeclare => not array. List of matrices
     arm_accrual_ls[[irun]] <- apply(
@@ -323,11 +349,16 @@ biomkrAccrualSim <- function(
     row.names = FALSE
   )
 
-  write.csv(
-    as.data.frame(arm_interim_mx),
-    paste0(output_path, "arm_interim_totals_", datetime, ".csv"),
-    row.names = FALSE
-  )
+  for (i in seq_len(length(arm_interim_ls))) {
+    write.csv(
+      as.data.frame(arm_interim_ls[[i]]),
+      paste0(
+        output_path, "arm_interim_totals_", target_times[i], 
+        "mo_", datetime, ".csv"
+      ),
+      row.names = FALSE
+    )
+  }
 
   # Write simulation data as a JSON of a list, one element per
   # arm, consisting of matrices of simulation number * week
@@ -336,51 +367,61 @@ biomkrAccrualSim <- function(
     paste0(output_path, "arm_accrual_", datetime, ".json")
   )
 
+  print("Arm closure weeks")
   print(summary(as.data.frame(arm_closures_mx)))
+  print("Arm totals")
   print(summary(as.data.frame(arm_totals_mx)))
-  print(summary(as.data.frame(arm_interim_mx)))
+  for (i in seq_len(length(target_times))) {
+    print(paste0(target_times[i], "mo. accrual:"))
+    print(summary(as.data.frame(arm_interim_ls[[i]])))
+  }
 
-  # Interim plot
+  # Going to need to know recruitment targets for plots
+  ### This has been read before so shouldn't fail
+  if (grepl("^extdata/?$", data_path)) {
+    target_file <- system.file(
+      data_path, target_file, package = "biomkrAccrual"
+    )
+  } else {
+    target_file <- paste(data_path, target_file, sep = "/")
+  }
 
-  ### This is a bodge
-  target_interim_control <- target_control * target_interim / target_arm_size
+  target_df <- utils::read.csv(target_file)
+  target_expanded_df <- expand_targets(target_df)
 
-  p <- plot(
-    arm_interim_mx, 
-    target = c(
-      target_interim, target_interim_control, 
-      target_arm_size, target_control
-    ), 
-    target_names = c(
-      "Interim", "Interim\ncontrol", 
-      "Accrual", "Accrual\ncontrol"
-    ),
-    target_week = interim_period,
-    plot_id = "Interim accrual"
-  )
+  # Accrual for all arms at each analysis point
+  for (i in seq_len(length(arm_interim_ls))) {
+    p <- plot(
+      arm_interim_ls[[i]], 
+      target = unique(target_expanded_df[, i + 1]), 
+      target_names = target_group(target_expanded_df, target_col = i + 1),
+      target_week = target_times[i],
+      plot_id = paste("Accrual at", target_times[i], "months")
+    )
 
-  ggplot2::ggsave(
-    paste0(figs_path, "arm-totals-interim-", run_time, ".png"),
-    plot = p,
-    width = 12,
-    height = 8,
-    dpi = 400
-  )
+    ggplot2::ggsave(
+      paste0(
+        figs_path, "arm-totals-", target_times[i], 
+        "mo-", run_time, ".png"
+      ),
+      plot = p,
+      width = 12,
+      height = 8,
+      dpi = 400
+    )
 
-  print(p)
-
+    print(p)
+  }
 
   p <- plot(
     arm_totals_mx, 
-    target = c(
-      target_interim, target_interim_control, 
-      target_arm_size, target_control
-    ), 
-    target_names = c(
-      "Interim", "Interim\ncontrol", 
-      "Accrual", "Accrual\ncontrol"
+    target = unique(targets_tolong(target_expanded_df)$value), 
+    target_names = target_group(
+      targets_tolong(
+        target_expanded_df
+      ),  
+      target_col = 3
     ),
-    target_week = accrual_period,
     plot_id = "Total accrual"
   )
 
@@ -413,25 +454,17 @@ biomkrAccrualSim <- function(
   
   # Total accrual plots
 
-  data_ls <- list(
-    Interim = as.data.frame(arm_interim_mx),
-    Accrual = as.data.frame(arm_totals_mx)
-  )
-  target_ls <- list(
-    Interim = c(target_interim, target_interim_control),
-    Accrual = c(target_arm_size, target_control)
-  )
-
-  ## Loop across interim and total
-  for (j in seq_len(length(data_ls))) {
-    # Loop across all arms
-    for (i in seq(treatment_arms)) {
+  # Loop across all arms
+  for (i in seq_len(length(accrual_byarm_ls))) {
+    ## Loop across interim and total
+    for (j in seq_len(ncol(target_expanded_df[, -1]))) {
+    
       p <- accrual_arm_plot(
-        data_ls[[j]],
+        arm_interim_ls[[j]],
         arm_colours, 
         treatment_arms,
-        target_ls[[j]],
-        plot_id = names(data_ls)[j],
+        target_expanded_df[[i, j + 1]],
+        plot_id = paste(target_times[j], "month"),
         i
       )
 
@@ -439,8 +472,8 @@ biomkrAccrualSim <- function(
         paste0(
           figs_path, 
           "arm-totals-",
-          tolower(names(data_ls)[j]),
-          "-",
+          target_times[j],
+          "mo-",
           arm_names[i], "-", 
           run_time, 
           ".png"
@@ -463,18 +496,15 @@ biomkrAccrualSim <- function(
     p <- plot(
       accrual_byarm_ls[[i]],
       arm_colour = arm_colours[i],
-      target = c(
-        target_ls[[1]][target_index], 
-        target_ls[[2]][target_index]
-      ),
-      target_names = c("Interim", "Accrual"),
+      target = unlist(target_expanded_df[i, -1]),
+      target_names = paste(target_times, "month"),
       plot_id = name
     )
     ggplot2::ggsave(
       paste0(
         figs_path, 
         "arm-accrual-",
-        tolower(names(data_ls)[j]),
+        tolower(names(accrual_byarm_ls)[j]),
         "-",
         arm_names[i], "-", 
         run_time, 
@@ -490,20 +520,18 @@ biomkrAccrualSim <- function(
 
   # Plot time to accrual for each target and each arm
   for (i in seq_len(length(accrual_byarm_ls))) {
-    # Treatment or control arms?
-    target_index <- 2 - as.numeric(treatment_arms[[i]])
     # Data extraction for interim and accrual
     accrual_times <- threshold_week(
       accrual_byarm_ls[[i]], 
-      sapply(target_ls, function(t) t[target_index])
+      unlist(target_expanded_df[i, -1])
     )
 
-    for (j in 1:2) {
+    for (j in seq_len(length(target_times))) {
       p <- plot(
         accrual_times[[j]],
         arm_colour = arm_colours[i],
-        target = target_ls[[j]][target_index],
-        target_names = c("Interim", "Total")[j],
+        target = unlist(target_expanded_df[i, j + 1]),
+        target_names = paste(target_times[j], "month"),
         plot_id = names(accrual_byarm_ls)[[i]]
       )
       ggplot2::ggsave(
@@ -512,8 +540,8 @@ biomkrAccrualSim <- function(
           "arm-week-", 
           names(accrual_byarm_ls)[[i]],
           "-",
-          c("Interim", "Total")[j], 
-          "-",
+          target_times[j], 
+          "mo-",
           run_time, 
           ".png"
         ),

@@ -10,17 +10,14 @@ pseudo-random number generator.}
 \usage{
 biomkrAccrualSim(
   n = 100,
-  target_arm_size = 60,
-  target_interim = target_arm_size/2,
-  target_control = 180,
   shared_control = TRUE,
-  accrual_period = 50/4,
-  interim_period = accrual_period/2,
+  target_times = c(6, 12),
   precision = 10,
   var_lambda = 0.25,
   control_ratio = c(1, 1),
   centres_file = "centres.csv",
   prop_file = "proportions.csv",
+  target_file = "targets.csv",
   arms_file = "arms.json",
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
@@ -36,22 +33,12 @@ biomkrAccrualSim(
 \arguments{
 \item{n}{Number of instances to run (defaults to 100)}
 
-\item{target_arm_size}{Number of patients required per
-treatment arm}
-
-\item{target_interim}{Number of patients required per
-arm for interim analysis; defaults to \verb{target_arm_size \\ 2}}
-
-\item{target_control}{Number of patients required for the
-control arm(s)}
-
 \item{shared_control}{TRUE if all treatment arms share the
 same control arm; FALSE if each treatment arm has its own
 control. Defaults to TRUE.}
 
-\item{accrual_period}{Recruitment period (months).}
-
-\item{interim_period}{Recruitment period to interim (months).}
+\item{target_times}{Vector of timings of interim and final
+recruitment assessments, in months.}
 
 \item{precision}{For the Dirichlet model of biomarker prevalences,
 variability decreases as precision increases. Defaults to 10.}
@@ -71,6 +58,15 @@ if recruitment is capped per site. Defaults to \code{centres.csv}.}
 for each region; this should have one column "category", naming
 the biomarkers or biomarker combinations, and one column per
 region. Defaults to \code{proportions.csv}.}
+
+\item{target_file}{Name of CSV file with target recruitment for each
+arm at each interim analysis time and at final recruitment. This
+should have a column "target" with the arm name; this must match
+the arm name as specified in in \code{arms_file}. Control targets are
+not included as they can be deduced from the control_ratio and
+shared_control arguments. It may then have one or more columns for
+interim targets, and must have a "final" column for the final
+recruitment target.}
 
 \item{arms_file}{Name of JSON file describing which recruitment
 arms (defined by biomarkers) recruit to which treatment arms.
