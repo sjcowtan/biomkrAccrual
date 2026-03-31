@@ -43,7 +43,7 @@ makeifnot_dir <- function(file_path) {
 #' @param target_df Dataframe of recruitment targets, as read from target file.
 #' @param shared_control One shared control arm or one per experimental arm 
 #' (logical, defaults to TRUE)?
-#' #' @param control_ratio Ratio of patient allocation to treatment arm
+#' @param control_ratio Ratio of patient allocation to treatment arm
 #' versus control for all active arms; defaults to c(1, 1).
 #' 
 expand_targets <- function(
