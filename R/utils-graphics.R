@@ -352,7 +352,7 @@ plot.accrualplotdata <- function(
 #' @param adjust The adjust parameter from `ggplot2::geom_density`;
 #' higher values mean more smoothing. Defaults to 1.
 #' 
-#' @importFrom stats reshape
+#' @importFrom stats reshape quantile
 #' @import ggplot2
 #' @importFrom grDevices palette.colors
 #' 
@@ -459,7 +459,7 @@ label_vlines <- function(
 #' @param data_df Dataframe of biomkrAccrual output.
 #' @param arm_colours Vector of hexadecimal colours, one for each arm.
 #' @param treatment_arms Vector of names of the treatment arms.
-#' @param targets Vector of target names (excluding the
+#' @param target Vector of target names (excluding the
 #' word `target`).
 #' @param plot_id Vector of plot type names (typically "Interim" and "Accrual").
 #' @param i Index of treatment arm to plot.
@@ -921,7 +921,29 @@ plot.targetweek <- function(
     
     
   p <- p +
-    labs(
+    ggplot2::geom_vline(
+      xintercept = target,
+      linewidth = 1,
+      linetype = "dashed",
+      color = "grey75"
+    ) 
+
+  vline_df <- data.frame(
+    x = target,
+    y = 0.9 * round(ggplot2::layer_scales(p)$y$range$range[2], 2),
+    label = ifelse(
+      is.null(target_names), 
+      "target\ntime", 
+      paste0(target_names, "s")
+    )
+  )
+
+  p <- p +  
+    ggplot2::geom_text(
+      data = vline_df,
+      ggplot2::aes(x = x, y = y, label = label)
+    ) +
+    ggplot2::labs(
       title = plot_label,
       subtitle = plot_sublabel,
       x = "Week",

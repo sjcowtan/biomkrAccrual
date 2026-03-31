@@ -7,7 +7,7 @@
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
 #' control. Defaults to TRUE.
-#' @param target_months Vector of timings of interim and final
+#' @param target_times Vector of timings of interim and final
 #' recruitment assessments, in months.
 #' @param precision For the Dirichlet model of biomarker prevalences, 
 #' variability decreases as precision increases. Defaults to 10.

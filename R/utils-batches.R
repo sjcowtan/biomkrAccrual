@@ -286,11 +286,14 @@ biomkrAccrualSim <- function(
 
     )
 
-    # Tally arm totals at each interim analysis & planned end
+    # Tally arm totals at each interim analysis & planned or actual end
     for (i in seq_len(length(accrual_instance@target_times))) {
       arm_interim_ls[[i]][irun, ] <- treat_sums(
         accrual_instance@accrual[
-          seq(accrual_instance@target_times[i]), , 
+          seq(min(
+            accrual_instance@target_times[i],
+            dim(accrual_instance@accrual)[1]
+          )), , 
         ]
       )
     }
