@@ -252,7 +252,8 @@ biomkrAccrualSim <- function(
     assign(
       x = ".Random.seed", 
       value = seeds[[irun]],
-      envir = as.environment(-1)
+      envir = as.environment(-1),
+      inherits = TRUE
     )
 
     # Run one simulation
@@ -271,7 +272,8 @@ biomkrAccrualSim <- function(
       fixed_site_rates = fixed_site_rates,
       fixed_region_prevalences = fixed_region_prevalences,
       quietly = TRUE,
-      keep_files = FALSE
+      keep_files = FALSE,
+      seed = NULL
     )
 
     # Tally arm closure times

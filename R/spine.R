@@ -85,9 +85,10 @@ biomkrAccrual <- function(
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
   quietly = FALSE,
-  keep_files = TRUE
+  keep_files = TRUE,
+  seed = 123456
 ) {
-
+  
   checkmate::assert_logical(
     fixed_region_prevalences,
     any.missing = FALSE,
@@ -184,6 +185,13 @@ biomkrAccrual <- function(
       "variance of the site rates."
     ))
   }
+
+  checkmate::assert_integerish(
+    seed,
+    min.len = 1,
+    max.len = 7,
+    null.ok = TRUE
+  )
 
 
   # Verify inputs
@@ -309,6 +317,28 @@ biomkrAccrual <- function(
 
   # Set run_time to timestamp output files
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
+
+  # Set seed
+  if (is.null(seed)) {
+    if (length(.Random.seed) != 7 || .Random.seed[1] != 10407) {
+      rlang::abort("No l'Ecuyer seed set and seed is NULL.")
+    }
+  } else if (length(seed) == 1) {
+    set.seed(seed)
+  } else if (length(seed) == 7 && seed[1] == 10407) {
+    # Set seed for next L'Ecuyer stream
+    ##### think about this!  Have not set kind
+    assign(
+      x = ".Random.seed", 
+      # This still isn't making the output different,
+      # but there is variation where there shouldn't be
+      # Seeds not propagating properly
+      value = seed,
+      envir = as.environment(-1)
+    )
+  } else {
+    rlang::abort("Invalid seed, must be L'Ecuyer or a single integer.")
+  }
 
   # Get start weeks & order centres_df by start week and site number
   centres_df <- do_clean_centres(centres_df)
