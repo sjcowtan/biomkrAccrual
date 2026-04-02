@@ -21,7 +21,8 @@ biomkrAccrual(
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
   quietly = FALSE,
-  keep_files = TRUE
+  keep_files = TRUE,
+  seed = 123456
 )
 }
 \arguments{
