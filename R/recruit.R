@@ -472,6 +472,9 @@ week_accrue <- S7::new_generic("week_accrue", c("accrual_obj", "struct_obj"))
 S7::method(week_accrue, list(accrual, trial_structure)) <- 
   function(accrual_obj, struct_obj) {
 
+    #print(.Random.seed)
+    #print(rlang::env_parents())
+
     # Update the site rates
     accrual_obj <- set_site_rates(accrual_obj)
 
@@ -508,7 +511,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
         size = week_acc[isite],
         replace = TRUE
       )
-      
+     
       # Total assignments to each open arm plus dummy arm
       assign_table <- table(assigns)
       indices <- as.numeric(names(assign_table))
