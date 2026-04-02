@@ -56,6 +56,7 @@
 #' them.
 #' @param keep_files Save data files and plots generated during the run. 
 #' Defaults to TRUE.
+#' @param seed Seed for random number generation.
 #' 
 #' @examples 
 #' biomkrAccrual()

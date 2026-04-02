@@ -94,6 +94,8 @@ them.}
 
 \item{keep_files}{Save data files and plots generated during the run.
 Defaults to TRUE.}
+
+\item{seed}{Seed for random number generation.}
 }
 \description{
 Command line
