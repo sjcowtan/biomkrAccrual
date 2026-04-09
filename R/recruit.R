@@ -112,15 +112,22 @@ accrual <- S7::new_class("accrual",
           Centres = c(paste("Centre", unique(centres_df$site)))
         )
       ),
-      target_df = target_df,
-      target_times = as.integer(target_times),
+      shared_control = shared_control,
       control_ratio = control_ratio,
+      target_df = expand_targets(target_df, shared_control, control_ratio),
+      target_times = as.integer(target_times),
       phase_changes = rep(NA_integer_, length(treatment_arm_ids)),
       site_closures = rep(NA_integer_, length(unique(centres_df$site))),
       week = as.integer(1),
-      active_arms = seq_len(length(treatment_arm_ids)),
+      treatment_arm_ids = treatment_arm_ids,
+      active_arms = seq(length(treatment_arm_ids) +
+        ifelse(
+          shared_control,
+          1,
+          length(treatment_arm_ids)
+        )
+      ),
       active_sites = seq_len(length(unique(centres_df$site))),
-      shared_control = shared_control,
       fixed_site_rates = fixed_site_rates,
       site_in_region = as.integer(centres_df$region),
       site_cap = as.integer(centres_df$site_cap),
@@ -128,7 +135,6 @@ accrual <- S7::new_class("accrual",
       site_rate = NA_real_,
       site_start_week = as.integer(centres_df$start_week),
       site_index = as.integer(centres_df$site),
-      treatment_arm_ids = treatment_arm_ids,
       var_lambda = var_lambda
     )
   }
@@ -393,12 +399,31 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     
     # Get totals for experimental arms (dropping control)
     arm_sums <- 
-      treat_sums(accrual_obj)[seq_len(length(accrual_obj@phase_changes))]
-
+      #treat_sums(accrual_obj)[seq_len(length(accrual_obj@phase_changes))]
+      treat_sums(accrual_obj)
+  
     # Compare with cap
     arm_captotal <- arm_sums - accrual_obj@target_df$final
+    over_cap <- arm_captotal[accrual_obj@active_arms] > 0
+
+
+    print(accrual_obj@active_arms)
+    print(arm_captotal)
+    print(over_cap)
+    
+    if (any(arm_captotal[accrual_obj@active_arms] > 0)) {
+      print(arm_sums)
+      print(accrual_obj@target_df$final)
+      print(arm_captotal)
+    }
 
     # Inactive arms can be at cap but not exceed it
+    ### Not true any more.  Can exceed when:
+    ### - shared control, 1 active arm, control not complete
+    ### - sep control, matching control not complete
+    ### Also, control now in active_arms
+    ### active_arms[seq_len(length(phase_changes))] to remove
+
     if (any(arm_captotal[-accrual_obj@active_arms] > 0)) {
       rlang::abort(paste(
         "Inactive arm exceeded cap:", 
@@ -410,8 +435,13 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 
     # Active arm indices which exceed cap
     active_tocap <- which(arm_captotal > 0)
+    print(length(active_tocap))
 
     if (length(active_tocap) > 0) {
+      print(active_tocap)
+      print(arm_captotal)
+
+
       for (arm in active_tocap) {
         # Which sites recruited to that arm this week?
         population <- as.integer(unlist(sapply(
@@ -440,6 +470,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     
 
     # Update active_arms
+    ### Also change here!  Arm only inactive if control also ok
     accrual_obj@active_arms <- which(arm_captotal < 0)
     # Also on the trial structure object
     struct_obj <- remove_treat_arms(struct_obj, arms = which(arm_captotal >= 0))

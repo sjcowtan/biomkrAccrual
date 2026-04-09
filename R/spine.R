@@ -398,6 +398,8 @@ biomkrAccrual <- function(
     var_lambda = var_lambda,
     centres_df = centres_df
   )
+  print(accrual_instance@active_arms)
+  print(accrual_instance@phase_changes)
 
   while (
     # Any arms are recruiting
