@@ -417,12 +417,10 @@ biomkrAccrualSim <- function(
 
   p <- plot(
     arm_totals_mx, 
-    target = unique(targets_tolong(target_expanded_df)$value), 
+    target = unique(target_expanded_df[, ncol(target_expanded_df)]), 
     target_names = target_group(
-      targets_tolong(
-        target_expanded_df
-      ),  
-      target_col = 3
+      target_expanded_df,
+      target_col = ncol(target_expanded_df)
     ),
     plot_id = "Total accrual"
   )
