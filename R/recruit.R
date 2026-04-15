@@ -404,40 +404,63 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
   
     # Compare with cap
     arm_captotal <- arm_sums - accrual_obj@target_df$final
-    over_cap <- arm_captotal[accrual_obj@active_arms] > 0
+    over_cap <- arm_captotal[accrual_obj@active_arms] >= 0
 
-
+    print("Active arms")
     print(accrual_obj@active_arms)
     print(arm_captotal)
+    print("Over cap")
     print(over_cap)
+  
+
+    active_tocap <- NULL
     
-    if (any(arm_captotal[accrual_obj@active_arms] > 0)) {
-      print(arm_sums)
-      print(accrual_obj@target_df$final)
-      print(arm_captotal)
+    if (sum(over_cap) > 0) {
+      if (accrual_obj@shared_control) {
+        # If any arms remain, there must be control and
+        # at least one experimental arm
+        print("xor")
+        print(xor(
+          # Any active arms which would remain open 
+          any(
+            !over_cap[-length(over_cap)],
+            na.rm = TRUE
+          ),
+          # Shared control closes
+          over_cap[length(over_cap)]
+        ))
+        print(c(any(
+          !over_cap[-length(over_cap)],
+          na.rm = TRUE
+        ), "control:",
+        over_cap[length(over_cap)])
+        )
+        # Can't leave experimental arms without control or vice versa
+        ### Control is a special case - can close active arms
+        ### if not the last one, but cannot then close control
+        if (xor(
+          # Any active arms remaining open if these are closed
+          any(
+            !over_cap[-length(over_cap)],
+            na.rm = TRUE
+          ),
+          # Shared control being closed
+          over_cap[length(over_cap)]
+        )) {
+          # Safe to close all at cap
+          print("Closing arms")
+          active_tocap <- accrual_obj@active_arms[over_cap]
+        } else {
+          print("Not closing arms")
+        }
+      } else {
+        active_tocap <- 
+          which(colSums(matrix(over_cap, nrow = 2, byrow = TRUE)) == 2)
+      }
     }
 
-    # Inactive arms can be at cap but not exceed it
-    ### Not true any more.  Can exceed when:
-    ### - shared control, 1 active arm, control not complete
-    ### - sep control, matching control not complete
-    ### Also, control now in active_arms
-    ### active_arms[seq_len(length(phase_changes))] to remove
-
-    if (any(arm_captotal[-accrual_obj@active_arms] > 0)) {
-      rlang::abort(paste(
-        "Inactive arm exceeded cap:", 
-        which(arm_captotal[-accrual_obj@active_arms] > 0)
-      ))
-    }
-
-    ### Change references to active arms
-
-    # Active arm indices which exceed cap
-    active_tocap <- which(arm_captotal > 0)
-    print(length(active_tocap))
-
-    if (length(active_tocap) > 0) {
+    if (!is.null(active_tocap)) {
+      print("Capping these arms")
       print(active_tocap)
       print(arm_captotal)
 
@@ -463,17 +486,13 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     }
 
     # Record closing week for capped arms
-    capped_arms <- arm_captotal[accrual_obj@active_arms] >= 0
-
-    accrual_obj@phase_changes[accrual_obj@active_arms[capped_arms]] <- 
+    accrual_obj@phase_changes[active_tocap] <- 
       accrual_obj@week
     
-
     # Update active_arms
-    ### Also change here!  Arm only inactive if control also ok
-    accrual_obj@active_arms <- which(arm_captotal < 0)
+    accrual_obj@active_arms <- setdiff(accrual_obj@active_arms, active_tocap)
     # Also on the trial structure object
-    struct_obj <- remove_treat_arms(struct_obj, arms = which(arm_captotal >= 0))
+    struct_obj <- remove_treat_arms(struct_obj, arms = active_tocap)
 
     # Recheck site caps
     site_captotal <- site_sums(accrual_obj) - accrual_obj@site_cap
@@ -486,6 +505,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     # Update active sites(accrual_obj)
     accrual_obj@active_sites <- which(site_captotal < 0)
 
+    print(accrual_obj@active_arms)
     return(list(accrual_obj, struct_obj)) 
   }
 
