@@ -402,9 +402,9 @@ test_that("apply_site_cap: Sites under the cap are not capped.", {
 # Testing apply_arm_cap()
 
 fixed_acc_obj@target_df <- data.frame(
-  arm = c("T1", "T2"),
-  interim = c(8, 8),
-  final = c(16, 16)
+  arm = c("T1", "T2", "Control"),
+  interim = c(8, 8, 16),
+  final = c(16, 16, 32)
 )
 
 struct_obj <- trial_structure(
@@ -430,9 +430,9 @@ struct_obj <- trial_structure(
 # Change these so only the last week is over the cap
 
 fixed_acc_obj@target_df <- data.frame(
-  arm = c("T1", "T2"),
-  interim = c(15, 15),
-  final = c(25, 25)
+  arm = c("T1", "T2", "Control"),
+  interim = c(15, 15, 30),
+  final = c(25, 25, 50)
 )
 
 fixed_acc_obj <- apply_arm_cap(fixed_acc_obj, struct_obj)

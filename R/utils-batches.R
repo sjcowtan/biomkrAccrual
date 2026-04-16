@@ -173,7 +173,11 @@ biomkrAccrualSim <- function(
 
   # Define matrix of zeroes for efficiency
   arm_closures_mx <- structure(
-    matrix(0, nrow = n, ncol = length(arms_ls)),
+    matrix(0, nrow = n, ncol = ifelse(
+      shared_control,
+      length(arms_ls) + 1,
+      2 * length(arms_ls)
+    )),
     class = c("armtotals", "matrix", "array")
   )
   arm_totals_mx <- structure(
@@ -205,12 +209,12 @@ biomkrAccrualSim <- function(
   arm_accrual_ls <- list(length = n)
 
   # Set column names
-  colnames(arm_closures_mx) <- names(arms_ls)
   if (shared_control) {
     colnames(arm_totals_mx) <- c(names(arms_ls), "Control")
   } else {
     colnames(arm_totals_mx) <- c(names(arms_ls), paste0("C-", names(arms_ls)))
   }
+  colnames(arm_closures_mx) <- colnames(arm_totals_mx)
   arm_interim_ls <- 
     lapply(arm_interim_ls, "colnames<-", colnames(arm_totals_mx))
 

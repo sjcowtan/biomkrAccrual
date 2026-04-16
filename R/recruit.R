@@ -116,10 +116,15 @@ accrual <- S7::new_class("accrual",
       control_ratio = control_ratio,
       target_df = expand_targets(target_df, shared_control, control_ratio),
       target_times = as.integer(target_times),
-      phase_changes = rep(NA_integer_, length(treatment_arm_ids)),
+      treatment_arm_ids = treatment_arm_ids,
+      phase_changes = rep(
+        NA_integer_, 
+        length(treatment_arm_ids) + 
+          ifelse(shared_control, 1, length(treatment_arm_ids))
+      ),
       site_closures = rep(NA_integer_, length(unique(centres_df$site))),
       week = as.integer(1),
-      treatment_arm_ids = treatment_arm_ids,
+
       active_arms = seq(length(treatment_arm_ids) +
         ifelse(
           shared_control,
@@ -268,7 +273,11 @@ do_choose_cap <- function(population, captotal) {
     capped <- population
   } else {  
     # Sample    
-    capped <- sample(population, size = captotal)
+    capped <- sample(
+      population, 
+      size = min(length(population), captotal),
+      replace = FALSE
+    )
   }
 
   return(capped)
@@ -406,38 +415,12 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     arm_captotal <- arm_sums - accrual_obj@target_df$final
     over_cap <- arm_captotal[accrual_obj@active_arms] >= 0
 
-    print("Active arms")
-    print(accrual_obj@active_arms)
-    print(arm_captotal)
-    print("Over cap")
-    print(over_cap)
-  
-
     active_tocap <- NULL
     
     if (sum(over_cap) > 0) {
       if (accrual_obj@shared_control) {
         # If any arms remain, there must be control and
         # at least one experimental arm
-        print("xor")
-        print(xor(
-          # Any active arms which would remain open 
-          any(
-            !over_cap[-length(over_cap)],
-            na.rm = TRUE
-          ),
-          # Shared control closes
-          over_cap[length(over_cap)]
-        ))
-        print(c(any(
-          !over_cap[-length(over_cap)],
-          na.rm = TRUE
-        ), "control:",
-        over_cap[length(over_cap)])
-        )
-        # Can't leave experimental arms without control or vice versa
-        ### Control is a special case - can close active arms
-        ### if not the last one, but cannot then close control
         if (xor(
           # Any active arms remaining open if these are closed
           any(
@@ -448,23 +431,34 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
           over_cap[length(over_cap)]
         )) {
           # Safe to close all at cap
-          print("Closing arms")
           active_tocap <- accrual_obj@active_arms[over_cap]
-        } else {
-          print("Not closing arms")
-        }
+        } else if (
+          # At least one active arm to close
+          sum(over_cap) >= 2 
+          &&
+            # Some active arms would remain open
+            any(
+              !over_cap[-length(over_cap)],
+              na.rm = TRUE
+            )
+          && 
+            # Control at or over cap
+            over_cap[length(over_cap)]
+        ) {
+          # Close the active arms but not control
+          active_tocap <- 
+            accrual_obj@active_arms[over_cap][
+              -length(accrual_obj@active_arms[over_cap])
+            ]
+        } 
       } else {
         active_tocap <- 
           which(colSums(matrix(over_cap, nrow = 2, byrow = TRUE)) == 2)
       }
     }
 
+    # 
     if (!is.null(active_tocap)) {
-      print("Capping these arms")
-      print(active_tocap)
-      print(arm_captotal)
-
-
       for (arm in active_tocap) {
         # Which sites recruited to that arm this week?
         population <- as.integer(unlist(sapply(
@@ -483,7 +477,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
           }
         }
       }
-    }
+    } 
 
     # Record closing week for capped arms
     accrual_obj@phase_changes[active_tocap] <- 
@@ -505,7 +499,6 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     # Update active sites(accrual_obj)
     accrual_obj@active_sites <- which(site_captotal < 0)
 
-    print(accrual_obj@active_arms)
     return(list(accrual_obj, struct_obj)) 
   }
 

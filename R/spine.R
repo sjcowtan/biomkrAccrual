@@ -398,8 +398,6 @@ biomkrAccrual <- function(
     var_lambda = var_lambda,
     centres_df = centres_df
   )
-  print(accrual_instance@active_arms)
-  print(accrual_instance@phase_changes)
 
   while (
     # Any arms are recruiting
@@ -419,6 +417,7 @@ biomkrAccrual <- function(
 
     # Increment pointer for the next week to accrue
     accrual_instance@week <- accrual_instance@week + as.integer(1)
+  
   }
 
   # Trim accrual to actual recruitment length
