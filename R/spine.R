@@ -81,7 +81,7 @@ biomkrAccrual <- function(
   arms_file = "arms.json",
   data_path = "extdata/",
   output_path = "../biomkrAccrual_output_data/",
-  figs_path = paste0(output_path, "figures/"),
+  figs_path = paste0(output_path, "/figures/"),
   fixed_centre_starts = TRUE,
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,

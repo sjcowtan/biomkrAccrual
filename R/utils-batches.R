@@ -144,6 +144,122 @@ biomkrAccrualSim <- function(
   # Timestamp for batch files (but not individual run files)
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
 
+  checkmate::assert_logical(
+    fixed_region_prevalences,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_logical(
+    fixed_site_rates,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_logical(
+    shared_control,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  if (fixed_region_prevalences && 
+    checkmate::test_numeric(
+      precision, 
+      any.missing = FALSE, 
+      null.ok = FALSE
+    )
+  )  {
+    rlang::warn(paste("Value given for precision when", 
+      "fixed_region_prevalences is TRUE: fixed_region_prevalences",
+      "will take precendence."
+    ))
+    precision <- NULL
+  }
+
+  checkmate::assert_numeric(
+    precision,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 1,
+    null.ok = TRUE
+  )
+
+  checkmate::assert_numeric(
+    control_ratio,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 2,
+    null.ok = FALSE
+  )
+
+  if (!fixed_region_prevalences && is.null(precision)) {
+    rlang::abort(paste("Either fixed_region_prevalences", 
+      "must be TRUE, or a value must be given for the",
+      "precision of the Dirichlet distribution."
+    ))
+  }
+
+
+  if (fixed_site_rates && 
+    checkmate::test_numeric(
+      var_lambda, 
+      any.missing = FALSE, 
+      null.ok = FALSE
+    )
+  )  {
+    rlang::warn(paste("Value given for var_lambda when", 
+      "fixed_site_rates is TRUE: fixed_site_rates",
+      "will take precendence."
+    ))
+    var_lambda <- NULL
+  }
+
+  checkmate::assert_numeric(
+    target_times,
+    any.missing = FALSE,
+    lower = 0,
+    finite = TRUE,
+    min.len = 1,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_numeric(
+    var_lambda,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 1,
+    null.ok = TRUE
+  )
+
+  if (!fixed_site_rates && is.null(var_lambda)) {
+    rlang::abort(paste("Either fixed_site_rates", 
+      "must be TRUE, or a value must be given for the",
+      "variance of the site rates."
+    ))
+  }
+
+  checkmate::assert_integerish(
+    seed,
+    min.len = 1,
+    max.len = 7,
+    null.ok = TRUE
+  )
+
+  # Verify inputs
+  ## append "/" if no slash on end
+  data_path <- gsub("(\\w+)$", "\\1/", data_path)
+  output_path <- gsub("(\\w+)$", "\\1/", output_path)
+  figs_path <- gsub("(\\w+)$", "\\1/", figs_path)
+
+
+  # Make into full path so only one set of syntax needed
+  if (!grepl("^/", output_path)) {
+    output_path <- paste0(getwd(), "/", output_path)
+  }
+
   ## Check data directory exists
   if (grepl("^extdata/?$", data_path)) {
     checkmate::assert_directory_exists(system.file(
