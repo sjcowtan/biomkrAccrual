@@ -276,13 +276,6 @@ plot.accrualplotdata <- function(
   accrual_df <- x
   arm_names <- levels(accrual_df$Arm)
 
-  # Expand target_df to include control arms
-  target_df <- expand_targets(
-    target_df,
-    control_ratio = control_ratio,
-    shared_control = length(arm_names) == nrow(target_df) + 1
-  )
-
   linetypes <- c(
     "Interim arm" = 2, "Experimental arm" = 3, "Control arm" = 4,
     "Interim accrual" = 5, "Total accrual" = 6
@@ -297,6 +290,16 @@ plot.accrualplotdata <- function(
   # One vertical line per evaluation point
   vline_x <- target_times
 
+  # Use colourblind friendly Okabe-Ito palette as far as possible
+  if (length(arm_names) <= 9) {
+    palette <- grDevices::palette.colors(length(arm_names))
+  } else {
+    palette <- c(
+      grDevices::palette.colors(9), 
+      grDevices::palette.colors(palette = "R4", length(arm_names) - 8)[-1]
+    )
+  }
+
   p <- ggplot2::ggplot(
     accrual_df, 
     ggplot2::aes(
@@ -307,10 +310,7 @@ plot.accrualplotdata <- function(
     )
   ) +
     ggplot2::geom_line(linewidth = 1) +
-    # Use colourblind friendly Okabe-Ito palette
-    ggplot2::scale_colour_manual(
-      values = grDevices::palette.colors(length(arm_names))
-    ) +
+    ggplot2::scale_colour_manual(values = palette) +
     ggplot2::geom_vline(
       xintercept = target_times,
       linewidth = 1,
@@ -378,6 +378,18 @@ plot.armtotals <- function(
   target <- target[target_indices]
   target_names <- target_names[target_indices]
 
+  # Use colourblind friendly Okabe-Ito palette as far as possible
+  if (length(unique(data_df$Arm)) <= 9) {
+    palette <- grDevices::palette.colors(length(unique(data_df$Arm)))
+  } else {
+    palette <- c(
+      grDevices::palette.colors(9), 
+      grDevices::palette.colors(
+        palette = "R4", length(unique(data_df$Arm)) - 8
+      )[-1]
+    )
+  }
+
   p <- ggplot2::ggplot(
     data = data_df
   ) +
@@ -388,7 +400,7 @@ plot.armtotals <- function(
       alpha = 0.4, adjust = 1
     ) +
     ggplot2::scale_fill_manual(
-      values = grDevices::palette.colors(length(unique(data_df$Arm))),
+      values = palette,
       aesthetics = c("color", "fill")
     ) +
     ggplot2::geom_vline(
@@ -787,11 +799,15 @@ accrual_to_target_plot_from_file <- function(
 
   if (is.null(arm_colours)) {
     col_order <- c(seq_len(length(plot_id))[-1], 1)
-    palette <- grDevices::palette.colors(
-      palette = "R4",
-      length(plot_id) + 1
-      # One pink is more than enough
-    )[-6]
+    # Use colourblind friendly Okabe-Ito palette as far as possible
+    if (length(arm_names) <= 9) {
+      palette <- grDevices::palette.colors(length(arm_names))
+    } else {
+      palette <- c(
+        grDevices::palette.colors(9), 
+        grDevices::palette.colors(palette = "R4", length(arm_names) - 8)[-1]
+      )
+    }
     arm_colours <- palette[col_order]
   } else if (length(arm_colours) == 1) {
     arm_colours <- rep(arm_colours, length(plot_id))

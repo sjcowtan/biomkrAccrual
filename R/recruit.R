@@ -106,7 +106,7 @@ accrual <- S7::new_class("accrual",
             if (shared_control) {
               "Control"
             } else {
-              paste("C", names(treatment_arm_ids), sep = "-")
+              paste("Control", names(treatment_arm_ids))
             }
           ),
           Centres = c(paste("Centre", unique(centres_df$site)))
@@ -413,7 +413,8 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
   
     # Compare with cap
     arm_captotal <- arm_sums - accrual_obj@target_df$final
-    over_cap <- arm_captotal[accrual_obj@active_arms] >= 0
+    over_cap_all <- arm_captotal >= 0
+    over_cap <- over_cap_all[accrual_obj@active_arms]
 
     active_tocap <- NULL
     
@@ -453,11 +454,20 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
         } 
       } else {
         active_tocap <- 
-          which(colSums(matrix(over_cap, nrow = 2, byrow = TRUE)) == 2)
+          which(colSums(matrix(
+            over_cap_all, 
+            nrow = 2, 
+            byrow = TRUE
+          )) == 2)
+        # Cap control arms as well as active
+        active_tocap <- c(
+          active_tocap, 
+          active_tocap + (length(over_cap_all) / 2)
+        )
       }
     }
 
-    # 
+    # Apply cap to affected arms
     if (!is.null(active_tocap)) {
       for (arm in active_tocap) {
         # Which sites recruited to that arm this week?
@@ -469,7 +479,6 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
         # Possible accruals to remove
         if (length(population) > 0) {
           capped <- do_choose_cap(population, arm_captotal[arm])
-
           # Remove capped instances
           for (i in capped) {
             accrual_obj@accrual[accrual_obj@week, arm, i] <- 
@@ -485,8 +494,20 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     
     # Update active_arms
     accrual_obj@active_arms <- setdiff(accrual_obj@active_arms, active_tocap)
+    
+    if (ncol(struct_obj@treatment_arm_struct) > 5) {
+      print(c("Cols:", ncol(struct_obj@treatment_arm_struct)))
+    }
+
     # Also on the trial structure object
-    struct_obj <- remove_treat_arms(struct_obj, arms = active_tocap)
+    struct_obj <- remove_treat_arms(
+      struct_obj, 
+      arms = active_tocap[active_tocap <= ncol(struct_obj@treatment_arm_struct)]
+    )
+
+    if (ncol(struct_obj@treatment_arm_struct) > 5) {
+      print(c("Cols post remove:", ncol(struct_obj@treatment_arm_struct)))
+    }
 
     # Recheck site caps
     site_captotal <- site_sums(accrual_obj) - accrual_obj@site_cap
@@ -498,6 +519,10 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 
     # Update active sites(accrual_obj)
     accrual_obj@active_sites <- which(site_captotal < 0)
+
+    if (ncol(struct_obj@treatment_arm_struct) > 5) {
+      print(c("Cols after capping:", ncol(struct_obj@treatment_arm_struct)))
+    }
 
     return(list(accrual_obj, struct_obj)) 
   }
@@ -536,13 +561,12 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 
     # Loop over recruiting sites
     for (isite in which(week_acc > 0)) {
-
       # Total probability for each experimental arm for the 
       # relevant site prevalence set
       probs <- colSums(struct_obj@experimental_arm_prevalence[
         , , accrual_obj@site_in_region[isite]
       ])
-
+      
       # Sample experimental arms according to probabilities
       # Adding a dummy arm to take unassigned allocations due 
       # to arm closure, representing reduced site recruitment
@@ -556,7 +580,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
       # Total assignments to each open arm plus dummy arm
       assign_table <- table(assigns)
       indices <- as.numeric(names(assign_table))
-    
+     
       # Drop the dummy arm if anything was assigned to it
       if (max(indices) > length(probs)) {
         assign_table <- assign_table[-length(assign_table)]

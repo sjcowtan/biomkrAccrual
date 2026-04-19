@@ -509,7 +509,11 @@ biomkrAccrualSim <- function(
   }
 
   target_df <- utils::read.csv(target_file)
-  target_expanded_df <- expand_targets(target_df)
+  target_expanded_df <- expand_targets(
+    target_df, 
+    shared_control = shared_control,
+    control_ratio = control_ratio
+  )
 
   # Accrual for all arms at each analysis point
   for (i in seq_len(length(arm_interim_ls))) {
@@ -563,22 +567,23 @@ biomkrAccrualSim <- function(
   treatment_arms <- startsWith(arm_names, "T")
 
   ## Same colours as in interim plot
-  col_order <- c(seq_len(length(treatment_arms))[-1], 1)
-  palette <- grDevices::palette.colors(
-    palette = "R4",
-    length(treatment_arms) + 1
-    # One pink is more than enough
-  )[-6]
-  arm_colours <- palette[col_order]
+  # Use colourblind friendly Okabe-Ito palette as far as possible
+  if (length(arm_names) <= 9) {
+    arm_colours <- grDevices::palette.colors(length(arm_names))
+  } else {
+    arm_colours <- c(
+      grDevices::palette.colors(9), 
+      grDevices::palette.colors(palette = "R4", length(arm_names) - 8)[-1]
+    )
+  }
+
 
   
   # Total accrual plots
-
   # Loop across all arms
   for (i in seq_len(length(accrual_byarm_ls))) {
     ## Loop across interim and total
     for (j in seq_len(ncol(target_expanded_df[, -1]))) {
-    
       p <- accrual_arm_plot(
         arm_interim_ls[[j]],
         arm_colours, 
