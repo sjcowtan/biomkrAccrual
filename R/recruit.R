@@ -106,21 +106,33 @@ accrual <- S7::new_class("accrual",
             if (shared_control) {
               "Control"
             } else {
-              paste("C", names(treatment_arm_ids), sep = "-")
+              paste("Control", names(treatment_arm_ids))
             }
           ),
           Centres = c(paste("Centre", unique(centres_df$site)))
         )
       ),
-      target_df = target_df,
-      target_times = as.integer(target_times),
+      shared_control = shared_control,
       control_ratio = control_ratio,
-      phase_changes = rep(NA_integer_, length(treatment_arm_ids)),
+      target_df = expand_targets(target_df, shared_control, control_ratio),
+      target_times = as.integer(target_times),
+      treatment_arm_ids = treatment_arm_ids,
+      phase_changes = rep(
+        NA_integer_, 
+        length(treatment_arm_ids) + 
+          ifelse(shared_control, 1, length(treatment_arm_ids))
+      ),
       site_closures = rep(NA_integer_, length(unique(centres_df$site))),
       week = as.integer(1),
-      active_arms = seq_len(length(treatment_arm_ids)),
+
+      active_arms = seq(length(treatment_arm_ids) +
+        ifelse(
+          shared_control,
+          1,
+          length(treatment_arm_ids)
+        )
+      ),
       active_sites = seq_len(length(unique(centres_df$site))),
-      shared_control = shared_control,
       fixed_site_rates = fixed_site_rates,
       site_in_region = as.integer(centres_df$region),
       site_cap = as.integer(centres_df$site_cap),
@@ -128,7 +140,6 @@ accrual <- S7::new_class("accrual",
       site_rate = NA_real_,
       site_start_week = as.integer(centres_df$start_week),
       site_index = as.integer(centres_df$site),
-      treatment_arm_ids = treatment_arm_ids,
       var_lambda = var_lambda
     )
   }
@@ -262,7 +273,11 @@ do_choose_cap <- function(population, captotal) {
     capped <- population
   } else {  
     # Sample    
-    capped <- sample(population, size = captotal)
+    capped <- sample(
+      population, 
+      size = min(length(population), captotal),
+      replace = FALSE
+    )
   }
 
   return(capped)
@@ -393,25 +408,67 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     
     # Get totals for experimental arms (dropping control)
     arm_sums <- 
-      treat_sums(accrual_obj)[seq_len(length(accrual_obj@phase_changes))]
-
+      #treat_sums(accrual_obj)[seq_len(length(accrual_obj@phase_changes))]
+      treat_sums(accrual_obj)
+  
     # Compare with cap
     arm_captotal <- arm_sums - accrual_obj@target_df$final
+    over_cap_all <- arm_captotal >= 0
+    over_cap <- over_cap_all[accrual_obj@active_arms]
 
-    # Inactive arms can be at cap but not exceed it
-    if (any(arm_captotal[-accrual_obj@active_arms] > 0)) {
-      rlang::abort(paste(
-        "Inactive arm exceeded cap:", 
-        which(arm_captotal[-accrual_obj@active_arms] > 0)
-      ))
+    active_tocap <- NULL
+    
+    if (sum(over_cap) > 0) {
+      if (accrual_obj@shared_control) {
+        # If any arms remain, there must be control and
+        # at least one experimental arm
+        if (xor(
+          # Any active arms remaining open if these are closed
+          any(
+            !over_cap[-length(over_cap)],
+            na.rm = TRUE
+          ),
+          # Shared control being closed
+          over_cap[length(over_cap)]
+        )) {
+          # Safe to close all at cap
+          active_tocap <- accrual_obj@active_arms[over_cap]
+        } else if (
+          # At least one active arm to close
+          sum(over_cap) >= 2 
+          &&
+            # Some active arms would remain open
+            any(
+              !over_cap[-length(over_cap)],
+              na.rm = TRUE
+            )
+          && 
+            # Control at or over cap
+            over_cap[length(over_cap)]
+        ) {
+          # Close the active arms but not control
+          active_tocap <- 
+            accrual_obj@active_arms[over_cap][
+              -length(accrual_obj@active_arms[over_cap])
+            ]
+        } 
+      } else {
+        active_tocap <- 
+          which(colSums(matrix(
+            over_cap_all, 
+            nrow = 2, 
+            byrow = TRUE
+          )) == 2)
+        # Cap control arms as well as active
+        active_tocap <- c(
+          active_tocap, 
+          active_tocap + (length(over_cap_all) / 2)
+        )
+      }
     }
 
-    ### Change references to active arms
-
-    # Active arm indices which exceed cap
-    active_tocap <- which(arm_captotal > 0)
-
-    if (length(active_tocap) > 0) {
+    # Apply cap to affected arms
+    if (!is.null(active_tocap)) {
       for (arm in active_tocap) {
         # Which sites recruited to that arm this week?
         population <- as.integer(unlist(sapply(
@@ -422,7 +479,6 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
         # Possible accruals to remove
         if (length(population) > 0) {
           capped <- do_choose_cap(population, arm_captotal[arm])
-
           # Remove capped instances
           for (i in capped) {
             accrual_obj@accrual[accrual_obj@week, arm, i] <- 
@@ -430,19 +486,28 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
           }
         }
       }
-    }
+    } 
 
     # Record closing week for capped arms
-    capped_arms <- arm_captotal[accrual_obj@active_arms] >= 0
-
-    accrual_obj@phase_changes[accrual_obj@active_arms[capped_arms]] <- 
+    accrual_obj@phase_changes[active_tocap] <- 
       accrual_obj@week
     
-
     # Update active_arms
-    accrual_obj@active_arms <- which(arm_captotal < 0)
+    accrual_obj@active_arms <- setdiff(accrual_obj@active_arms, active_tocap)
+    
+    if (ncol(struct_obj@treatment_arm_struct) > 5) {
+      print(c("Cols:", ncol(struct_obj@treatment_arm_struct)))
+    }
+
     # Also on the trial structure object
-    struct_obj <- remove_treat_arms(struct_obj, arms = which(arm_captotal >= 0))
+    struct_obj <- remove_treat_arms(
+      struct_obj, 
+      arms = active_tocap[active_tocap <= ncol(struct_obj@treatment_arm_struct)]
+    )
+
+    if (ncol(struct_obj@treatment_arm_struct) > 5) {
+      print(c("Cols post remove:", ncol(struct_obj@treatment_arm_struct)))
+    }
 
     # Recheck site caps
     site_captotal <- site_sums(accrual_obj) - accrual_obj@site_cap
@@ -454,6 +519,10 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 
     # Update active sites(accrual_obj)
     accrual_obj@active_sites <- which(site_captotal < 0)
+
+    if (ncol(struct_obj@treatment_arm_struct) > 5) {
+      print(c("Cols after capping:", ncol(struct_obj@treatment_arm_struct)))
+    }
 
     return(list(accrual_obj, struct_obj)) 
   }
@@ -471,9 +540,6 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
 week_accrue <- S7::new_generic("week_accrue", c("accrual_obj", "struct_obj"))
 S7::method(week_accrue, list(accrual, trial_structure)) <- 
   function(accrual_obj, struct_obj) {
-
-    #print(.Random.seed)
-    #print(rlang::env_parents())
 
     # Update the site rates
     accrual_obj <- set_site_rates(accrual_obj)
@@ -495,13 +561,12 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
 
     # Loop over recruiting sites
     for (isite in which(week_acc > 0)) {
-
       # Total probability for each experimental arm for the 
       # relevant site prevalence set
       probs <- colSums(struct_obj@experimental_arm_prevalence[
         , , accrual_obj@site_in_region[isite]
       ])
-
+      
       # Sample experimental arms according to probabilities
       # Adding a dummy arm to take unassigned allocations due 
       # to arm closure, representing reduced site recruitment
@@ -511,11 +576,11 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
         size = week_acc[isite],
         replace = TRUE
       )
-     
+      
       # Total assignments to each open arm plus dummy arm
       assign_table <- table(assigns)
       indices <- as.numeric(names(assign_table))
-    
+     
       # Drop the dummy arm if anything was assigned to it
       if (max(indices) > length(probs)) {
         assign_table <- assign_table[-length(assign_table)]

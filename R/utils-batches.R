@@ -144,6 +144,122 @@ biomkrAccrualSim <- function(
   # Timestamp for batch files (but not individual run files)
   run_time <- format(Sys.time(), "%F-%H-%M-%S")
 
+  checkmate::assert_logical(
+    fixed_region_prevalences,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_logical(
+    fixed_site_rates,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_logical(
+    shared_control,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  if (fixed_region_prevalences && 
+    checkmate::test_numeric(
+      precision, 
+      any.missing = FALSE, 
+      null.ok = FALSE
+    )
+  )  {
+    rlang::warn(paste("Value given for precision when", 
+      "fixed_region_prevalences is TRUE: fixed_region_prevalences",
+      "will take precendence."
+    ))
+    precision <- NULL
+  }
+
+  checkmate::assert_numeric(
+    precision,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 1,
+    null.ok = TRUE
+  )
+
+  checkmate::assert_numeric(
+    control_ratio,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 2,
+    null.ok = FALSE
+  )
+
+  if (!fixed_region_prevalences && is.null(precision)) {
+    rlang::abort(paste("Either fixed_region_prevalences", 
+      "must be TRUE, or a value must be given for the",
+      "precision of the Dirichlet distribution."
+    ))
+  }
+
+
+  if (fixed_site_rates && 
+    checkmate::test_numeric(
+      var_lambda, 
+      any.missing = FALSE, 
+      null.ok = FALSE
+    )
+  )  {
+    rlang::warn(paste("Value given for var_lambda when", 
+      "fixed_site_rates is TRUE: fixed_site_rates",
+      "will take precendence."
+    ))
+    var_lambda <- NULL
+  }
+
+  checkmate::assert_numeric(
+    target_times,
+    any.missing = FALSE,
+    lower = 0,
+    finite = TRUE,
+    min.len = 1,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_numeric(
+    var_lambda,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 1,
+    null.ok = TRUE
+  )
+
+  if (!fixed_site_rates && is.null(var_lambda)) {
+    rlang::abort(paste("Either fixed_site_rates", 
+      "must be TRUE, or a value must be given for the",
+      "variance of the site rates."
+    ))
+  }
+
+  checkmate::assert_integerish(
+    seed,
+    min.len = 1,
+    max.len = 7,
+    null.ok = TRUE
+  )
+
+  # Verify inputs
+  ## append "/" if no slash on end
+  data_path <- gsub("(\\w+)$", "\\1/", data_path)
+  output_path <- gsub("(\\w+)$", "\\1/", output_path)
+  figs_path <- gsub("(\\w+)$", "\\1/", figs_path)
+
+
+  # Make into full path so only one set of syntax needed
+  if (!grepl("^/", output_path)) {
+    output_path <- paste0(getwd(), "/", output_path)
+  }
+
   ## Check data directory exists
   if (grepl("^extdata/?$", data_path)) {
     checkmate::assert_directory_exists(system.file(
@@ -173,7 +289,11 @@ biomkrAccrualSim <- function(
 
   # Define matrix of zeroes for efficiency
   arm_closures_mx <- structure(
-    matrix(0, nrow = n, ncol = length(arms_ls)),
+    matrix(0, nrow = n, ncol = ifelse(
+      shared_control,
+      length(arms_ls) + 1,
+      2 * length(arms_ls)
+    )),
     class = c("armtotals", "matrix", "array")
   )
   arm_totals_mx <- structure(
@@ -205,12 +325,12 @@ biomkrAccrualSim <- function(
   arm_accrual_ls <- list(length = n)
 
   # Set column names
-  colnames(arm_closures_mx) <- names(arms_ls)
   if (shared_control) {
     colnames(arm_totals_mx) <- c(names(arms_ls), "Control")
   } else {
     colnames(arm_totals_mx) <- c(names(arms_ls), paste0("C-", names(arms_ls)))
   }
+  colnames(arm_closures_mx) <- colnames(arm_totals_mx)
   arm_interim_ls <- 
     lapply(arm_interim_ls, "colnames<-", colnames(arm_totals_mx))
 
@@ -389,7 +509,11 @@ biomkrAccrualSim <- function(
   }
 
   target_df <- utils::read.csv(target_file)
-  target_expanded_df <- expand_targets(target_df)
+  target_expanded_df <- expand_targets(
+    target_df, 
+    shared_control = shared_control,
+    control_ratio = control_ratio
+  )
 
   # Accrual for all arms at each analysis point
   for (i in seq_len(length(arm_interim_ls))) {
@@ -417,12 +541,10 @@ biomkrAccrualSim <- function(
 
   p <- plot(
     arm_totals_mx, 
-    target = unique(targets_tolong(target_expanded_df)$value), 
+    target = unique(target_expanded_df[, ncol(target_expanded_df)]), 
     target_names = target_group(
-      targets_tolong(
-        target_expanded_df
-      ),  
-      target_col = 3
+      target_expanded_df,
+      target_col = ncol(target_expanded_df)
     ),
     plot_id = "Total accrual"
   )
@@ -445,22 +567,23 @@ biomkrAccrualSim <- function(
   treatment_arms <- startsWith(arm_names, "T")
 
   ## Same colours as in interim plot
-  col_order <- c(seq_len(length(treatment_arms))[-1], 1)
-  palette <- grDevices::palette.colors(
-    palette = "R4",
-    length(treatment_arms) + 1
-    # One pink is more than enough
-  )[-6]
-  arm_colours <- palette[col_order]
+  # Use colourblind friendly Okabe-Ito palette as far as possible
+  if (length(arm_names) <= 9) {
+    arm_colours <- grDevices::palette.colors(length(arm_names))
+  } else {
+    arm_colours <- c(
+      grDevices::palette.colors(9), 
+      grDevices::palette.colors(palette = "R4", length(arm_names) - 8)[-1]
+    )
+  }
+
 
   
   # Total accrual plots
-
   # Loop across all arms
   for (i in seq_len(length(accrual_byarm_ls))) {
     ## Loop across interim and total
     for (j in seq_len(ncol(target_expanded_df[, -1]))) {
-    
       p <- accrual_arm_plot(
         arm_interim_ls[[j]],
         arm_colours, 

@@ -1,5 +1,7 @@
 output_path <- "../test_biomkrAccrual_output_data/"
 
+# Testing shared control
+
 bma_out <- biomkrAccrual(
   quietly = TRUE, 
   output_path = output_path
@@ -55,6 +57,11 @@ test_that("spine: writes at least one PNG file", {
   )
 })
 
+## Testing separate control
 
-# Clean up by deleting the test data and figure files
-unlink(output_path, recursive = TRUE)
+bma_out <- biomkrAccrual(
+  shared_control = FALSE,
+  quietly = TRUE, 
+  output_path = output_path
+)
+

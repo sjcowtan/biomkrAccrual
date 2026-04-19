@@ -42,81 +42,6 @@ theme_bma <- function(
 }
 
 
-#' Generate arm closure summaries for batches
-#' 
-#' @param file_prefix Consistent beginning of filenames holding 
-#' arm closure data. Defaults to `closures`.
-#' @param run_time Specify a particular instance of `biomkrAccrual()`
-#' execution using a date-time format `yyyy-mm-dd-hh-mm-ss`. 
-#' Used to select which files will be summarised.
-#' @param output_path Directory where the input files are located
-#' and the output files will be written.
-#' @param keep_files Save data files and plots generated during the run. 
-#' Defaults to TRUE.
-#' 
-#' @export
-#' 
-#' @importFrom stats sd
-#' @importFrom utils read.csv write.csv
-#' 
-##### Nothing is calling this?
-get_arm_closures2 <- function(
-  file_prefix = "closures",
-  run_time = "2024-08-07-18-35-09",
-  output_path = "../biomkrAccrual_output_data/",
-  keep_files = TRUE
-) {
-  # What output files do we have?
-  filenames <- list.files(
-    output_path, 
-    pattern = paste0("^", file_prefix, "-", run_time, ".*.csv"), 
-    full.names = TRUE
-  )
-
-  # Read files
-  closures_ls <- lapply(filenames, read.csv)
-
-  # Summarise files
-  summ <- lapply(closures_ls, function(d) summary(d[, -1]))
-  name_types <- c("1", "2", "mixed", "unbalanced", "multirate", "multimix")
-  names(summ) <- c(
-    paste0("gamma_rate_closures_", name_types),
-    paste0("fixed_rate_closures_", name_types)
-  )
-
-  write.csv(
-    summ, 
-    paste0(output_path, "arm_closure_summary-", run_time, ".csv")
-  )
-
-  # Standard Deviations
-  sd_mx <- t(sapply(
-    closures_ls, 
-    function(a_df) {
-      sapply(
-        seq_len(ncol(a_df)),
-        function(i) stats::sd(a_df[i, ], na.rm = TRUE)
-      )
-    }
-  ))
-
-  sd_mx <- sd_mx[, -1]
-
-  colnames(sd_mx) <- paste0("T", 1:3, "_sd")
-  rownames(sd_mx) <- c(
-    paste0("gamma_rate_closures_", name_types),
-    paste0("fixed_rate_closures_", name_types)
-  )
-
-  write.csv(
-    as.data.frame(sd_mx), 
-    paste0(output_path, "arm_closures_sd", run_time, ".csv")
-  )
-
-  return(list(summ, sd_mx))
-}
-
-
 #' Plot predicted recruitment from file containing a CSV from
 #' a single run
 #' 
@@ -276,13 +201,6 @@ plot.accrualplotdata <- function(
   accrual_df <- x
   arm_names <- levels(accrual_df$Arm)
 
-  # Expand target_df to include control arms
-  target_df <- expand_targets(
-    target_df,
-    control_ratio = control_ratio,
-    shared_control = length(arm_names) == nrow(target_df) + 1
-  )
-
   linetypes <- c(
     "Interim arm" = 2, "Experimental arm" = 3, "Control arm" = 4,
     "Interim accrual" = 5, "Total accrual" = 6
@@ -297,6 +215,16 @@ plot.accrualplotdata <- function(
   # One vertical line per evaluation point
   vline_x <- target_times
 
+  # Use colourblind friendly Okabe-Ito palette as far as possible
+  if (length(arm_names) <= 9) {
+    palette <- grDevices::palette.colors(length(arm_names))
+  } else {
+    palette <- c(
+      grDevices::palette.colors(9), 
+      grDevices::palette.colors(palette = "R4", length(arm_names) - 8)[-1]
+    )
+  }
+
   p <- ggplot2::ggplot(
     accrual_df, 
     ggplot2::aes(
@@ -307,10 +235,7 @@ plot.accrualplotdata <- function(
     )
   ) +
     ggplot2::geom_line(linewidth = 1) +
-    # Use colourblind friendly Okabe-Ito palette
-    ggplot2::scale_colour_manual(
-      values = grDevices::palette.colors(length(arm_names))
-    ) +
+    ggplot2::scale_colour_manual(values = palette) +
     ggplot2::geom_vline(
       xintercept = target_times,
       linewidth = 1,
@@ -378,6 +303,18 @@ plot.armtotals <- function(
   target <- target[target_indices]
   target_names <- target_names[target_indices]
 
+  # Use colourblind friendly Okabe-Ito palette as far as possible
+  if (length(unique(data_df$Arm)) <= 9) {
+    palette <- grDevices::palette.colors(length(unique(data_df$Arm)))
+  } else {
+    palette <- c(
+      grDevices::palette.colors(9), 
+      grDevices::palette.colors(
+        palette = "R4", length(unique(data_df$Arm)) - 8
+      )[-1]
+    )
+  }
+
   p <- ggplot2::ggplot(
     data = data_df
   ) +
@@ -388,7 +325,7 @@ plot.armtotals <- function(
       alpha = 0.4, adjust = 1
     ) +
     ggplot2::scale_fill_manual(
-      values = grDevices::palette.colors(length(unique(data_df$Arm))),
+      values = palette,
       aesthetics = c("color", "fill")
     ) +
     ggplot2::geom_vline(
@@ -787,11 +724,15 @@ accrual_to_target_plot_from_file <- function(
 
   if (is.null(arm_colours)) {
     col_order <- c(seq_len(length(plot_id))[-1], 1)
-    palette <- grDevices::palette.colors(
-      palette = "R4",
-      length(plot_id) + 1
-      # One pink is more than enough
-    )[-6]
+    # Use colourblind friendly Okabe-Ito palette as far as possible
+    if (length(arm_names) <= 9) {
+      palette <- grDevices::palette.colors(length(arm_names))
+    } else {
+      palette <- c(
+        grDevices::palette.colors(9), 
+        grDevices::palette.colors(palette = "R4", length(arm_names) - 8)[-1]
+      )
+    }
     arm_colours <- palette[col_order]
   } else if (length(arm_colours) == 1) {
     arm_colours <- rep(arm_colours, length(plot_id))
