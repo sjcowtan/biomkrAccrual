@@ -117,6 +117,9 @@ getseeds <- function(
 #' @importFrom jsonlite read_json
 #' @importFrom utils write.csv
 #' 
+#' @examples 
+#' biomkrAccrualSim(n = 10, precision = 10, var_lambda = 0.25)
+#' 
 biomkrAccrualSim <- function(
   n = 100,
   shared_control = TRUE,
