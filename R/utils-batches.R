@@ -210,7 +210,7 @@ biomkrAccrualSim <- function(
       "fixed_site_rates is TRUE: fixed_site_rates",
       "will take precendence."
     ))
-    var_lambda <- NULL
+    var_lambda <- NA_real_
   }
 
   checkmate::assert_numeric(

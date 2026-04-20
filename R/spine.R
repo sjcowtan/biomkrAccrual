@@ -25,7 +25,8 @@
 #' region. Defaults to `proportions.csv`.
 #' @param target_file Name of CSV file with target recruitment for each
 #' arm at each interim analysis time and at final recruitment. This 
-#' should have a column "arm" with the names of the treatment arms; this must match
+#' should have a column "arm" with the names of the treatment arms; 
+#' this must match
 #' the arm name as specified in in `arms_file`. Control targets are
 #' not included as they can be deduced from the control_ratio and 
 #' shared_control arguments. It may then have one or more columns for 
@@ -394,7 +395,7 @@ biomkrAccrual <- function(
     target_df = target_df,
     target_times = target_times,
     control_ratio = control_ratio,
-    fixed_site_rates = FALSE,
+    fixed_site_rates = fixed_site_rates,
     var_lambda = var_lambda,
     centres_df = centres_df
   )
