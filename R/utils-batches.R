@@ -199,18 +199,25 @@ biomkrAccrualSim <- function(
   }
 
 
-  if (fixed_site_rates && 
-    checkmate::test_numeric(
-      var_lambda, 
-      any.missing = FALSE, 
-      null.ok = TRUE
-    )
-  )  {
+  if (fixed_site_rates && !is.null(var_lambda)) {
     rlang::abort(paste("Value given for var_lambda when", 
       "fixed_site_rates is TRUE: fixed_site_rates",
       "will take precendence."
     ))
+  } else if (!fixed_site_rates && is.null(var_lambda)) {
+    rlang::abort(paste("Either fixed_site_rates must",
+      "be TRUE or a value must be given for var_lambda."
+    ))
   }
+
+  checkmate::assert_numeric(
+    var_lambda,
+    any.missing = FALSE,
+    lower = 10^-6,
+    finite = TRUE,
+    len = 1,
+    null.ok = TRUE
+  )
 
   checkmate::assert_numeric(
     target_times,

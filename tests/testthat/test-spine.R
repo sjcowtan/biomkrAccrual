@@ -69,3 +69,12 @@ bma_out <- biomkrAccrual(
   output_path = output_path
 )
 
+## Testing fixed site rates
+
+bma_out <- biomkrAccrual(
+  fixed_site_rates = TRUE,
+  precision = 10,
+  quietly = TRUE, 
+  output_path = output_path
+)
+
