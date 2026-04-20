@@ -10,9 +10,9 @@
 #' @param target_times Vector of timings of interim and final
 #' recruitment assessments, in months.
 #' @param precision For the Dirichlet model of biomarker prevalences, 
-#' variability decreases as precision increases. Defaults to 10.
+#' variability decreases as precision increases. Defaults to NULL.
 #' @param var_lambda Variance estimate for site recruitment rates.  
-#' Defaults to 0.25.
+#' Defaults to NULL.
 #' @param control_ratio Ratio of patient allocation to treatment arm
 #' versus control for all active arms; defaults to c(1, 1).
 #' @param centres_file Name of CSV file with information about 
@@ -25,7 +25,8 @@
 #' region. Defaults to `proportions.csv`.
 #' @param target_file Name of CSV file with target recruitment for each
 #' arm at each interim analysis time and at final recruitment. This 
-#' should have a column "arm" with the names of the treatment arms; this must match
+#' should have a column "arm" with the names of the treatment arms; 
+#' this must match
 #' the arm name as specified in in `arms_file`. Control targets are
 #' not included as they can be deduced from the control_ratio and 
 #' shared_control arguments. It may then have one or more columns for 
@@ -71,8 +72,8 @@
 biomkrAccrual <- function(
   shared_control = TRUE,
   target_times = c(6, 12),
-  precision = 10,
-  var_lambda = 0.25,
+  precision = NULL,
+  var_lambda = NULL,
   # active : control ratio (all active the same)
   control_ratio = c(1, 1),
   centres_file = "centres.csv",
@@ -148,28 +149,16 @@ biomkrAccrual <- function(
   }
 
 
-  if (fixed_site_rates && 
-    checkmate::test_numeric(
-      var_lambda, 
-      any.missing = FALSE, 
-      null.ok = FALSE
-    )
-  )  {
-    rlang::warn(paste("Value given for var_lambda when", 
+  if (fixed_site_rates && !is.null(var_lambda)) {
+    rlang::abort(paste("Value given for var_lambda when", 
       "fixed_site_rates is TRUE: fixed_site_rates",
       "will take precendence."
     ))
-    var_lambda <- NULL
+  } else if (!fixed_site_rates && is.null(var_lambda)) {
+    rlang::abort(paste("Either fixed_site_rates must",
+      "be TRUE or a value must be given for var_lambda."
+    ))
   }
-
-  checkmate::assert_numeric(
-    target_times,
-    any.missing = FALSE,
-    lower = 0,
-    finite = TRUE,
-    min.len = 1,
-    null.ok = FALSE
-  )
 
   checkmate::assert_numeric(
     var_lambda,
@@ -178,6 +167,17 @@ biomkrAccrual <- function(
     finite = TRUE,
     len = 1,
     null.ok = TRUE
+  )
+
+  if (is.null(var_lambda)) var_lambda <- NA_real_
+
+  checkmate::assert_numeric(
+    target_times,
+    any.missing = FALSE,
+    lower = 0,
+    finite = TRUE,
+    min.len = 1,
+    null.ok = FALSE
   )
 
   if (!fixed_site_rates && is.null(var_lambda)) {
@@ -394,7 +394,7 @@ biomkrAccrual <- function(
     target_df = target_df,
     target_times = target_times,
     control_ratio = control_ratio,
-    fixed_site_rates = FALSE,
+    fixed_site_rates = fixed_site_rates,
     var_lambda = var_lambda,
     centres_df = centres_df
   )
