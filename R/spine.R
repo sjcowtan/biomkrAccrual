@@ -60,7 +60,7 @@
 #' @param seed Seed for random number generation.
 #' 
 #' @examples 
-#' biomkrAccrual()
+#' biomkrAccrual(precision = 10, var_lambda = 0.25)
 #' 
 #' @import checkmate 
 #' @importFrom jsonlite read_json

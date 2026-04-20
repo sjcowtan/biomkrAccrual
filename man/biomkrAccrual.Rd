@@ -102,6 +102,6 @@ Defaults to TRUE.}
 Command line
 }
 \examples{
-biomkrAccrual()
+biomkrAccrual(precision = 10, var_lambda = 0.25)
 
 }

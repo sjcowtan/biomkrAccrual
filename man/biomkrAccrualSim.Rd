@@ -112,3 +112,7 @@ recruitment totals for all experimental and control arms.
 Seeds for each run are generated using the L'Ecuyer
 pseudo-random number generator.
 }
+\examples{
+biomkrAccrualSim(n = 10, precision = 10, var_lambda = 0.25)
+
+}
