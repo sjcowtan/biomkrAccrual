@@ -3,6 +3,8 @@ output_path <- "../test_biomkrAccrual_output_data/"
 # Testing shared control
 
 bma_out <- biomkrAccrual(
+  var_lambda = 0.25,
+  precision = 10,
   quietly = TRUE, 
   output_path = output_path
 )
@@ -60,6 +62,8 @@ test_that("spine: writes at least one PNG file", {
 ## Testing separate control
 
 bma_out <- biomkrAccrual(
+  var_lambda = 0.25,
+  precision = 10,
   shared_control = FALSE,
   quietly = TRUE, 
   output_path = output_path

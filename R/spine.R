@@ -10,9 +10,9 @@
 #' @param target_times Vector of timings of interim and final
 #' recruitment assessments, in months.
 #' @param precision For the Dirichlet model of biomarker prevalences, 
-#' variability decreases as precision increases. Defaults to 10.
+#' variability decreases as precision increases. Defaults to NULL.
 #' @param var_lambda Variance estimate for site recruitment rates.  
-#' Defaults to 0.25.
+#' Defaults to NULL.
 #' @param control_ratio Ratio of patient allocation to treatment arm
 #' versus control for all active arms; defaults to c(1, 1).
 #' @param centres_file Name of CSV file with information about 
@@ -72,8 +72,8 @@
 biomkrAccrual <- function(
   shared_control = TRUE,
   target_times = c(6, 12),
-  precision = 10,
-  var_lambda = 0.25,
+  precision = NULL,
+  var_lambda = NULL,
   # active : control ratio (all active the same)
   control_ratio = c(1, 1),
   centres_file = "centres.csv",
