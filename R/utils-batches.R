@@ -109,8 +109,6 @@ getseeds <- function(
 #' @param quietly Defaults to FALSE, which displays the output from
 #' each run. Set to TRUE to generate data and figures without displaying
 #' them.
-#' @param keep_files Save data files and plots generated during the run. 
-#' Defaults to TRUE.
 #' @param seed Seed to be used to generate the seeds for each simulation.
 #' @return Dataframe of site closing times
 #' @return Dataframe of experimental arm totals
@@ -138,7 +136,6 @@ biomkrAccrualSim <- function(
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
   quietly = FALSE,
-  keep_files = TRUE,
   seed = 123456
 ) {
   # Timestamp for batch files (but not individual run files)
@@ -489,13 +486,15 @@ biomkrAccrualSim <- function(
     paste0(output_path, "arm_accrual_", datetime, ".json")
   )
 
-  print("Arm closure weeks")
-  print(summary(as.data.frame(arm_closures_mx)))
-  print("Arm totals")
-  print(summary(as.data.frame(arm_totals_mx)))
-  for (i in seq_len(length(target_times))) {
-    print(paste0(target_times[i], "mo. accrual:"))
-    print(summary(as.data.frame(arm_interim_ls[[i]])))
+  if (!quietly) {
+    print("Arm closure weeks")
+    print(summary(as.data.frame(arm_closures_mx)))
+    print("Arm totals")
+    print(summary(as.data.frame(arm_totals_mx)))
+    for (i in seq_len(length(target_times))) {
+      print(paste0(target_times[i], "mo. accrual:"))
+      print(summary(as.data.frame(arm_interim_ls[[i]])))
+    }
   }
 
   # Going to need to know recruitment targets for plots
@@ -536,7 +535,7 @@ biomkrAccrualSim <- function(
       dpi = 400
     )
 
-    print(p)
+    if (!quietly) print(p)
   }
 
   p <- plot(
@@ -557,7 +556,7 @@ biomkrAccrualSim <- function(
     dpi = 400
   )
 
-  print(p)
+  if (!quietly) print(p)
   
 
   # Individual accrual plots
@@ -609,7 +608,7 @@ biomkrAccrualSim <- function(
         dpi = 400
       )
 
-      print(p)
+      if (!quietly) print(p)
     }
   }
 
@@ -640,7 +639,7 @@ biomkrAccrualSim <- function(
       height = 8,
       dpi = 400
     )
-    print(p)
+    if (!quietly) print(p)
   }
 
   # Plot time to accrual for each target and each arm
@@ -675,7 +674,7 @@ biomkrAccrualSim <- function(
         height = 8,
         dpi = 400
       )
-      print(p)
+      if (!quietly) print(p)
     }
   }
 }

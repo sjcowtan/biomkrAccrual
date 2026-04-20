@@ -26,7 +26,6 @@ biomkrAccrualSim(
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
   quietly = FALSE,
-  keep_files = TRUE,
   seed = 123456
 )
 }
@@ -98,9 +97,6 @@ with a mean of the specified prevalence.}
 \item{quietly}{Defaults to FALSE, which displays the output from
 each run. Set to TRUE to generate data and figures without displaying
 them.}
-
-\item{keep_files}{Save data files and plots generated during the run.
-Defaults to TRUE.}
 
 \item{seed}{Seed to be used to generate the seeds for each simulation.}
 }
