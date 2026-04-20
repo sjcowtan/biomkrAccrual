@@ -7,7 +7,6 @@ biomkrAccrualSim(
   target_times = c(2, 4),
   fixed_centre_starts = TRUE,
   quietly = TRUE,
-  keep_files = TRUE,
   output_path = output_path
 )
 
@@ -18,7 +17,6 @@ biomkrAccrualSim(
   target_times = c(2, 4),
   fixed_centre_starts = TRUE,
   quietly = TRUE,
-  keep_files = TRUE,
   output_path = output_path
 )
 
