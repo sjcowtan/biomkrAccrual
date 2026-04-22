@@ -2,11 +2,7 @@
 % Please edit documentation in R/utils-batches.R
 \name{biomkrAccrualSim}
 \alias{biomkrAccrualSim}
-\title{Run a number of batches of recruitment prediction and
-collect summary statistics on arm closures, and final
-recruitment totals for all experimental and control arms.
-Seeds for each run are generated using the L'Ecuyer
-pseudo-random number generator.}
+\title{Run multiple recruitment simulations}
 \usage{
 biomkrAccrualSim(
   n = 100,

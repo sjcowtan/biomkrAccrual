@@ -51,7 +51,8 @@ getseeds <- function(
   return(seeds)
 }
 
-
+#' Run multiple recruitment simulations
+#' 
 #' Run a number of batches of recruitment prediction and
 #' collect summary statistics on arm closures, and final
 #' recruitment totals for all experimental and control arms.

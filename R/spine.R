@@ -2,7 +2,7 @@
 
 
 
-#' @title Command line 
+#' @title Run a single instance of a recruitment simulation
 #' 
 #' @param shared_control TRUE if all treatment arms share the
 #' same control arm; FALSE if each treatment arm has its own 
