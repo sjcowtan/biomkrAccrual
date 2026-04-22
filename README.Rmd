@@ -1,3 +1,9 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
 # biomkrAccrual <img src="man/figures/logo.png" align="right" height="139" alt="" />
 ## Simulating recruitment at time of randomisation to adaptive trials with arm eligibility determined by biomarker status.
 
@@ -89,37 +95,6 @@ This file will look a bit uglier:
 Make sure you stay consistent with which biomarker is which in the other configuration files!
 
 ### Recruitment centres (sites)
-
-Expectations about each planned recruitment centre
-are encapsulated in `centres.csv`.  The example in `biomkrAccrual/inst/extdata/centres.csv` is rather long.  A shorter example with five sites might look like:
-
-```
-"site","start_month","mean_rate","region","site_cap"
-1,1,3,1,15
-2,1,5,1,10
-3,1,2,1,9
-4,3,1.6,1,8
-5,4,1.3,1,10
-```
-- The `site` column is just an identifier for each site.
-- Counting `1` as the month trial recruitment opens, `start_month` contains the month each centre opens to recruitment.
-- The expected number of patients per month for each site is in the `mean_rate` column.
-- If trial centres are likely to draw from very different populations, you might want to group those as `regions`, e.g. a trial that has some sites in the UK and some in India. This allows for different expectations of biomarker prevalences for the different regions.  In this example they're all in one region, region 1.  You do need this column, even if every entry is the same.
-- The `site_cap` column is optional. In practice, trial centres often close to recruitment once they have recruited their agreed minimum number of patients.  Using this column allows you to take this into account when predicting recruitment.
-
-### Biomarker prevalences
-
-```
-"category","region_1","region_2"
-"B1+, B2",0.47,0.41
-"B1+, B3",0.1,0.21
-"B1+, B4",0.05,0.04
-"B1+, B3, B4",0.13,0.14
-"B1-, B3",0.08,0.11
-"B1-, B4",0.04,0.03
-"B1-, B3, B4",0.13,0.06
-```
-
 
 
 
