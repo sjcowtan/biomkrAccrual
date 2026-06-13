@@ -36,5 +36,18 @@ biomkrAccrualSim(
   output_path = output_path
 )
 
+# And for keep_files = FALSE
+biomkrAccrualSim(
+  n = 10,
+  precision = 10,
+  shared_control = TRUE,
+  target_times = c(2, 4),
+  fixed_centre_starts = TRUE,
+  fixed_site_rates = TRUE,
+  quietly = TRUE,
+  keep_files = FALSE,
+  output_path = output_path
+)
+
 # Clean up by deleting the test data and figure files
 unlink(output_path, recursive = TRUE)
