@@ -2,3 +2,6 @@
 ^\.github$
 ^\.vscode$
 ^\.here$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

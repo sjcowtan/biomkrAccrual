@@ -110,6 +110,8 @@ getseeds <- function(
 #' @param quietly Defaults to FALSE, which displays the output from
 #' each run. Set to TRUE to generate data and figures without displaying
 #' them.
+#' @param keep_files Save data files and plots generated during the run. 
+#' Defaults to TRUE. If FALSE, will only save arm closure times file.
 #' @param seed Seed to be used to generate the seeds for each simulation.
 #' @return Dataframe of site closing times
 #' @return Dataframe of experimental arm totals
@@ -140,6 +142,7 @@ biomkrAccrualSim <- function(
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
   quietly = FALSE,
+  keep_files = TRUE,
   seed = 123456
 ) {
   # Timestamp for batch files (but not individual run files)
@@ -159,6 +162,18 @@ biomkrAccrualSim <- function(
 
   checkmate::assert_logical(
     shared_control,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_logical(
+    quietly,
+    any.missing = FALSE,
+    null.ok = FALSE
+  )
+
+  checkmate::assert_logical(
+    keep_files,
     any.missing = FALSE,
     null.ok = FALSE
   )
@@ -472,29 +487,33 @@ biomkrAccrualSim <- function(
     row.names = FALSE
   )
 
-  write.csv(
-    as.data.frame(arm_totals_mx),
-    paste0(output_path, "arm_totals_", datetime, ".csv"),
-    row.names = FALSE
-  )
-
-  for (i in seq_len(length(arm_interim_ls))) {
+  if (keep_files) {
     write.csv(
-      as.data.frame(arm_interim_ls[[i]]),
-      paste0(
-        output_path, "arm_interim_totals_", target_times[i], 
-        "mo_", datetime, ".csv"
-      ),
+      as.data.frame(arm_totals_mx),
+      paste0(output_path, "arm_totals_", datetime, ".csv"),
       row.names = FALSE
     )
+
+    for (i in seq_len(length(arm_interim_ls))) {
+      write.csv(
+        as.data.frame(arm_interim_ls[[i]]),
+        paste0(
+          output_path, "arm_interim_totals_", target_times[i], 
+          "mo_", datetime, ".csv"
+        ),
+        row.names = FALSE
+      )
+    }
   }
 
   # Write simulation data as a JSON of a list, one element per
   # arm, consisting of matrices of simulation number * week
-  jsonlite::write_json(
-    accrual_byarm_ls,
-    paste0(output_path, "arm_accrual_", datetime, ".json")
-  )
+  if (keep_files) {
+    jsonlite::write_json(
+      accrual_byarm_ls,
+      paste0(output_path, "arm_accrual_", datetime, ".json")
+    )
+  }
 
   if (!quietly) {
     print("Arm closure weeks")
@@ -525,48 +544,54 @@ biomkrAccrualSim <- function(
   )
 
   # Accrual for all arms at each analysis point
-  for (i in seq_len(length(arm_interim_ls))) {
+  if (keep_files || !quietly) {
+    for (i in seq_len(length(arm_interim_ls))) {
+      p <- plot(
+        arm_interim_ls[[i]], 
+        target = unique(target_expanded_df[, i + 1]), 
+        target_names = target_group(target_expanded_df, target_col = i + 1),
+        target_week = target_times[i],
+        plot_id = paste("Accrual at", target_times[i], "months")
+      )
+
+      if (keep_files) {
+        ggplot2::ggsave(
+          paste0(
+            figs_path, "arm-totals-", target_times[i], 
+            "mo-", run_time, ".png"
+          ),
+          plot = p,
+          width = 12,
+          height = 8,
+          dpi = 400
+        )
+      }
+      if (!quietly) print(p)
+    }
+
     p <- plot(
-      arm_interim_ls[[i]], 
-      target = unique(target_expanded_df[, i + 1]), 
-      target_names = target_group(target_expanded_df, target_col = i + 1),
-      target_week = target_times[i],
-      plot_id = paste("Accrual at", target_times[i], "months")
+      arm_totals_mx, 
+      target = unique(target_expanded_df[, ncol(target_expanded_df)]), 
+      target_names = target_group(
+        target_expanded_df,
+        target_col = ncol(target_expanded_df)
+      ),
+      plot_id = "Total accrual"
     )
 
-    ggplot2::ggsave(
-      paste0(
-        figs_path, "arm-totals-", target_times[i], 
-        "mo-", run_time, ".png"
-      ),
-      plot = p,
-      width = 12,
-      height = 8,
-      dpi = 400
-    )
+    if (keep_files) {
+      ggplot2::ggsave(
+        paste0(figs_path, "arm-totals-", run_time, ".png"),
+        plot = p,
+        width = 12,
+        height = 8,
+        dpi = 400
+      )
+    }
 
     if (!quietly) print(p)
+
   }
-
-  p <- plot(
-    arm_totals_mx, 
-    target = unique(target_expanded_df[, ncol(target_expanded_df)]), 
-    target_names = target_group(
-      target_expanded_df,
-      target_col = ncol(target_expanded_df)
-    ),
-    plot_id = "Total accrual"
-  )
-
-  ggplot2::ggsave(
-    paste0(figs_path, "arm-totals-", run_time, ".png"),
-    plot = p,
-    width = 12,
-    height = 8,
-    dpi = 400
-  )
-
-  if (!quietly) print(p)
   
 
   # Individual accrual plots
@@ -590,103 +615,113 @@ biomkrAccrualSim <- function(
   
   # Total accrual plots
   # Loop across all arms
-  for (i in seq_len(length(accrual_byarm_ls))) {
-    ## Loop across interim and total
-    for (j in seq_len(ncol(target_expanded_df[, -1]))) {
-      p <- accrual_arm_plot(
-        arm_interim_ls[[j]],
-        arm_colours, 
-        treatment_arms,
-        target_expanded_df[[i, j + 1]],
-        plot_id = paste(target_times[j], "month"),
-        i
-      )
+  if (keep_files || !quietly) {
+    for (i in seq_len(length(accrual_byarm_ls))) {
+      ## Loop across interim and total
+      for (j in seq_len(ncol(target_expanded_df[, -1]))) {
+        p <- accrual_arm_plot(
+          arm_interim_ls[[j]],
+          arm_colours, 
+          treatment_arms,
+          target_expanded_df[[i, j + 1]],
+          plot_id = paste(target_times[j], "month"),
+          i
+        )
 
-      ggplot2::ggsave(
-        paste0(
-          figs_path, 
-          "arm-totals-",
-          target_times[j],
-          "mo-",
-          arm_names[i], "-", 
-          run_time, 
-          ".png"
-        ),
-        plot = p,
-        width = 12,
-        height = 8,
-        dpi = 400
-      )
+        if (keep_files) {
+          ggplot2::ggsave(
+            paste0(
+              figs_path, 
+              "arm-totals-",
+              target_times[j],
+              "mo-",
+              arm_names[i], "-", 
+              run_time, 
+              ".png"
+            ),
+            plot = p,
+            width = 12,
+            height = 8,
+            dpi = 400
+          )
+        }
 
-      if (!quietly) print(p)
+        if (!quietly) print(p)
+      }
     }
-  }
+  
 
-  ## Plot simulations over time for each arm
+    ## Plot simulations over time for each arm
 
-  for (i in seq_len(length(accrual_byarm_ls))) {
-    target_index <- 2 - as.numeric(treatment_arms[[i]])
-    name <- names(accrual_byarm_ls)[[i]]
-    p <- plot(
-      accrual_byarm_ls[[i]],
-      arm_colour = arm_colours[i],
-      target = unlist(target_expanded_df[i, -1]),
-      target_names = paste(target_times, "month"),
-      plot_id = name
-    )
-    ggplot2::ggsave(
-      paste0(
-        figs_path, 
-        "arm-accrual-",
-        tolower(names(accrual_byarm_ls)[j]),
-        "-",
-        arm_names[i], "-", 
-        run_time, 
-        ".png"
-      ),
-      plot = p,
-      width = 12,
-      height = 8,
-      dpi = 400
-    )
-    if (!quietly) print(p)
-  }
-
-  # Plot time to accrual for each target and each arm
-  for (i in seq_len(length(accrual_byarm_ls))) {
-    # Data extraction for interim and accrual
-    accrual_times <- threshold_week(
-      accrual_byarm_ls[[i]], 
-      unlist(target_expanded_df[i, -1])
-    )
-
-    for (j in seq_len(length(target_times))) {
+    for (i in seq_len(length(accrual_byarm_ls))) {
+      target_index <- 2 - as.numeric(treatment_arms[[i]])
+      name <- names(accrual_byarm_ls)[[i]]
       p <- plot(
-        accrual_times[[j]],
+        accrual_byarm_ls[[i]],
         arm_colour = arm_colours[i],
-        target = unlist(target_expanded_df[i, j + 1]),
-        target_names = paste(target_times[j], "month"),
-        plot_id = names(accrual_byarm_ls)[[i]]
+        target = unlist(target_expanded_df[i, -1]),
+        target_names = paste(target_times, "month"),
+        plot_id = name
       )
-      ggplot2::ggsave(
-        paste0(
-          figs_path, 
-          "arm-week-", 
-          names(accrual_byarm_ls)[[i]],
-          "-",
-          target_times[j], 
-          "mo-",
-          run_time, 
-          ".png"
-        ),
-        plot = p,
-        width = 12,
-        height = 8,
-        dpi = 400
-      )
+      if (keep_files) {
+        ggplot2::ggsave(
+          paste0(
+            figs_path, 
+            "arm-accrual-",
+            tolower(names(accrual_byarm_ls)[j]),
+            "-",
+            arm_names[i], "-", 
+            run_time, 
+            ".png"
+          ),
+          plot = p,
+          width = 12,
+          height = 8,
+          dpi = 400
+        )
+      }
       if (!quietly) print(p)
     }
+
+    # Plot time to accrual for each target and each arm
+    for (i in seq_len(length(accrual_byarm_ls))) {
+      # Data extraction for interim and accrual
+      accrual_times <- threshold_week(
+        accrual_byarm_ls[[i]], 
+        unlist(target_expanded_df[i, -1])
+      )
+
+      for (j in seq_len(length(target_times))) {
+        p <- plot(
+          accrual_times[[j]],
+          arm_colour = arm_colours[i],
+          target = unlist(target_expanded_df[i, j + 1]),
+          target_names = paste(target_times[j], "month"),
+          plot_id = names(accrual_byarm_ls)[[i]]
+        )
+        if (keep_files) {
+          ggplot2::ggsave(
+            paste0(
+              figs_path, 
+              "arm-week-", 
+              names(accrual_byarm_ls)[[i]],
+              "-",
+              target_times[j], 
+              "mo-",
+              run_time, 
+              ".png"
+            ),
+            plot = p,
+            width = 12,
+            height = 8,
+            dpi = 400
+          )
+        }
+        if (!quietly) print(p)
+      }
+    }
   }
+  return(as.data.frame(arm_closures_mx))
 }
 
 
