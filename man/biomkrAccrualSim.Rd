@@ -2,11 +2,7 @@
 % Please edit documentation in R/utils-batches.R
 \name{biomkrAccrualSim}
 \alias{biomkrAccrualSim}
-\title{Run a number of batches of recruitment prediction and
-collect summary statistics on arm closures, and final
-recruitment totals for all experimental and control arms.
-Seeds for each run are generated using the L'Ecuyer
-pseudo-random number generator.}
+\title{Run multiple recruitment simulations}
 \usage{
 biomkrAccrualSim(
   n = 100,
@@ -26,6 +22,7 @@ biomkrAccrualSim(
   fixed_site_rates = FALSE,
   fixed_region_prevalences = FALSE,
   quietly = FALSE,
+  keep_files = TRUE,
   seed = 123456
 )
 }
@@ -97,6 +94,9 @@ with a mean of the specified prevalence.}
 \item{quietly}{Defaults to FALSE, which displays the output from
 each run. Set to TRUE to generate data and figures without displaying
 them.}
+
+\item{keep_files}{Save data files and plots generated during the run.
+Defaults to TRUE. If FALSE, will only save arm closure times file.}
 
 \item{seed}{Seed to be used to generate the seeds for each simulation.}
 }

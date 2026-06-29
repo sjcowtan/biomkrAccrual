@@ -1,0 +1,111 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# biomkrAccrual <img src="man/figures/logo.png" align="right" height="139" alt="" />
+## Simulating recruitment at time of randomisation to adaptive trials with arm eligibility determined by biomarker status.
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/sjcowtan/biomkrAccrual/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sjcowtan/biomkrAccrual/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/github/sjcowtan/biomkrAccrual/graph/badge.svg?token=1LIAWRVBU3)](https://codecov.io/github/sjcowtan/biomkrAccrual)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+<!-- badges: end -->
+
+# Overview
+
+The `{biomkrAccrual}` package uses a Poisson-Gamma-Dirichlet model to simulate
+trial recruitment for multi-site, multi-region, multi-arm trials. Recruitment per 
+site is modelled with the Poisson-Gamma model (Anisimov and Federov, 2007).
+A hierarchical Dirichlet model is used to model biomarker proportions for sites
+within regions. Recruitment to a given site in a given week is then randomised
+to biomarker status using the prevalences drawn from the Dirichlet model for that
+site.
+
+# Installation
+
+```
+devtools::install_github("sjcowtan/biomkrAccrual")
+```
+
+# Contacts
+
+# Use cases
+
+# Usage
+
+## Running a single simulation
+
+```
+biomkrAccrual(precision = 10, var_lambda = 0.25)
+```
+
+The default settings will use the example configuration files in the `extdata` directory, and will
+keep the resulting data files and recruitment plots. The location can be specified with 
+`output_path` and `figs_path`.
+
+## Running a set of simulations
+
+```
+biomkrAccrualSim(n = 250, precision = 10, var_lambda = 0.25)`
+```
+
+The datafiles and recruitment plots from the individual runs will not be kept (this
+can be changed with `quietly = FALSE`) but will preserve the summary datafiles and
+distribution plots.
+
+## Configuration files
+
+### Trial structure: how biomarkers map onto the trial arms
+
+The example `arms.json` file in `biomkrAccrual/inst/extdata/` looks like this:
+
+```
+{
+  "T1":[1,2,3,4],
+  "T2":[2,4,5,7],
+  "T3":[3,4,6,7],
+  "T4":[2,3,4,5,6,7],
+  "T5":[2,3,4,5,6,7]
+}
+```
+
+This describes a trial with five experimental arms and seven biomarkers.  Multiple biomarkers can be eligible for the same arm, and biomarkers can be eligible for multiple arms.  In this case the first four biomarkers are eligible for trial arm `T1`.
+
+A file like this can be created by hand, or you can create one from a list in R using the `{jsonlite}` package:
+
+```
+r$> arms_ls <- list(
+    T1 = 1:4, 
+    T2 = c(2, 4, 6, 7), 
+    T3 = c(3, 4, 6, 7), 
+    T4 = 2:7, 
+    T5 = 2:7
+  )
+r$> jsonlite::write_json(arms_ls, "arms.json")
+```
+
+This file will look a bit uglier:
+
+```
+{"T1":[1,2,3,4],"T2":[2,4,6,7],"T3":[3,4,6,7],"T4":[2,3,4,5,6,7],"T5":[2,3,4,5,6,7]}
+```
+
+Make sure you stay consistent with which biomarker is which in the other configuration files!
+
+### Recruitment centres (sites)
+
+
+
+## Practical notes
+
+There are a very large number of arguments to both commands, and four configuation files,
+one of which (the relationship of treatment arms to biomarker recruitment arms) is a JSON.  
+This is because flexibility is required, and they are intended to be driven by a dashboard 
+in future.
+
+Anisimov, V.V., Fedorov, V.V., 2007. Modelling, prediction and adaptive adjustment of 
+recruitment in multicentre trials. Statistics in Medicine 26, 4958–4975. 
+https://doi.org/10.1002/sim.2956
+

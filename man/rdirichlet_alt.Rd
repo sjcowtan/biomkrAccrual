@@ -17,8 +17,9 @@ rdirichlet_alt(n = 1, mu = c(0.3, 0.3, 0.3), phi = 10)
 (defaults to c(0.001, 0.029. 0.7)). Must be greater than 0 and
 finite, and contain at least two values.}
 
-\item{phi}{Parameter representing precision, where precision is
-1/variance. Must be positive and finite. Defaults to 10.}
+\item{phi}{Parameter representing precision, where "precision" is
+a representative term and not equal to 1/variance. Must be
+positive and finite. Defaults to 10.}
 }
 \description{
 Generate a matrix of \code{n} rows of sets of probabilities

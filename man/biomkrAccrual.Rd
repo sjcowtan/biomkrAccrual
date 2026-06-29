@@ -2,7 +2,7 @@
 % Please edit documentation in R/spine.R
 \name{biomkrAccrual}
 \alias{biomkrAccrual}
-\title{Command line}
+\title{Run a single instance of a recruitment simulation}
 \usage{
 biomkrAccrual(
   shared_control = TRUE,
@@ -99,7 +99,7 @@ Defaults to TRUE.}
 \item{seed}{Seed for random number generation.}
 }
 \description{
-Command line
+Run a single instance of a recruitment simulation
 }
 \examples{
 biomkrAccrual(precision = 10, var_lambda = 0.25)

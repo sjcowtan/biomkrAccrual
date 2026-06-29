@@ -8,8 +8,9 @@
 #' @param mu Vector of mean values for each probability in the set
 #' (defaults to c(0.001, 0.029. 0.7)). Must be greater than 0 and 
 #' finite, and contain at least two values.
-#' @param phi Parameter representing precision, where precision is 
-#' 1/variance. Must be positive and finite. Defaults to 10.
+#' @param phi Parameter representing precision, where "precision" is 
+#' a representative term and not equal to 1/variance. Must be 
+#' positive and finite. Defaults to 10.
 #'
 #' @examples rdirichlet_alt(n = 3, mu = c(0.001, 0.029, 0.7), phi = 10)
 #' 
