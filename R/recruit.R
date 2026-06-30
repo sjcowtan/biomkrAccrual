@@ -132,7 +132,7 @@ accrual <- S7::new_class("accrual",
           length(treatment_arm_ids)
         )
       ),
-      active_sites = seq_len(length(unique(centres_df$site))),
+      active_sites = seq_along(unique(centres_df$site)),
       fixed_site_rates = fixed_site_rates,
       site_in_region = as.integer(centres_df$region),
       site_cap = as.integer(centres_df$site_cap),
@@ -330,12 +330,12 @@ S7::method(set_site_rates, accrual) <- function(obj) {
     if (obj@fixed_site_rates) {
       rates <- obj@site_mean_rate[indices] / get_weeks(1)
     } else {
-      rates <- 0.25 * stats::rgamma(
+      rates <- stats::rgamma(
         n = length(indices),
         shape = obj@site_mean_rate[indices]^2 / obj@var_lambda,
         # Per week not per month
         rate = obj@site_mean_rate[indices] / obj@var_lambda
-      )
+      ) / get_weeks(1)
     }
 
     # When multiple recruitment sources at a given site, want them

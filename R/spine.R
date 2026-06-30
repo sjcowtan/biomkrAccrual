@@ -280,6 +280,13 @@ biomkrAccrual <- function(
     ))
   }
 
+  # Fail if two sites with the same indices
+  if (any(duplicated(centres_df$site))) {
+    rlang::abort(paste(
+      "Format error: site IDs duplicated in centres file"
+    ))
+  }
+
   # Fail if arms file is in wrong format
   if (any(duplicated(names(arms_ls)))) {
     rlang::abort(paste(
