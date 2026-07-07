@@ -34,5 +34,4 @@ row per biomarker; each column sums to 1.
 \description{
 For each site, draws from the Dirichlet distribution using the
 expected prevalences for the region.
-expected prevalences by region
 }

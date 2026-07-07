@@ -2,7 +2,7 @@
 % Please edit documentation in R/prevalence.R
 \name{do_dirichlet_draws}
 \alias{do_dirichlet_draws}
-\title{Draws from dirichlet regression model for biomarker prevalences
+\title{Draws from dirichlet distribution for biomarker prevalences
 to create the prevalence matrix.}
 \usage{
 do_dirichlet_draws(region_prevalence, sites_in_region, precision)
@@ -18,7 +18,11 @@ site, the index determined by the order of the columns in
 
 \item{precision}{Variability decreases as precision increases.}
 }
+\value{
+Matrix of Dirichlet-distributed biomarker prevalences,
+with one row per site, and one column per biomarker.
+}
 \description{
-Draws from dirichlet regression model for biomarker prevalences
+Draws from dirichlet distribution for biomarker prevalences
 to create the prevalence matrix.
 }

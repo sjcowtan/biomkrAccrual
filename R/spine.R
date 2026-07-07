@@ -335,12 +335,8 @@ biomkrAccrual <- function(
     set.seed(seed)
   } else if (length(seed) == 7 && seed[1] == 10407) {
     # Set seed for next L'Ecuyer stream
-    ##### think about this!  Have not set kind
     assign(
       x = ".Random.seed", 
-      # This still isn't making the output different,
-      # but there is variation where there shouldn't be
-      # Seeds not propagating properly
       value = seed,
       envir = as.environment(-1)
     )
