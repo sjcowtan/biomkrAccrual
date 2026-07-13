@@ -403,8 +403,8 @@ test_that("apply_site_cap: Sites under the cap are not capped.", {
 
 fixed_acc_obj@target_df <- data.frame(
   arm = c("T1", "T2", "Control"),
-  interim = c(8, 8, 16),
-  final = c(16, 16, 32)
+  interim = c(2, 8, 16),
+  final = c(4, 16, 32)
 )
 
 struct_obj <- trial_structure(
@@ -418,7 +418,7 @@ struct_obj <- trial_structure(
     start_month = c(1, 2),
     mean_rate = c(8, 4),
     region = c(1, 1),
-    site_cap = c(40, 20),
+    site_cap = c(10, 20),
     start_week = c(1, 5)
   ),
   precision = NULL,
@@ -427,15 +427,29 @@ struct_obj <- trial_structure(
   fixed_region_prevalences = TRUE
 )
 
+print(fixed_acc_obj@active_sites)
+print(struct_obj@experimental_arm_prevalence)
+print(colSums(struct_obj@experimental_arm_prevalence[, , fixed_acc_obj@active_sites]))
+print(fixed_acc_obj@active_arms)
+
 # Change these so only the last week is over the cap
 
 fixed_acc_obj@target_df <- data.frame(
   arm = c("T1", "T2", "Control"),
-  interim = c(15, 15, 30),
-  final = c(25, 25, 50)
+  interim = c(1, 15, 1),
+  final = c(2, 25, 2)
 )
 
-fixed_acc_obj <- apply_arm_cap(fixed_acc_obj, struct_obj)
+apply_arm_cap(fixed_acc_obj, struct_obj)
+
+print(fixed_acc_obj@active_sites)
+print(struct_obj@experimental_arm_prevalence)
+print(colSums(struct_obj@experimental_arm_prevalence[, , fixed_acc_obj@active_sites]))
+print(fixed_acc_obj@accrual[dim(fixed_acc_obj@accrual)[3],,])
+print("Active arms")
+print(fixed_acc_obj@active_arms)
+
+
 
 # Testing get_weeks()
 
