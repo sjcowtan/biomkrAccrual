@@ -263,7 +263,7 @@ get_recruit_arm_prevalence <- function(
     finite = TRUE
   )
 
-  # Fails when only 1 region as r_a_p remains a vector
+  # Fails when only 1 site as r_a_p remains a vector
   if (fixed_region_prevalences) {
     # Use region prevalences unchanged
     recruit_arm_prevalence <- as.matrix(
@@ -424,6 +424,9 @@ get_array_prevalence <- function(
     dim = c(dim(prev_ls[[1]]), length(prev_ls))
   )
   
+  # Divide this by sum(control_ratio) so each site sums to 1
+  arm_prevalence_ar <- arm_prevalence_ar / sum(control_ratio)
+
   return(arm_prevalence_ar)
 }
 

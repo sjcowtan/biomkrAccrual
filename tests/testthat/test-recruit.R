@@ -269,7 +269,7 @@ test_that("week_accrue: second output is a valid accrual matrix", {
 test_that("week_accrue: accrual values as expected", {
   expect_equal(
     as.vector(wa_out_ls[[2]]),
-    c(1, 2, 1, 0, 0, 0)
+    c(2, 2, 0, 0, 0, 0)
   )
 })
 
@@ -314,7 +314,7 @@ test_that("accrue_week: recruitment totals are a 3D integer array", {
 test_that("accrue_week: recruitment totals are correct", {
   expect_equal(
     as.vector(aw_out_ls[[1]]@accrual), 
-    c(1, rep(0, 11), 2, rep(0, 11), 1, rep(0, 47))
+    c(2, rep(0, 11), 2, rep(0, 59))
   )
 })
 
@@ -409,10 +409,10 @@ fixed_acc_obj@target_df <- data.frame(
 
 struct_obj <- trial_structure(
   props_df = data.frame(
-    category = c("B1", "B2"),
-    region_1 = c(0.54, 0.46)
+    category = c("B1", "B2", "B3"),
+    region_1 = c(0.54, 0.36, 0.1)
   ),
-  arms_ls = list(T1 = 1:2, T2 = 1:2),
+  arms_ls = list(T1 = 1:2, T2 = 2:3),
   centres_df = data.frame(
     site = 1:2,
     start_month = c(1, 2),
@@ -427,28 +427,15 @@ struct_obj <- trial_structure(
   fixed_region_prevalences = TRUE
 )
 
-print(fixed_acc_obj@active_sites)
-print(struct_obj@experimental_arm_prevalence)
-print(colSums(struct_obj@experimental_arm_prevalence[, , fixed_acc_obj@active_sites]))
-print(fixed_acc_obj@active_arms)
-
 # Change these so only the last week is over the cap
 
 fixed_acc_obj@target_df <- data.frame(
   arm = c("T1", "T2", "Control"),
-  interim = c(1, 15, 1),
-  final = c(2, 25, 2)
+  interim = c(1, 15, 16),
+  final = c(2, 25, 27)
 )
 
 apply_arm_cap(fixed_acc_obj, struct_obj)
-
-print(fixed_acc_obj@active_sites)
-print(struct_obj@experimental_arm_prevalence)
-print(colSums(struct_obj@experimental_arm_prevalence[, , fixed_acc_obj@active_sites]))
-print(fixed_acc_obj@accrual[dim(fixed_acc_obj@accrual)[3],,])
-print("Active arms")
-print(fixed_acc_obj@active_arms)
-
 
 
 # Testing get_weeks()

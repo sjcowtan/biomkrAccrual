@@ -420,7 +420,6 @@ biomkrAccrual <- function(
 
     # Increment pointer for the next week to accrue
     accrual_instance@week <- accrual_instance@week + as.integer(1)
-  
   }
 
   # Trim accrual to actual recruitment length
