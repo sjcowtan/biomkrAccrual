@@ -132,7 +132,7 @@ accrual <- S7::new_class("accrual",
           length(treatment_arm_ids)
         )
       ),
-      active_sites = seq_len(length(unique(centres_df$site))),
+      active_sites = seq_along(unique(centres_df$site)),
       fixed_site_rates = fixed_site_rates,
       site_in_region = as.integer(centres_df$region),
       site_cap = as.integer(centres_df$site_cap),
@@ -330,12 +330,12 @@ S7::method(set_site_rates, accrual) <- function(obj) {
     if (obj@fixed_site_rates) {
       rates <- obj@site_mean_rate[indices] / get_weeks(1)
     } else {
-      rates <- 0.25 * stats::rgamma(
+      rates <- stats::rgamma(
         n = length(indices),
         shape = obj@site_mean_rate[indices]^2 / obj@var_lambda,
         # Per week not per month
         rate = obj@site_mean_rate[indices] / obj@var_lambda
-      )
+      ) / get_weeks(1)
     }
 
     # When multiple recruitment sources at a given site, want them
@@ -551,46 +551,36 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
       ncol = dim(accrual_obj@accrual)[3]
     )
 
-    week_acc <- as.integer(rep(0, dim(accrual_obj@accrual)[3]))
-
     # Accrual per site is poisson distributed
-    week_acc[accrual_obj@active_sites] <- rpois(
-      n = length(accrual_obj@active_sites), 
-      lambda = accrual_obj@site_rate[accrual_obj@active_sites]
+
+    ## Get prevalences for active arms by site
+    prev_mx <- colSums(
+      struct_obj@experimental_arm_prevalence[, , accrual_obj@active_sites]
     )
 
-    # Loop over recruiting sites
-    for (isite in which(week_acc > 0)) {
-      # Total probability for each experimental arm for the 
-      # relevant site prevalence set
-      probs <- colSums(struct_obj@experimental_arm_prevalence[
-        , , accrual_obj@site_in_region[isite]
-      ])
-      
-      # Sample experimental arms according to probabilities
-      # Adding a dummy arm to take unassigned allocations due 
-      # to arm closure, representing reduced site recruitment
-      assigns <- sample(
-        seq_len(length(probs) + 1),
-        prob = c(probs, ifelse(1 - sum(probs) < 10^-5, 0, 1 - sum(probs))),
-        size = week_acc[isite],
-        replace = TRUE
+    if (is.matrix(prev_mx)) {
+      # multiply prevalences by lambdas for each site
+      # => site * arm matrix
+      lambda_prev_mx <- sweep(
+        prev_mx, 
+        MARGIN = 2, 
+        accrual_obj@site_rate[accrual_obj@active_sites], 
+        `*`
       )
-      
-      # Total assignments to each open arm plus dummy arm
-      assign_table <- table(assigns)
-      indices <- as.numeric(names(assign_table))
-     
-      # Drop the dummy arm if anything was assigned to it
-      if (max(indices) > length(probs)) {
-        assign_table <- assign_table[-length(assign_table)]
-        indices <- indices[-length(indices)]
-      }
-
-      # Increment week's assignment matrix
-      week_mx[indices, isite] <- 
-        week_mx[indices, isite] + as.vector(assign_table)
+    } else {
+      lambda_prev_mx <- accrual_obj@site_rate[accrual_obj@active_sites] *
+        prev_mx
     }
+
+    ## Draw from Poisson distribution
+    week_mx[, accrual_obj@active_sites] <-
+      matrix(
+        rpois(
+          n = length(lambda_prev_mx), 
+          lambda = lambda_prev_mx
+        ), 
+        ncol = 2
+      )
 
     return(list(accrual_obj, week_mx))
   }

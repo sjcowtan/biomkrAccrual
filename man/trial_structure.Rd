@@ -51,11 +51,11 @@ allocated to each arm of the trial.
 \section{Slots}{
 
 \describe{
-\item{\code{recruit_arm_prevalence}}{Numeric vector of the expected proportion
-of patients eligible for each recruitment arm.}
+\item{\code{recruit_arm_prevalence}}{Matrix of Dirichlet-distributed biomarker
+prevalences, with one column per site and one row per biomarker.}
 
-\item{\code{recruit_arm_prevalence_start}}{Numeric vector of the initial proportions
-of patients eligible for each recruitment arm.}
+\item{\code{recruit_arm_prevalence_start}}{Matrix of Dirichlet-distributed biomarker
+prevalences, with one column per site and one row per biomarker.}
 
 \item{\code{recruit_arm_names}}{Character vector of the names of the recruitment
 arms.}

@@ -269,7 +269,7 @@ test_that("week_accrue: second output is a valid accrual matrix", {
 test_that("week_accrue: accrual values as expected", {
   expect_equal(
     as.vector(wa_out_ls[[2]]),
-    c(1, 2, 1, 0, 0, 0)
+    c(2, 2, 0, 0, 0, 0)
   )
 })
 
@@ -314,7 +314,7 @@ test_that("accrue_week: recruitment totals are a 3D integer array", {
 test_that("accrue_week: recruitment totals are correct", {
   expect_equal(
     as.vector(aw_out_ls[[1]]@accrual), 
-    c(1, rep(0, 11), 2, rep(0, 11), 1, rep(0, 47))
+    c(2, rep(0, 11), 2, rep(0, 59))
   )
 })
 
@@ -403,22 +403,22 @@ test_that("apply_site_cap: Sites under the cap are not capped.", {
 
 fixed_acc_obj@target_df <- data.frame(
   arm = c("T1", "T2", "Control"),
-  interim = c(8, 8, 16),
-  final = c(16, 16, 32)
+  interim = c(2, 8, 16),
+  final = c(4, 16, 32)
 )
 
 struct_obj <- trial_structure(
   props_df = data.frame(
-    category = c("B1", "B2"),
-    region_1 = c(0.54, 0.46)
+    category = c("B1", "B2", "B3"),
+    region_1 = c(0.54, 0.36, 0.1)
   ),
-  arms_ls = list(T1 = 1:2, T2 = 1:2),
+  arms_ls = list(T1 = 1:2, T2 = 2:3),
   centres_df = data.frame(
     site = 1:2,
     start_month = c(1, 2),
     mean_rate = c(8, 4),
     region = c(1, 1),
-    site_cap = c(40, 20),
+    site_cap = c(10, 20),
     start_week = c(1, 5)
   ),
   precision = NULL,
@@ -431,11 +431,12 @@ struct_obj <- trial_structure(
 
 fixed_acc_obj@target_df <- data.frame(
   arm = c("T1", "T2", "Control"),
-  interim = c(15, 15, 30),
-  final = c(25, 25, 50)
+  interim = c(1, 15, 16),
+  final = c(2, 25, 27)
 )
 
-fixed_acc_obj <- apply_arm_cap(fixed_acc_obj, struct_obj)
+apply_arm_cap(fixed_acc_obj, struct_obj)
+
 
 # Testing get_weeks()
 

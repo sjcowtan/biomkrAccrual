@@ -1,10 +1,10 @@
 #' A class for an object to contain the proportions of arriving patients to be
 #' allocated to each arm of the trial.
 #' 
-#' @slot recruit_arm_prevalence Numeric vector of the expected proportion 
-#' of patients eligible for each recruitment arm.
-#' @slot recruit_arm_prevalence_start Numeric vector of the initial proportions
-#' of patients eligible for each recruitment arm.
+#' @slot recruit_arm_prevalence Matrix of Dirichlet-distributed biomarker 
+#' prevalences, with one column per site and one row per biomarker.
+#' @slot recruit_arm_prevalence_start Matrix of Dirichlet-distributed biomarker 
+#' prevalences, with one column per site and one row per biomarker.
 #' @slot recruit_arm_names Character vector of the names of the recruitment 
 #' arms.
 #' @slot shared_control TRUE if using a shared control arm for all 
@@ -148,7 +148,6 @@ trial_structure <- S7::new_class("trial_structure",
 #' 
 #' For each site, draws from the Dirichlet distribution using the
 #' expected prevalences for the region. 
-#' expected prevalences by region
 #' 
 #' @param props_df Dataframe with one row per biomarker.  Has one column 
 #' `category`, containing names of the biomarkers, plus one column for 
@@ -165,8 +164,7 @@ trial_structure <- S7::new_class("trial_structure",
 #' @return Matrix of prevalences with one column per site and one 
 #' row per biomarker; each column sums to 1.
 #' 
-#' @importFrom checkmate assert_names assert_data_frame assert_atomic_vector 
-#' assert_integerish assert_numeric
+#' @importFrom checkmate assert_names assert_data_frame assert_atomic_vector assert_integerish assert_numeric
 #' 
 get_recruit_arm_prevalence <- function(
   props_df, centres_df, precision, fixed_region_prevalences
@@ -265,7 +263,7 @@ get_recruit_arm_prevalence <- function(
     finite = TRUE
   )
 
-  # Fails when only 1 region as r_a_p remains a vector
+  # Fails when only 1 site as r_a_p remains a vector
   if (fixed_region_prevalences) {
     # Use region prevalences unchanged
     recruit_arm_prevalence <- as.matrix(
@@ -294,7 +292,7 @@ get_recruit_arm_prevalence <- function(
 }
 
 
-#' Draws from dirichlet regression model for biomarker prevalences
+#' Draws from dirichlet distribution for biomarker prevalences
 #' to create the prevalence matrix.
 #' 
 #' @param region_prevalence Dataframe with one column for each 
@@ -304,7 +302,10 @@ get_recruit_arm_prevalence <- function(
 #' site, the index determined by the order of the columns in
 #' `region_prevalence`.
 #' @param precision Variability decreases as precision increases.
-#'  
+#' 
+#' @return Matrix of Dirichlet-distributed biomarker prevalences, 
+#' with one row per site, and one column per biomarker.
+#'   
 do_dirichlet_draws <- function(region_prevalence, sites_in_region, precision) {
   
   # Predeclare prevalence matrix
@@ -423,6 +424,9 @@ get_array_prevalence <- function(
     dim = c(dim(prev_ls[[1]]), length(prev_ls))
   )
   
+  # Divide this by sum(control_ratio) so each site sums to 1
+  arm_prevalence_ar <- arm_prevalence_ar / sum(control_ratio)
+
   return(arm_prevalence_ar)
 }
 

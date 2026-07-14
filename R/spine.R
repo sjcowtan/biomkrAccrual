@@ -280,6 +280,13 @@ biomkrAccrual <- function(
     ))
   }
 
+  # Fail if two sites with the same indices
+  if (any(duplicated(centres_df$site))) {
+    rlang::abort(paste(
+      "Format error: site IDs duplicated in centres file"
+    ))
+  }
+
   # Fail if arms file is in wrong format
   if (any(duplicated(names(arms_ls)))) {
     rlang::abort(paste(
@@ -328,12 +335,8 @@ biomkrAccrual <- function(
     set.seed(seed)
   } else if (length(seed) == 7 && seed[1] == 10407) {
     # Set seed for next L'Ecuyer stream
-    ##### think about this!  Have not set kind
     assign(
       x = ".Random.seed", 
-      # This still isn't making the output different,
-      # but there is variation where there shouldn't be
-      # Seeds not propagating properly
       value = seed,
       envir = as.environment(-1)
     )
@@ -417,7 +420,6 @@ biomkrAccrual <- function(
 
     # Increment pointer for the next week to accrue
     accrual_instance@week <- accrual_instance@week + as.integer(1)
-  
   }
 
   # Trim accrual to actual recruitment length
