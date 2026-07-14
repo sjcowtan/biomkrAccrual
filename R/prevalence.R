@@ -263,7 +263,6 @@ get_recruit_arm_prevalence <- function(
     finite = TRUE
   )
 
-  # Fails when only 1 site as r_a_p remains a vector
   if (fixed_region_prevalences) {
     # Use region prevalences unchanged
     recruit_arm_prevalence <- as.matrix(
@@ -272,12 +271,19 @@ get_recruit_arm_prevalence <- function(
     )
     
     # Scale columns to sum to 1
-    recruit_arm_prevalence <- sweep(
-      recruit_arm_prevalence,
-      2,
-      colSums(recruit_arm_prevalence),
-      FUN = "/"
-    )
+    if (length(sites_in_region) > 1) {
+      # Sweep only works with > 1 column
+      recruit_arm_prevalence <- sweep(
+        recruit_arm_prevalence,
+        2,
+        colSums(recruit_arm_prevalence),
+        FUN = "/"
+      )
+    } else {
+      # Just one column
+      recruit_arm_prevalence <- 
+        recruit_arm_prevalence / sum(recruit_arm_prevalence)
+    }
 
   } else {
     
