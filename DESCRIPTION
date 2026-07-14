@@ -1,10 +1,10 @@
 Package: biomkrAccrual
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.6.0
+Title: Predicting trial recruitment using the Poisson-Gamma-Dirichlet model
+Version: 0.0.7.0
 Authors@R: 
     person("S J", "Cowtan", , "cowtansj@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-7668-4109"))
-Description: What the package does (one paragraph).
+Description: This package implements a simulation model for predicting clinical trial recruitment
 License: MIT
 Depends: 
     R (>= 4.4.0)
