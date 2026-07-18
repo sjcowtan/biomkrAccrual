@@ -258,7 +258,11 @@ biomkrAccrual <- function(
   arms_ls <- 
     jsonlite::read_json(arms_file, simplifyVector = TRUE)
   
-  centres_df <- utils::read.csv(centres_file)
+  centres_df <- utils::read.csv(
+    centres_file, 
+    # Accrual object validator does not accept integer
+    colClasses = c("mean_rate" = "numeric") 
+  )
 
   target_df <- utils::read.csv(target_file)
 

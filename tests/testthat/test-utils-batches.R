@@ -1,7 +1,7 @@
 # Testing the code for running multiple simulations
 output_path <- "../test_biomkrAccrual_output_data/"
 
-biomkrAccrualSim(
+closures_mx <- biomkrAccrualSim(
   n = 50,
   var_lambda = 0.25,
   precision = 10,
@@ -12,8 +12,15 @@ biomkrAccrualSim(
   output_path = output_path
 )
 
+test_that("Shared control, variable site rates and prevalence", {
+  expect_equal(
+    dim(closures_mx),
+    c(50, 6)
+  )
+})
+
 # And testing it for umbrellas
-biomkrAccrualSim(
+closures_mx <- biomkrAccrualSim(
   n = 10,
   var_lambda = 0.25,
   precision = 10,
@@ -24,8 +31,17 @@ biomkrAccrualSim(
   output_path = output_path
 )
 
+print(head(closures_mx))
+
+test_that("Separate controls, variable site rates and prevalence", {
+  expect_equal(
+    dim(closures_mx),
+    c(10, 10)
+  )
+})
+
 # And for fixed site rates
-biomkrAccrualSim(
+closures_mx <- biomkrAccrualSim(
   n = 10,
   precision = 10,
   shared_control = TRUE,
@@ -36,8 +52,17 @@ biomkrAccrualSim(
   output_path = output_path
 )
 
+print((closures_mx))
+print(dim(closures_mx))
+test_that("Shared control, fixed site rates, variable prevalence", {
+  expect_equal(
+    dim(closures_mx),
+    c(10, 6)
+  )
+})
+
 # And for keep_files = FALSE
-biomkrAccrualSim(
+closures_mx <- biomkrAccrualSim(
   n = 10,
   precision = 10,
   shared_control = TRUE,
@@ -51,3 +76,16 @@ biomkrAccrualSim(
 
 # Clean up by deleting the test data and figure files
 unlink(output_path, recursive = TRUE)
+print(output_path)
+
+test_that("Don't keep files", {
+  expect_equal(
+    dim(closures_mx),
+    c(10, 6)
+  )
+})
+
+print(list.files(path = output_path), recursive = TRUE)
+
+# Clean up by deleting the test data and figure files
+#unlink(output_path, recursive = TRUE)

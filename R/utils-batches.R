@@ -328,7 +328,7 @@ biomkrAccrualSim <- function(
   )
   # List with one element for each assessment time
   arm_interim_ls <- lapply(
-    seq_len(length(target_times)),
+    seq_along(target_times),
     function(x) {
       structure(
         matrix(
@@ -431,7 +431,7 @@ biomkrAccrualSim <- function(
     )
 
     # Tally arm totals at each interim analysis & planned or actual end
-    for (i in seq_len(length(accrual_instance@target_times))) {
+    for (i in seq_along(accrual_instance@target_times)) {
       arm_interim_ls[[i]][irun, ] <- treat_sums(
         accrual_instance@accrual[
           seq(min(
@@ -494,7 +494,7 @@ biomkrAccrualSim <- function(
       row.names = FALSE
     )
 
-    for (i in seq_len(length(arm_interim_ls))) {
+    for (i in seq_along(arm_interim_ls)) {
       write.csv(
         as.data.frame(arm_interim_ls[[i]]),
         paste0(
@@ -520,7 +520,7 @@ biomkrAccrualSim <- function(
     print(summary(as.data.frame(arm_closures_mx)))
     print("Arm totals")
     print(summary(as.data.frame(arm_totals_mx)))
-    for (i in seq_len(length(target_times))) {
+    for (i in seq_along(target_times)) {
       print(paste0(target_times[i], "mo. accrual:"))
       print(summary(as.data.frame(arm_interim_ls[[i]])))
     }
@@ -545,7 +545,7 @@ biomkrAccrualSim <- function(
 
   # Accrual for all arms at each analysis point
   if (keep_files || !quietly) {
-    for (i in seq_len(length(arm_interim_ls))) {
+    for (i in seq_along(arm_interim_ls)) {
       p <- plot(
         arm_interim_ls[[i]], 
         target = unique(target_expanded_df[, i + 1]), 
@@ -616,7 +616,7 @@ biomkrAccrualSim <- function(
   # Total accrual plots
   # Loop across all arms
   if (keep_files || !quietly) {
-    for (i in seq_len(length(accrual_byarm_ls))) {
+    for (i in seq_along(accrual_byarm_ls)) {
       ## Loop across interim and total
       for (j in seq_len(ncol(target_expanded_df[, -1]))) {
         p <- accrual_arm_plot(
@@ -653,7 +653,7 @@ biomkrAccrualSim <- function(
 
     ## Plot simulations over time for each arm
 
-    for (i in seq_len(length(accrual_byarm_ls))) {
+    for (i in seq_along(accrual_byarm_ls)) {
       target_index <- 2 - as.numeric(treatment_arms[[i]])
       name <- names(accrual_byarm_ls)[[i]]
       p <- plot(
@@ -684,14 +684,14 @@ biomkrAccrualSim <- function(
     }
 
     # Plot time to accrual for each target and each arm
-    for (i in seq_len(length(accrual_byarm_ls))) {
+    for (i in seq_along(accrual_byarm_ls)) {
       # Data extraction for interim and accrual
       accrual_times <- threshold_week(
         accrual_byarm_ls[[i]], 
         unlist(target_expanded_df[i, -1])
       )
 
-      for (j in seq_len(length(target_times))) {
+      for (j in seq_along(target_times)) {
         p <- plot(
           accrual_times[[j]],
           arm_colour = arm_colours[i],

@@ -11,7 +11,9 @@
 #' @slot site_closures Vector of weeks sites closed; NA indicates open
 #' @slot week Current recruitment week
 #' @slot active_arms Vector of indices of open arms
-#' @slot active_sites Vector of indices of open sites
+#' @slot active_sites Vector of indices of open sites (automatically
+#' generated)
+#' @slot closed_sites Vector of indices of closed sites
 #' @slot shared_control TRUE if a shared control arm is being used, else FALSE
 #' @slot fixed_site_rates TRUE if expected site rate to be used; FALSE 
 #' draws the site rate from a gamma distribution
@@ -60,7 +62,6 @@ accrual <- S7::new_class("accrual",
     site_closures = S7::class_integer,
     week = S7::class_integer,
     active_arms = S7::class_integer,
-    active_sites = S7::class_integer,
     shared_control = S7::class_logical,
     fixed_site_rates = S7::class_logical,
     site_in_region = S7::class_integer,
@@ -70,7 +71,15 @@ accrual <- S7::new_class("accrual",
     site_start_week = S7::class_integer,
     site_index = S7::class_integer,
     treatment_arm_ids = S7::class_list,
-    var_lambda = S7::class_double
+    closed_sites = S7::class_integer,
+    active_sites = S7::new_property(
+      getter = function(self) {
+        setdiff(
+          which(self@site_start_week <= self@week),
+          self@closed_sites
+        )
+      }
+    )
   ),
   constructor = function(
     treatment_arm_ids = S7::class_missing,
@@ -124,7 +133,6 @@ accrual <- S7::new_class("accrual",
       ),
       site_closures = rep(NA_integer_, length(unique(centres_df$site))),
       week = as.integer(1),
-
       active_arms = seq(length(treatment_arm_ids) +
         ifelse(
           shared_control,
@@ -132,15 +140,18 @@ accrual <- S7::new_class("accrual",
           length(treatment_arm_ids)
         )
       ),
-      active_sites = seq_along(unique(centres_df$site)),
       fixed_site_rates = fixed_site_rates,
       site_in_region = as.integer(centres_df$region),
       site_cap = as.integer(centres_df$site_cap),
-      site_mean_rate = as.numeric(centres_df$mean_rate),
-      site_rate = NA_real_,
+      site_mean_rate = centres_df$mean_rate,
       site_start_week = as.integer(centres_df$start_week),
       site_index = as.integer(centres_df$site),
-      var_lambda = var_lambda
+      site_rate = set_site_rates(
+        mean_rate = centres_df$mean_rate, 
+        fixed_site_rates = fixed_site_rates, 
+        var_lambda = var_lambda
+      ),
+      closed_sites = NA_integer_
     )
   }
 )
@@ -305,47 +316,35 @@ get_weeks <- function(months) {
 }
 
 
-#' Method to increment site rates by gamma-distributed rates of sites
-#' opening an accrual pathway in the current week.
-#' @param obj An object of type "accrual".
-#' @param ... For R CMD check compatibility.
+#' Generate site rates for each site, drawing from a gamma 
+#' distribution if the rates are not fixed. 
 #' 
-#' @return Modified object with new site rates
+#' @param mean_rate Vector of expected recruitment rates for all sites,
+#' in patients per month (from the centres file). 
+#' @param fixed_site_rates Logical: whether site rates are fixed or 
+#' distributed according to the gamma distribution.
+#' @param var_lambda Variance of the gamma distribution; NULL if 
+#' site rates are fixed.
+#' 
+#' @return Vector of site rates in patients per week.
 #' 
 #' @importFrom stats rgamma
 #' 
-set_site_rates <- S7::new_generic("site_start_rates", "obj")
-S7::method(set_site_rates, accrual) <- function(obj) {
+set_site_rates <- function(mean_rate, fixed_site_rates, var_lambda) {
 
-  # If this is the first time calling this, initialise with rate 0
-  if (any(is.na(obj@site_rate))) {
-    obj@site_rate <- rep(0, dim(obj@accrual)[3])
+  # mean_rate is in recruitment per month, convert to weeks
+  if (fixed_site_rates) {
+    rates <- mean_rate / get_weeks(1)
+  } else {
+    rates <- stats::rgamma(
+      n = length(mean_rate),
+      shape = mean_rate^2 / var_lambda,
+      # Per week not per month
+      rate = mean_rate / var_lambda
+    ) / get_weeks(1)
   }
 
-  indices <- which(obj@site_start_week == obj@week)
-
-  if (length(indices) > 0) {
-
-    # mean_rates are in recruitment per month, convert to weeks
-    if (obj@fixed_site_rates) {
-      rates <- obj@site_mean_rate[indices] / get_weeks(1)
-    } else {
-      rates <- stats::rgamma(
-        n = length(indices),
-        shape = obj@site_mean_rate[indices]^2 / obj@var_lambda,
-        # Per week not per month
-        rate = obj@site_mean_rate[indices] / obj@var_lambda
-      ) / get_weeks(1)
-    }
-
-    # When multiple recruitment sources at a given site, want them
-    # to stack
-    obj@site_rate[obj@site_index[indices]] <- 
-      obj@site_rate[obj@site_index[indices]] + rates
-
-  }
-
-  return(obj)
+  return(rates)
 }
 
 
@@ -494,20 +493,12 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     
     # Update active_arms
     accrual_obj@active_arms <- setdiff(accrual_obj@active_arms, active_tocap)
-    
-    if (ncol(struct_obj@treatment_arm_struct) > 5) {
-      print(c("Cols:", ncol(struct_obj@treatment_arm_struct)))
-    }
 
     # Also on the trial structure object
     struct_obj <- remove_treat_arms(
       struct_obj, 
       arms = active_tocap[active_tocap <= ncol(struct_obj@treatment_arm_struct)]
     )
-
-    if (ncol(struct_obj@treatment_arm_struct) > 5) {
-      print(c("Cols post remove:", ncol(struct_obj@treatment_arm_struct)))
-    }
 
     # Recheck site caps
     site_captotal <- site_sums(accrual_obj) - accrual_obj@site_cap
@@ -518,11 +509,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
       accrual_obj@week
 
     # Update active sites(accrual_obj)
-    accrual_obj@active_sites <- which(site_captotal < 0)
-
-    if (ncol(struct_obj@treatment_arm_struct) > 5) {
-      print(c("Cols after capping:", ncol(struct_obj@treatment_arm_struct)))
-    }
+    accrual_obj@closed_sites <- which(site_captotal >= 0)
 
     return(list(accrual_obj, struct_obj)) 
   }
@@ -542,7 +529,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
   function(accrual_obj, struct_obj) {
 
     # Update the site rates
-    accrual_obj <- set_site_rates(accrual_obj)
+    #accrual_obj <- set_site_rates(accrual_obj)
 
     # Initialising (sites * experimental arms)
     week_mx <- matrix(
@@ -579,7 +566,7 @@ S7::method(week_accrue, list(accrual, trial_structure)) <-
           n = length(lambda_prev_mx), 
           lambda = lambda_prev_mx
         ), 
-        ncol = 2
+        ncol = length(accrual_obj@active_sites)
       )
 
     return(list(accrual_obj, week_mx))

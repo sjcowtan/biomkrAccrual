@@ -48,7 +48,7 @@ fixed_acc_obj <- accrual(
   target_times = as.integer(c(6, 12)),
   control_ratio = c(1, 1),
   fixed_site_rates = TRUE,
-  var_lambda = 0.25,
+  var_lambda = NULL,
   centres_df = data.frame(
     site = 1:2,
     start_month = c(1, 2),
@@ -180,10 +180,13 @@ test_that("do_choose_cap: does not cap when unnecessary", {
 
 set.seed(123)
 
-rates <- set_site_rates(fixed_acc_obj)
-
+site_rates <- set_site_rates(
+  fixed_acc_obj@site_mean_rate, 
+  fixed_site_rates = TRUE,
+  var_lambda = NULL
+) 
 test_that("set_site_rates: fixed site rate is correct", {
-  expect_equal(rates@site_rate, c(2.5, 0), tolerance = 1e-6)
+  expect_equal(site_rates, c(2.5, 4.5), tolerance = 1e-6)
 })
 
 
@@ -211,10 +214,14 @@ variable_acc_obj <- accrual(
 
 set.seed(123)
 
-rates <- set_site_rates(variable_acc_obj)
+site_rates <- set_site_rates(
+  variable_acc_obj@site_mean_rate, 
+  fixed_site_rates = FALSE,
+  var_lambda = 0.25
+) 
 
 test_that("set_site_rates: variable site rate is correct", {
-  expect_equal(rates@site_rate, c(2.427350, 0.0), tolerance = 1e-6)
+  expect_equal(site_rates, c(2.427350, 4.648241), tolerance = 1e-6)
 })
 
 
@@ -236,7 +243,7 @@ ts_obj <- trial_structure(
     mean_rate = c(10, 18),
     region = c(1, 1),
     site_cap = c(40, 20),
-    start_week = c(1, 4)
+    start_week = c(1, 5)
   ),
   precision = 10,
   shared_control = TRUE,
@@ -269,12 +276,20 @@ test_that("week_accrue: second output is a valid accrual matrix", {
 test_that("week_accrue: accrual values as expected", {
   expect_equal(
     as.vector(wa_out_ls[[2]]),
-    c(2, 2, 0, 0, 0, 0)
+    c(0, 1, 1, 0, 0, 0)
   )
 })
 
 test_that("week_accrue: variable site rate is correct", {
-  expect_equal(wa_out_ls[[1]]@site_rate, c(2.427350, 0.0), tolerance = 1e-6)
+  expect_equal(
+    wa_out_ls[[1]]@site_rate, 
+    c(2.427350, 4.648241), 
+    tolerance = 1e-6
+  )
+})
+
+test_that("week_accrue: active sites is correct", {
+  expect_equal(wa_out_ls[[1]]@active_sites, 1)
 })
 
 
@@ -314,16 +329,20 @@ test_that("accrue_week: recruitment totals are a 3D integer array", {
 test_that("accrue_week: recruitment totals are correct", {
   expect_equal(
     as.vector(aw_out_ls[[1]]@accrual), 
-    c(2, rep(0, 11), 2, rep(0, 59))
+    c(rep(0, 12), 1, rep(0, 11), 1, rep(0, 47))
   )
 })
 
 test_that("accrue_week: variable site rate is correct", {
   expect_equal(
     aw_out_ls[[1]]@site_rate, 
-    c(2.427350, 0.0), 
+    c(2.427350, 4.648241), 
     tolerance = 1e-6
   )
+})
+
+test_that("accrue_week: active sites is correct", {
+  expect_equal(aw_out_ls[[1]]@active_sites, 1)
 })
 
 test_that("accrue_week: trial structure correct (no capping)", {
@@ -339,7 +358,7 @@ test_that("accrue_week: trial structure correct (no capping)", {
 test_that("site_sums: site totals are correct", {
   expect_equal(
     as.vector(site_sums(aw_out_ls[[1]])),
-    c(4, 0)
+    c(2, 0)
   )
 })
 

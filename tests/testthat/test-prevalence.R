@@ -140,6 +140,22 @@ test_that("Prevalence sets sum to 1", {
   )
 })
 
+recruit_arm_prevalence_out <- 
+  get_recruit_arm_prevalence(
+    props_df, 
+    centres_df, 
+    10, 
+    FALSE
+  )
+
+test_that("Varying region prevalences are not fixed", {
+  expect_false(isTRUE(all.equal(
+    recruit_arm_prevalence_out[1, 1],
+    recruit_arm_prevalence_out[1, 2],
+    tolerance = 0.0000001
+  )))
+})
+
 
 ### Testing constructor trial_structure()
 

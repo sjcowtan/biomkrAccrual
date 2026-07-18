@@ -2,20 +2,25 @@
 % Please edit documentation in R/recruit.R
 \name{set_site_rates}
 \alias{set_site_rates}
-\title{Method to increment site rates by gamma-distributed rates of sites
-opening an accrual pathway in the current week.}
+\title{Generate site rates for each site, drawing from a gamma
+distribution if the rates are not fixed.}
 \usage{
-set_site_rates(obj, ...)
+set_site_rates(mean_rate, fixed_site_rates, var_lambda)
 }
 \arguments{
-\item{obj}{An object of type "accrual".}
+\item{mean_rate}{Vector of expected recruitment rates for all sites,
+in patients per month (from the centres file).}
 
-\item{...}{For R CMD check compatibility.}
+\item{fixed_site_rates}{Logical: whether site rates are fixed or
+distributed according to the gamma distribution.}
+
+\item{var_lambda}{Variance of the gamma distribution; NULL if
+site rates are fixed.}
 }
 \value{
-Modified object with new site rates
+Vector of site rates in patients per week.
 }
 \description{
-Method to increment site rates by gamma-distributed rates of sites
-opening an accrual pathway in the current week.
+Generate site rates for each site, drawing from a gamma
+distribution if the rates are not fixed.
 }

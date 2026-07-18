@@ -159,7 +159,6 @@ p1 <- plot(
   shared_control = TRUE,
   target_times = c(6, 12)
 )
-print(names(p))
 
 test_that("plot.accrualplotdata: S3 dispatch works", {
   expect_identical(

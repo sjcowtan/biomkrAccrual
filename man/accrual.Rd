@@ -56,7 +56,10 @@ progress assessments (weeks).}
 
 \item{\code{active_arms}}{Vector of indices of open arms}
 
-\item{\code{active_sites}}{Vector of indices of open sites}
+\item{\code{active_sites}}{Vector of indices of open sites (automatically
+generated)}
+
+\item{\code{closed_sites}}{Vector of indices of closed sites}
 
 \item{\code{shared_control}}{TRUE if a shared control arm is being used, else FALSE}
 
