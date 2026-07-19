@@ -140,6 +140,22 @@ test_that("Prevalence sets sum to 1", {
   )
 })
 
+recruit_arm_prevalence_out <- 
+  get_recruit_arm_prevalence(
+    props_df, 
+    centres_df, 
+    10, 
+    FALSE
+  )
+
+test_that("Varying region prevalences are not fixed", {
+  expect_false(isTRUE(all.equal(
+    recruit_arm_prevalence_out[1, 1],
+    recruit_arm_prevalence_out[1, 2],
+    tolerance = 0.0000001
+  )))
+})
+
 
 ### Testing constructor trial_structure()
 
@@ -232,7 +248,11 @@ test_that("recruit_arm_prevalence has changed for arm 2", {
 ### Testing get_array_prevalence
 
 arm_struct_mx <- matrix(
-  c(F, T, T, F, T, F, T, F, T, F, T, F),
+  c(
+    FALSE, TRUE, TRUE, FALSE, 
+    TRUE, FALSE, TRUE, FALSE, 
+    TRUE, FALSE, TRUE, FALSE
+  ),
   nrow = 3
 )
 
@@ -246,6 +266,8 @@ rec_arm_prev <- matrix(
 
 control_ratio <- c(0.75, 0.25)
 
+## For separate controls
+
 arm_prev_ar <- get_array_prevalence(
   arm_struct_mx, 
   rec_arm_prev, 
@@ -253,7 +275,7 @@ arm_prev_ar <- get_array_prevalence(
   control_ratio
 )
 
-test_that("Dimensions of prevalence array are correct", {
+test_that("Separate control: dimensions of prevalence array are correct", {
   expect_equal(
     dim(arm_prev_ar), 
     c(
@@ -264,22 +286,54 @@ test_that("Dimensions of prevalence array are correct", {
   )
 })
 
-test_that("Total recruitment percentages are correct for centre 2", {
+test_that("Separate controls: prevalences for each region sum to 1", {
   expect_equal(
-    rowSums(arm_prev_ar[, , 2]),
-    rec_arm_prev[, 2], 
-    tolerance = 1e-6
+    colSums(arm_prev_ar, dims = 2),
+    rep(1, ncol(rec_arm_prev))
   )
 })
 
-test_that("Control ratio is correct for centre 2", {
+test_that("Separate control prevalences correct for control ratio", {
   expect_equal(
-    arm_prev_ar[, seq_len(ncol(arm_struct_mx)), 2] / control_ratio[1],
-    arm_prev_ar[
-      , 
-      seq(ncol(arm_struct_mx) + 1, length.out = ncol(arm_struct_mx)),
-      2
-    ] / control_ratio[2],
-    tolerance = 1e-6
+    arm_prev_ar[, seq_len(ncol(arm_struct_mx)), ] / control_ratio[1],
+    arm_prev_ar[, seq_len(ncol(arm_struct_mx)) + ncol(arm_struct_mx), ] / 
+      control_ratio[2]
+  )
+})
+
+## For shared control
+
+arm_prev_ar <- get_array_prevalence(
+  arm_struct_mx, 
+  rec_arm_prev, 
+  shared_control = TRUE,
+  control_ratio
+)
+
+test_that("Shared control: dimensions of prevalence array are correct", {
+  expect_equal(
+    dim(arm_prev_ar), 
+    c(
+      nrow(arm_struct_mx), 
+      ncol(arm_struct_mx) + 1, 
+      ncol(rec_arm_prev)
+    )
+  )
+})
+
+test_that("Shared control: prevalences for each region sum to 1", {
+  expect_equal(
+    colSums(arm_prev_ar, dims = 2),
+    rep(1, ncol(rec_arm_prev))
+  )
+})
+
+test_that("Shared control totals correct for control ratio", {
+  expect_equal(
+    colSums(aperm(
+      arm_prev_ar[, seq_len(ncol(arm_struct_mx)), ], 
+      c(2, 1, 3)
+    ), dims = 1) / control_ratio[1],
+    arm_prev_ar[, ncol(arm_struct_mx) + 1, ] / control_ratio[2]
   )
 })

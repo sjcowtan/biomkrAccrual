@@ -4,7 +4,9 @@ output_path <- "../test_biomkrAccrual_output_data/"
 
 bma_out <- biomkrAccrual(
   var_lambda = 0.25,
+  fixed_site_rates = FALSE,
   precision = 10,
+  fixed_region_prevalences = FALSE,
   quietly = TRUE, 
   output_path = output_path
 )
@@ -69,6 +71,13 @@ bma_out <- biomkrAccrual(
   output_path = output_path
 )
 
+test_that("Separate control works", {
+  expect_equal(
+    dim(bma_out@accrual),
+    c(20, 10, 30)
+  )
+})
+
 ## Testing fixed site rates
 
 bma_out <- biomkrAccrual(
@@ -77,4 +86,18 @@ bma_out <- biomkrAccrual(
   quietly = TRUE, 
   output_path = output_path
 )
+
+test_that("Fixed site rates are fixed", {
+  expect_equal(
+    bma_out@site_rate,
+    bma_out@site_mean_rate / get_weeks(1)
+  )
+}) 
+
+test_that("Fixed site rates work", {
+  expect_equal(
+    dim(bma_out@accrual),
+    c(21, 6, 30)
+  )
+})
 
