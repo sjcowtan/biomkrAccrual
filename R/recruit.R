@@ -407,7 +407,7 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
     
     # Get totals for experimental arms (dropping control)
     arm_sums <- 
-      #treat_sums(accrual_obj)[seq_len(length(accrual_obj@phase_changes))]
+      #treat_sums(accrual_obj)[seq_along(accrual_obj@phase_changes)]
       treat_sums(accrual_obj)
   
     # Compare with cap
@@ -487,9 +487,11 @@ S7::method(apply_arm_cap, list(accrual, trial_structure)) <-
       }
     } 
 
-    # Record closing week for capped arms
-    accrual_obj@phase_changes[active_tocap] <- 
-      accrual_obj@week
+    # Record closing week for new capped arms only
+    accrual_obj@phase_changes[setdiff(
+      active_tocap, 
+      which(!is.na(accrual_obj@phase_changes))
+    )] <- accrual_obj@week
     
     # Update active_arms
     accrual_obj@active_arms <- setdiff(accrual_obj@active_arms, active_tocap)
