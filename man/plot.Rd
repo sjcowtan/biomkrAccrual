@@ -21,6 +21,9 @@ execution using a date-time format \code{yyyy-mm-dd-hh-mm-ss}.}
 will be stored; defaults to the \code{figures} subdirectory in
 \code{output_path}.}
 
+\item{plot}{Logical variable; defaults to TRUE to display plot.
+FALSE returns the plot without displaying it.}
+
 \item{x}{An object of class \code{trial_structure}.}
 
 \item{...}{Not used.}

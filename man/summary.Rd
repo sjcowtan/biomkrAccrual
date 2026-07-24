@@ -19,6 +19,9 @@ getOption("digits"). (For the interpretation for
 complex numbers see signif.) Non-integer values
 will be rounded down, and only values greater than
 or equal to 1 and no greater than 22 are accepted.}
+
+\item{quietly}{Logical; TRUE suppresses output.
+Defaults to FALSE.}
 }
 \description{
 Summary of predicted accrual.

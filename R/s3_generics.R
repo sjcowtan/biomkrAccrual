@@ -47,7 +47,7 @@ S7::method(summary, accrual) <- function(object, ...) {
   # Summary of phase change weeks
   cat("\nExperimental arm closure weeks\n")
   acw <- as.vector(object@phase_changes)
-  names(acw) <- dimnames(object@accrual)$Arms[seq_len(length(acw))]
+  names(acw) <- dimnames(object@accrual)$Arms[seq_along(acw)]
   print(acw)
 
   # Summary of accrual totals by arm
@@ -74,7 +74,8 @@ S7::method(summary, accrual) <- function(object, ...) {
 #' @param figs_path Folder where figures generated during execution
 #' will be stored; defaults to the `figures` subdirectory in
 #' `output_path`.
-#' 
+#' @param plot Logical variable; defaults to TRUE to display plot. 
+#' FALSE returns the plot without displaying it. 
 #' @export
 #' 
 S7::new_generic("plot", "accrual")
@@ -84,7 +85,8 @@ S7::method(plot, accrual) <- function(
   plot_prefix = "accrual_plot",
   run_time = "2024-08-07-18-35-09",
   output_path = "../biomkrAccrual_output_data/",
-  figs_path = paste0(output_path, "figures/")
+  figs_path = paste0(output_path, "figures/"),
+  plot = TRUE
 ) {
   accrual_ar <- x@accrual
 
@@ -95,7 +97,7 @@ S7::method(plot, accrual) <- function(
   accrual_df <- accrual_to_long(accrual_df)
 
   # Plot and save plot in figs_path
-  plot(
+  p <- plot(
     accrual_df, 
     plot_prefix = plot_prefix,
     run_time = run_time,
@@ -103,6 +105,11 @@ S7::method(plot, accrual) <- function(
     target_df = x@target_df,
     target_times = x@target_times
   )
+  if (plot) {
+    print(p)
+  }
+
+  return(p)
 }
 
 
@@ -217,6 +224,8 @@ S7::method(plot, trial_structure) <- function(x, ...) {
 #' complex numbers see signif.) Non-integer values 
 #' will be rounded down, and only values greater than 
 #' or equal to 1 and no greater than 22 are accepted.
+#' @param quietly Logical; TRUE suppresses output. 
+#' Defaults to FALSE.
 #' 
 #' @importFrom S7 new_generic method
 #' @importFrom withr with_options
@@ -228,10 +237,9 @@ S7::method(summary, trial_structure) <-
   function(
     object,
     ...,
-    digits = max(3L, getOption("digits") - 3L)
+    digits = max(3L, getOption("digits") - 3L),
+    quietly = FALSE
   ) {
-
-    summary_ls <- vector(mode = "list", length = 1)
 
     # Site prevalences by recruitment arm
 
@@ -241,10 +249,12 @@ S7::method(summary, trial_structure) <-
     )
     colnames(orig_prev_df) <- paste("Site", seq_len(ncol(orig_prev_df)))
 
-    summary_ls$site_prev <- withr::with_options(
-      list(scipen = 10),
-      print(round(orig_prev_df, digits = digits), ...)
-    )
-
-    summary_ls
+    if (!quietly) {
+      summary_out <- withr::with_options(
+        list(scipen = 10),
+        print(round(orig_prev_df, digits = digits), ...)
+      )
+    }
+    
+    return(round(orig_prev_df, digits = digits))
   }
