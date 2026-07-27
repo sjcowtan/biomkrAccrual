@@ -474,8 +474,10 @@ S7::method(remove_treat_arms, trial_structure) <- function(
   # Set prevalence to 0 for any recruitment arms which now have no
   # experimental arms to recruit to
   no_exp_arms <- rowSums(structure_obj@treatment_arm_struct) < 1
-  structure_obj@recruit_arm_prevalence[no_exp_arms, ] <- 0
-
+  if (length(no_exp_arms) > 0) {
+    structure_obj@recruit_arm_prevalence[no_exp_arms, ] <- 0
+  }
+  
   return(structure_obj)
 }
 
