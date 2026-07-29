@@ -298,6 +298,14 @@ biomkrAccrual <- function(
     ))
   }
 
+  # Fail if arms file and proportions file are inconsistent
+  if (length(unique(unlist(arms_ls))) != nrow(prop_params_df)) {
+    rlang::abort(paste(
+      "Configuration error: number of biomarkers in arms_file",
+      "is not the same as in prop_file"
+    ))
+  }
+
   # Fail if target_file is in wrong format
   if (!(
     isTRUE(all(
